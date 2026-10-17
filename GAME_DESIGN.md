@@ -236,10 +236,15 @@ Each phase ends with a playable or testable result. Build with gray boxes (plain
 - **Done when:** an empty `Game` scene opens and the project is on Git.
 
 ### Phase 1 — Core Movement (gray box)
-- [ ] `InputReader` (keyboard first)
-- [ ] `PlayerController`: auto-run, variable jump, ground check, coyote time, jump buffer
-- [ ] Cinemachine camera follow
-- [ ] A test strip with gaps
+- [x] `InputReader` (keyboard first)
+- [x] `PlayerController`: auto-run, variable jump, ground check, coyote time, jump buffer
+- [x] Cinemachine camera follow
+- [x] A test strip with gaps (`Scenes/Sandbox_Movement`)
+
+Measured (deterministic physics test, defaults: run 6 u/s, jump height 3.2, gravity scale 4, fall ×1.4):
+full-hold apex 3.04u / airtime 0.76s / distance 4.56u · quick tap apex 0.72u · coyote ≈0.08s · jump buffer 0.10s ·
+all test gaps (2–4u wide, rises up to +1.5u) clearable. Practical max flat gap ≈ 4.5u at 6 u/s. Remember to re-check
+gap widths when run speed rises in later levels (distance scales with speed).
 - **Done when:** jumping across gaps feels good on keyboard.
 
 ### Phase 2 — Math Engine (no visuals)
