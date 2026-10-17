@@ -28,14 +28,12 @@ namespace MathRunner.Tests.PlayMode
         public int TimesReached { get; } // 1 on the first approach, 2 after a respawn, ...
     }
 
-    // Plays the loaded level through InputReader. Call BeforeFrame(), advance one frame, then AfterFrame().
+    // Plays the loaded level through InputReader: picks answers (as if tapping a button) and jumps hazards.
+    // Call BeforeFrame(), advance one frame, then AfterFrame().
     public sealed class LevelBot : IDisposable
     {
-        private const int PlatformHoldFrames = 22;
         private const int GapHoldFrames = 22;
         private const int SpikeHoldFrames = 5;
-        // Seconds from take-off to landing on a 1.4u answer platform with a held jump; distance = run speed × this.
-        private const float AirTimeToPlatform = 0.65f;
         private const float SpikeLeadTime = 0.27f;
         private const float GapLeadTime = 0.1f;
 
@@ -48,9 +46,9 @@ namespace MathRunner.Tests.PlayMode
 
         private readonly PlayerController _player;
         private readonly InputReader _input;
-        private readonly QuestionZone[] _zones;
         private readonly List<HazardState> _hazards = new List<HazardState>();
-        private int _pendingTarget = -1;
+        private int _pendingPick = -1;
+        private float _shownAt;
         private int _holdLeft;
         private float _lastX;
 
@@ -58,7 +56,6 @@ namespace MathRunner.Tests.PlayMode
         {
             _player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             _input = UnityEngine.Object.FindFirstObjectByType<InputReader>();
-            _zones = UnityEngine.Object.FindObjectsByType<QuestionZone>(FindObjectsSortMode.None).OrderBy(z => z.transform.position.x).ToArray();
             _lastX = _player.transform.position.x;
 
             foreach (var o in UnityEngine.Object.FindObjectsByType<Obstacle>(FindObjectsSortMode.None))
@@ -81,6 +78,11 @@ namespace MathRunner.Tests.PlayMode
 
         public Func<int, AnswerPlan> AnswerPlanFor { get; set; } = _ => AnswerPlan.Correct;
         public Func<Hazard, bool> ShouldJump { get; set; } = _ => true;
+        // Seconds to wait after a question appears before picking. 0 = pick straight away (full speed bonus).
+        public float PickDelaySeconds { get; set; }
+        // Optional: choose the platform index directly (question number, question) → index, or -1 for no pick.
+        // Overrides AnswerPlanFor when set.
+        public Func<int, MathQuestion, int> PickFor { get; set; }
         public List<QuestionResult> Results { get; } = new List<QuestionResult>();
         public List<HitCause> Hits { get; } = new List<HitCause>();
         public int QuestionsShown { get; private set; }
@@ -92,18 +94,10 @@ namespace MathRunner.Tests.PlayMode
             float speed = _player.RunSpeed;
             if (x < _lastX - 1f) Respawned = true;
 
-            if (_holdLeft == 0 && _pendingTarget >= 0)
+            if (_pendingPick >= 0 && Time.time - _shownAt >= PickDelaySeconds)
             {
-                var zone = _zones.LastOrDefault(z => z.transform.position.x <= x + 2f);
-                if (zone != null)
-                {
-                    var platforms = zone.GetComponentsInChildren<AnswerPlatform>().OrderBy(p => p.transform.position.x).ToArray();
-                    if (x >= platforms[_pendingTarget].transform.position.x - speed * AirTimeToPlatform)
-                    {
-                        Press(PlatformHoldFrames);
-                        _pendingTarget = -1;
-                    }
-                }
+                _input.NotifyAnswerChosen(_pendingPick);
+                _pendingPick = -1;
             }
 
             foreach (var h in _hazards)
@@ -111,7 +105,7 @@ namespace MathRunner.Tests.PlayMode
                 float trigger = h.X - speed * (h.Kind == HazardKind.Spike ? SpikeLeadTime : GapLeadTime);
                 if (!(_lastX < trigger && x >= trigger)) continue;
                 h.Reached++;
-                bool canPress = _holdLeft == 0 && _pendingTarget < 0 && _player.IsGrounded;
+                bool canPress = _holdLeft == 0 && _player.IsGrounded;
                 if (canPress && ShouldJump(new Hazard(h.Kind, h.X, h.Reached)))
                     Press(h.Kind == HazardKind.Spike ? SpikeHoldFrames : GapHoldFrames);
             }
@@ -140,10 +134,16 @@ namespace MathRunner.Tests.PlayMode
 
         private void OnQuestionShown(MathQuestion question, float timeLimit)
         {
-            var plan = AnswerPlanFor(QuestionsShown);
-            QuestionsShown++;
+            int number = QuestionsShown++;
+            _shownAt = Time.time;
+            if (PickFor != null)
+            {
+                _pendingPick = PickFor(number, question);
+                return;
+            }
+            var plan = AnswerPlanFor(number);
             int count = question.Choices.Count;
-            _pendingTarget = plan == AnswerPlan.Correct ? question.CorrectIndex
+            _pendingPick = plan == AnswerPlan.Correct ? question.CorrectIndex
                 : plan == AnswerPlan.Wrong ? (question.CorrectIndex + 1) % count
                 : -1;
         }

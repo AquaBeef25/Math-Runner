@@ -9,6 +9,7 @@ namespace MathRunner.Level
         public float TimedRatio;
         public float TimeLimit;
         public float UntimedLeadSeconds;
+        // Seconds of a Question Zone after its decision line: landing air time + platform span.
         public float ZoneSpanSeconds;
         public int HazardsBetweenQuestions;
         public float GapChance;

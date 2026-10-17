@@ -1,34 +1,40 @@
 using System;
 using System.Collections.Generic;
+using MathRunner.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace MathRunner.Input
 {
-    // Jump: Space/W/Up, or a click/tap anywhere that isn't on a UI button. Pause: Esc/P.
+    // Jump: Space/W/Up, or a click/tap anywhere that isn't on a UI button. Answer: 1/2/3 (or the answer buttons). Pause: Esc/P.
     public class InputReader : MonoBehaviour
     {
+        private const int AnswerKeyCount = 3;
+
         public event Action JumpPressed;
         public event Action JumpReleased;
         public event Action PausePressed;
 
         public bool JumpHeld { get; private set; }
 
-        public bool JumpEnabled
+        // Off while paused or after the level ends: jumps and answers are ignored.
+        public bool ControlsEnabled
         {
-            get => _jumpEnabled;
+            get => _controlsEnabled;
             set
             {
-                _jumpEnabled = value;
+                _controlsEnabled = value;
                 if (!value && JumpHeld) NotifyJumpReleased();
             }
         }
 
         private readonly List<RaycastResult> _uiHits = new List<RaycastResult>();
+        private readonly InputAction[] _answerKeys = new InputAction[AnswerKeyCount];
+        private readonly Action<InputAction.CallbackContext>[] _answerHandlers = new Action<InputAction.CallbackContext>[AnswerKeyCount];
         private InputAction _keyboardJump;
         private InputAction _pause;
-        private bool _jumpEnabled = true;
+        private bool _controlsEnabled = true;
         private bool _pointerJumping;
 
         private void Awake()
@@ -41,6 +47,15 @@ namespace MathRunner.Input
             _pause = new InputAction("Pause", InputActionType.Button);
             _pause.AddBinding("<Keyboard>/escape");
             _pause.AddBinding("<Keyboard>/p");
+
+            for (int i = 0; i < AnswerKeyCount; i++)
+            {
+                int index = i;
+                _answerKeys[i] = new InputAction("Answer" + (i + 1), InputActionType.Button);
+                _answerKeys[i].AddBinding("<Keyboard>/" + (i + 1));
+                _answerKeys[i].AddBinding("<Keyboard>/numpad" + (i + 1));
+                _answerHandlers[i] = _ => NotifyAnswerChosen(index);
+            }
         }
 
         private void OnEnable()
@@ -50,6 +65,11 @@ namespace MathRunner.Input
             _pause.performed += OnPausePerformed;
             _keyboardJump.Enable();
             _pause.Enable();
+            for (int i = 0; i < AnswerKeyCount; i++)
+            {
+                _answerKeys[i].performed += _answerHandlers[i];
+                _answerKeys[i].Enable();
+            }
         }
 
         private void OnDisable()
@@ -59,6 +79,11 @@ namespace MathRunner.Input
             _pause.performed -= OnPausePerformed;
             _keyboardJump.Disable();
             _pause.Disable();
+            for (int i = 0; i < AnswerKeyCount; i++)
+            {
+                _answerKeys[i].performed -= _answerHandlers[i];
+                _answerKeys[i].Disable();
+            }
             JumpHeld = false;
             _pointerJumping = false;
         }
@@ -67,6 +92,13 @@ namespace MathRunner.Input
         {
             _keyboardJump.Dispose();
             _pause.Dispose();
+            foreach (var a in _answerKeys) a.Dispose();
+        }
+
+        public void NotifyAnswerChosen(int choiceIndex)
+        {
+            if (!_controlsEnabled) return;
+            GameEvents.RaiseAnswerChosen(choiceIndex);
         }
 
         // Pointer is polled here rather than bound to an action so a tap can be checked against the UI first.
@@ -89,7 +121,7 @@ namespace MathRunner.Input
 
         public void NotifyJumpPressed()
         {
-            if (!_jumpEnabled) return;
+            if (!_controlsEnabled) return;
             JumpHeld = true;
             JumpPressed?.Invoke();
         }

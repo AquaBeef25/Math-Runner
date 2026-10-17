@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MathRunner.Level
 {
-    // One-way platform showing an answer. Landing on it from above reports the choice to its Question Zone.
+    // Platform showing an answer. It is not solid until the player picks it; landing on it then resolves the question.
     [RequireComponent(typeof(BoxCollider2D))]
     public class AnswerPlatform : MonoBehaviour
     {
@@ -16,6 +16,7 @@ namespace MathRunner.Level
 
         [Header("Feedback")]
         [SerializeField] private Color _idleColor = new Color(1f, 0.78f, 0.25f);
+        [SerializeField] private Color _chosenColor = new Color(1f, 0.95f, 0.6f);
         [SerializeField] private Color _correctColor = new Color(0.3f, 0.85f, 0.4f);
         [SerializeField] private Color _wrongColor = new Color(0.9f, 0.3f, 0.3f);
         [SerializeField] private float _crumbleDelay = 0.15f;
@@ -27,10 +28,12 @@ namespace MathRunner.Level
         private int _index;
         private State _state;
         private float _stateTime;
+        private bool _chosen;
 
         private void Awake()
         {
             _col = GetComponent<BoxCollider2D>();
+            _col.enabled = false;
             _body.color = _idleColor;
             _label.text = "?";
         }
@@ -53,6 +56,14 @@ namespace MathRunner.Level
         {
             _label.text = value.ToString();
             _state = State.Armed;
+        }
+
+        public void Choose()
+        {
+            _chosen = true;
+            _col.enabled = true;
+            _body.color = _chosenColor;
+            _label.transform.localScale = Vector3.one * 1.2f;
         }
 
         public void MarkCorrect() => Enter(State.Correct, _correctColor);
@@ -112,7 +123,7 @@ namespace MathRunner.Level
 
         private void TryLand(Collision2D collision)
         {
-            if (_state != State.Armed) return;
+            if (_state != State.Armed || !_chosen) return;
             if (!collision.collider.TryGetComponent(out PlayerController _)) return;
             // Jumping up through a one-way platform also touches it; only a player on top and not rising has landed.
             if (collision.collider.bounds.min.y < _col.bounds.max.y - 0.1f) return;

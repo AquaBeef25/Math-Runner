@@ -37,7 +37,8 @@ namespace MathRunner.Systems
             int delta = 0;
             if (result.Outcome == AnswerOutcome.Correct)
             {
-                delta = ScoreCalculator.PointsForCorrect(_director.Level, Streak, result.TimeLimit > 0f, _basePoints, _timedBonus, _streakStep);
+                float speed = result.TimeLimit > 0f ? result.TimeRemainingFraction : 0f;
+                delta = ScoreCalculator.PointsForCorrect(_director.Level, Streak, speed, _basePoints, _timedBonus, _streakStep);
                 Score += delta;
                 Streak++;
                 CorrectCount++;

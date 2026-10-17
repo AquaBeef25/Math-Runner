@@ -33,7 +33,8 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 ## Architecture Notes
 - `QuestionGenerator`, `DistractorGenerator`, and `DifficultyTracker` are **pure C# classes** (not MonoBehaviours). They take a `System.Random` so results can be reproduced, and they are covered by EditMode tests in `Assets/_Project/Tests/EditMode/`.
 - Math answers are **whole numbers and never negative** (unless GAME_DESIGN.md §6 decides otherwise).
-- Answer platform distance = `runSpeed × timeLimit`, so the timer and the physical layout always match.
+- Distance from a Question Zone's trigger to its decision line = `runSpeed × timeLimit`, so the countdown and the physical layout always match. The platforms start `landing air time × runSpeed` after the decision line (`JumpMath`, ~0.65 s).
+- Answering is tap-to-answer: `AnswerButtons` / keys 1–3 → `InputReader.NotifyAnswerChosen` → `GameEvents.AnswerChosen` → the active `QuestionZone` accepts only the first pick (`AnswerLocked`), makes that platform solid and calls `PlayerController.QueueAutoJump`. While a question is open the player is on autopilot (manual jumps ignored), so never put hazards inside a Question Zone. Tests pick answers with `LevelBot` (`AnswerPlanFor`, `PickFor`, `PickDelaySeconds`).
 - One `Game` scene loads a `LevelConfig`. Levels are built from chunk prefabs.
 
 ## Useful Claude Skills (Unity plugin)
@@ -41,7 +42,8 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 
 ## Current Progress
 <!-- Update this as phases finish -->
-- **IMPROVEMENT_PLAN Stage A done** → next: **Stage B — look & feel** (waiting on Kenney art packs)
+- **IMPROVEMENT_PLAN Stage A done** (incl. A6 tap-to-answer) → next: **Stage B — look & feel** (art source not decided yet: Kenney packs or the Lost Crypt art)
+- Still to check by hand (Unity can't simulate input while unfocused): keys 1/2/3 and clicking the answer buttons in the Game view, and that the buttons don't cover the runner or platforms on a phone-shaped Game view.
 - Scene flow: `MainMenu` (build index 0) → `LevelSelect` → `Game`, via `SceneFlow`. Sandboxes stay in Build Settings for tests. `GameManager.Restart` reloads by build index, so any playable scene must be in Build Settings.
 - Progress: `SaveSystem` writes JSON to `Application.persistentDataPath/save.json`. Tests must call `SaveSystem.UseFile(tempPath)` in SetUp and `UseFile(null)` in TearDown so they never touch the real save.
 - Every scene's EventSystem uses `InputSystemUIInputModule` with `Assets/InputSystem_Actions.inputactions` (UI map). Don't use `AssignDefaultActions()` in build scripts: its temporary asset isn't saved with the scene.

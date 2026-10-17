@@ -35,7 +35,8 @@ namespace MathRunner.Level
             _director.Configure(config);
             _player.RunSpeed = config.RunSpeed;
 
-            var settings = LevelPlanSettings.From(config, _zonePrefab.PlatformSpanSeconds);
+            float airTime = _player.AirTimeToLandOn(_zonePrefab.PlatformTop);
+            var settings = LevelPlanSettings.From(config, airTime + _zonePrefab.PlatformSpanSeconds);
             Plan = LevelPlanner.Create(settings);
             var root = transform;
 
@@ -49,7 +50,7 @@ namespace MathRunner.Level
             foreach (var zonePlan in Plan.Zones)
             {
                 var zone = Instantiate(_zonePrefab, new Vector3(zonePlan.X, 0f, 0f), Quaternion.identity, root);
-                zone.Configure(config.RunSpeed, zonePlan.Timed ? config.TimeLimit : 0f, zonePlan.Lead);
+                zone.Configure(config.RunSpeed, zonePlan.Timed ? config.TimeLimit : 0f, zonePlan.Lead, airTime);
                 zone.SetDirector(_director);
             }
 

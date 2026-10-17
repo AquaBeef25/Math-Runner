@@ -60,7 +60,7 @@ namespace MathRunner.Core
         {
             State = state;
             Time.timeScale = state == GameState.Playing ? 1f : 0f;
-            _input.JumpEnabled = state == GameState.Playing;
+            _input.ControlsEnabled = state == GameState.Playing;
             GameEvents.RaiseGameStateChanged(state);
         }
     }

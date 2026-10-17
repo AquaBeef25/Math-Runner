@@ -35,12 +35,14 @@ namespace MathRunner.UI
         private void OnEnable()
         {
             GameEvents.QuestionShown += OnQuestionShown;
+            GameEvents.AnswerLocked += OnAnswerLocked;
             GameEvents.QuestionResolved += OnQuestionResolved;
         }
 
         private void OnDisable()
         {
             GameEvents.QuestionShown -= OnQuestionShown;
+            GameEvents.AnswerLocked -= OnAnswerLocked;
             GameEvents.QuestionResolved -= OnQuestionResolved;
         }
 
@@ -58,6 +60,9 @@ namespace MathRunner.UI
             _hideAt = -1f;
         }
 
+        // The countdown stops at the moment of the pick, so the bar shows how quickly the player answered.
+        private void OnAnswerLocked(int choiceIndex) => _counting = false;
+
         private void OnQuestionResolved(QuestionResult result)
         {
             _counting = false;
@@ -73,7 +78,7 @@ namespace MathRunner.UI
             {
                 AnswerOutcome.Correct => "Correct!",
                 AnswerOutcome.Wrong => "Not quite! The answer is " + q.Answer,
-                _ => "Missed! The answer is " + q.Answer
+                _ => (result.TimeLimit > 0f ? "Time's up! The answer is " : "Missed! The answer is ") + q.Answer
             };
             _hideAt = Time.time + _resultDisplaySeconds;
         }

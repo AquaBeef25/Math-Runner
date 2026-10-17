@@ -59,28 +59,37 @@ Character moves → Math problem appears → Jump to an answer → Gain points /
 Each level is a sequence of running segments separated by **Question Zones**:
 
 1. The player runs through a normal segment (gaps, obstacles).
-2. A **trigger** shows the question on screen, e.g. `6 × 8 = ?`
-3. Ahead, **3 answer platforms** float side by side at the same height (1.4 units above the ground), each labeled with a number.
-4. The player chooses by **when** they jump: the first platform they land on is their answer. Each platform gives roughly a 0.5 s timing window. Platforms are one-way, so jumping up through one doesn't count as choosing it.
+2. A **trigger** shows the question on screen, e.g. `6 × 8 = ?`, plus **3 big answer buttons** in the bottom-right corner.
+3. Ahead, **3 answer platforms** float side by side at the same height (1.4 units above the ground), each labeled with the same numbers, in the same left-to-right order as the buttons.
+4. The player **picks an answer** by tapping/clicking a button or pressing **1, 2 or 3**:
+   - **The first pick is final.** The chosen platform lights up and becomes solid, and the buttons lock.
+   - **The runner jumps onto the chosen platform by itself** at the right moment. From the question appearing until the result, the player's own jump presses are ignored (the runner is on "autopilot"), so stray taps can't spoil the landing. Question Zones never contain spikes or gaps.
    - **Correct** → platform turns green, +points, the run continues.
    - **Wrong** → platform turns red and crumbles, −1 life, the correct platform turns green, and the player drops to the ground below (the recovery floor) and keeps running.
-   - **Missed all platforms / time ran out** → counts as wrong. Not jumping simply runs underneath the platforms.
-   - After any result the other platforms fade out and stop being solid, and the panel shows the solved equation, e.g. `6 × 2 = 12`.
+   - **No pick before the decision line** → counts as missed straight away ("Time's up! The answer is 48"), −1 life. Unchosen platforms are never solid, so the runner just passes underneath.
+   - After any result the panel shows the solved equation, e.g. `6 × 2 = 12`.
 
-Why same height instead of different heights: picking low/mid/high platforms by how long you hold jump needs roughly 0.05 s precision, which is too hard for kids and for touchscreens. Timing-based choice keeps the one-button control and gives generous windows.
+Why tap-to-answer: the first version had the player choose by timing a jump onto a platform. That mixed two skills in one moment and was hard on touchscreens. Tapping keeps the math decision clear and fair; movement skill still matters for spikes and gaps between questions. (Picking low/mid/high platforms by jump height was rejected even earlier: it needs about 0.05 s precision.)
 
-**Key idea: the timer and the physical distance are the same thing.** The spawner places the answer platforms at `distance = runSpeed × timeLimit` ahead of the trigger. A shorter time limit therefore means the platforms are physically closer. This keeps "continuous running" and "time-limited questions" consistent with each other.
-- **Timed questions** show a visible countdown bar that empties as the player reaches the platforms.
-- **Untimed questions** (early levels) use a generous distance and show no countdown.
+**Key idea: the timer and the physical distance are the same thing.**
+```
+trigger ──(time limit × run speed)──► decision line ──(landing air time × run speed)──► platforms 1  2  3
+```
+- **Decision line:** the countdown reaches 0 exactly when the runner reaches it. A shorter time limit means it is physically closer.
+- **Platforms:** the first platform's take-off point is the decision line, so a pick made at any moment before time runs out can still reach every platform.
+- **Landing air time:** computed from the jump physics (`JumpMath`), about 0.65 s at the current tuning, the same at every run speed.
+- **Timed questions** show a countdown bar. It freezes at the moment of the pick, so it shows how fast the player answered.
+- **Untimed questions** (early levels) have a generous run-up and no countdown, but still need a pick before the decision line.
 
 ### 2.2 Movement
-Because the character runs automatically, the only required input is **jump**. That makes the game well suited to mobile.
+Because the character runs automatically, the only inputs are **jump** (for hazards) and **picking an answer**. That makes the game well suited to mobile.
 
 | Feature | Purpose |
 |---|---|
 | Auto-run at `LevelConfig.runSpeed` | Approved "continuously runs" |
 | Variable jump height (hold = higher) | Short hops vs long jumps over gaps and obstacles |
-| Minimum jump (0.08 s) | Even the quickest tap rises 1.56 units, clearing the 1.4-unit answer platforms |
+| Minimum jump (0.08 s) | Even the quickest tap gives a usable hop (1.56 units) |
+| Autopilot in Question Zones | Manual jumps are ignored while a question is open; the runner jumps onto the picked platform by itself (full-height jump) |
 | Coyote time (~0.1 s) | Allows jumping a moment after leaving a ledge, so it feels fair |
 | Jump buffer (~0.1 s) | Allows pressing jump just before landing |
 | Obstacles (spikes, gaps, rolling objects) | Approved "avoid obstacles". Hitting one = −1 life, then a short invincibility period |
@@ -88,15 +97,17 @@ Because the character runs automatically, the only required input is **jump**. T
 **Controls**
 | Action | PC | Mobile |
 |---|---|---|
-| Jump (tap = short, hold = high) | Space / W / ↑ | Tap or hold anywhere on the screen |
+| Jump (tap = short, hold = high) | Space / W / ↑ | Tap or hold anywhere on the screen (not on a button) |
+| Pick an answer | 1 / 2 / 3 (or numpad), or click an answer button | Tap one of the 3 answer buttons (bottom-right) |
 | Pause | Esc / P | Pause button (top corner) |
 
 ### 2.3 Lives, Scoring, Level Completion
-- **Lives:** start with 3. Wrong answer, missed question, obstacle hit, or falling into a gap = −1. A fall respawns the player at the last checkpoint. After an obstacle hit or fall the player flashes and is invincible for 1.5 s. At 0 lives you get Game Over with "Try Again" ("Main Menu" arrives with the menus in Phase 5).
-- **Score per correct answer:** `basePoints (100) × levelNumber + timedBonus + streakBonus`
-  - `timedBonus` = +50 for a correct answer on a timed question. (A "remaining time" bonus doesn't work here: the platforms sit at fixed positions, so every player lands at about the same moment and landing time can't measure thinking speed.)
+- **Lives:** start with 3. Wrong answer, missed question, obstacle hit, or falling into a gap = −1. A fall respawns the player at the last checkpoint. After an obstacle hit or fall the player flashes and is invincible for 1.5 s. At 0 lives you get Game Over with "Try Again" and "Levels".
+- **Score per correct answer:** `basePoints (100) × levelNumber + speedBonus + streakBonus`
+  - `speedBonus` = 50 × the share of the countdown left at the moment of the pick, rounded (timed questions only). An instant pick earns +50, a pick at half time about +25. This works now that the player picks with a button: the pick time measures thinking speed.
   - `streakBonus` = +25 × the number of correct answers already in a row (0 for the first, 25 for the second, 50 for the third…); resets on a wrong answer
-  - Example, Level 5 with untimed → 4 s → 3 s → 2 s questions all correct: 500 + 575 + 600 + 625 = 2300
+  - Example, Level 5 with untimed → 4 s → 3 s → 2 s questions, all picked instantly and correct: 500 + 575 + 600 + 625 = 2300
+- **Stars** (shown on Level Complete and in Level Select): 3 for a flawless run (every answer right, no life lost), 2 for at least 75% right, 1 for finishing.
 - **Level completion:** reach the finish flag after all Question Zones (suggested 8 questions per level) with at least 1 life left. This unlocks the next level.
 
 ### 2.4 Progressive Difficulty Table
@@ -192,14 +203,16 @@ Assets/_Project/
 |---|---|
 | `GameManager` | State machine: `Menu → Playing → Paused → LevelComplete / GameOver` |
 | `GameEvents` | Static C# events (`OnAnswerCorrect`, `OnAnswerWrong`, `OnLifeLost`, `OnLevelComplete` …) so systems stay decoupled |
-| `PlayerController` | Auto-run, jump physics (Rigidbody2D), ground check, coyote time, jump buffer |
-| `InputReader` | Converts keyboard and touch into `JumpPressed` / `JumpReleased` |
+| `PlayerController` | Auto-run, jump physics (Rigidbody2D), ground check, coyote time, jump buffer; autopilot + `QueueAutoJump` for answer landings |
+| `JumpMath` | Pure: air time from take-off to landing at a given height (used to place platforms and time the auto-jump) |
+| `InputReader` | Converts keyboard and touch into `JumpPressed` / `JumpReleased`, answer keys 1/2/3 into `GameEvents.AnswerChosen` |
+| `AnswerButtons` | The 3 on-screen answer buttons (bottom-right), locked after the first pick |
 | `QuestionGenerator` | **Pure C# (no MonoBehaviour)**: builds a `MathQuestion` from config, tier, and RNG. Unit-testable |
 | `DifficultyTracker` | Streak counting and tier changes (2.5) |
-| `QuestionZone` | Requests a question, positions platforms by time limit, resolves the result |
-| `AnswerPlatform` | Shows a number and reports landing → correct/wrong |
+| `QuestionZone` | Requests a question, places the decision line and platforms by time limit, accepts the first pick, queues the auto-jump, resolves the result (miss at the decision line) |
+| `AnswerPlatform` | Shows a number; solid only once picked; reports the landing → correct/wrong |
 | `ScoreSystem` / `LivesSystem` | Points, streak, lives; raise events |
-| Question timing | Handled by `QuestionZone` (time limit = platform distance) and `QuestionPanel` (countdown bar); no separate timer class |
+| Question timing | Handled by `QuestionZone` (time limit = distance to the decision line) and `QuestionPanel` (countdown bar, frozen at the pick); no separate timer class |
 | `PlayerHealth` | Obstacle hits, falls, checkpoint respawn, invincibility flashing |
 | `Obstacle` / `KillZone` / `Checkpoint` / `FinishFlag` | Level triggers (`Prefabs/Level/`) |
 | `HudView` / `OverlayController` | Lives, score, streak, level label; Pause / Game Over / Level Complete screens |

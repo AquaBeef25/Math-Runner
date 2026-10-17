@@ -26,18 +26,20 @@ namespace MathRunner.Core
 
     public readonly struct QuestionResult
     {
-        public QuestionResult(MathQuestion question, AnswerOutcome outcome, int chosenIndex, float timeLimit)
+        public QuestionResult(MathQuestion question, AnswerOutcome outcome, int chosenIndex, float timeLimit, float timeRemainingFraction)
         {
             Question = question;
             Outcome = outcome;
             ChosenIndex = chosenIndex;
             TimeLimit = timeLimit;
+            TimeRemainingFraction = timeRemainingFraction;
         }
 
         public MathQuestion Question { get; }
         public AnswerOutcome Outcome { get; }
         public int ChosenIndex { get; } // -1 when missed
         public float TimeLimit { get; } // 0 = untimed
+        public float TimeRemainingFraction { get; } // share of the countdown left when the answer was picked; 0 if untimed or missed
     }
 
     public readonly struct ScoreUpdate
@@ -77,6 +79,10 @@ namespace MathRunner.Core
         // Time limit in seconds; 0 means untimed.
         public static event Action<MathQuestion, float> QuestionShown;
         public static event Action<QuestionResult> QuestionResolved;
+        // A request to pick answer i (keys, answer buttons, tests); the active Question Zone decides whether to accept it.
+        public static event Action<int> AnswerChosen;
+        // The active Question Zone accepted answer i; the choice is final for this question.
+        public static event Action<int> AnswerLocked;
         public static event Action<HitCause> PlayerHit;
         public static event Action<int> LivesChanged;
         public static event Action OutOfLives;
@@ -87,6 +93,8 @@ namespace MathRunner.Core
 
         public static void RaiseQuestionShown(MathQuestion question, float timeLimit) => QuestionShown?.Invoke(question, timeLimit);
         public static void RaiseQuestionResolved(QuestionResult result) => QuestionResolved?.Invoke(result);
+        public static void RaiseAnswerChosen(int choiceIndex) => AnswerChosen?.Invoke(choiceIndex);
+        public static void RaiseAnswerLocked(int choiceIndex) => AnswerLocked?.Invoke(choiceIndex);
         public static void RaisePlayerHit(HitCause cause) => PlayerHit?.Invoke(cause);
         public static void RaiseLivesChanged(int lives) => LivesChanged?.Invoke(lives);
         public static void RaiseOutOfLives() => OutOfLives?.Invoke();
