@@ -16,6 +16,7 @@ namespace MathRunner.Systems
         private DifficultyTracker _tracker;
 
         public DifficultyTier Tier => _tracker.Tier;
+        public int Level => _level;
 
         private void Awake()
         {

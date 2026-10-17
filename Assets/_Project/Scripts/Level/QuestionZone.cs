@@ -30,6 +30,7 @@ namespace MathRunner.Level
         [SerializeField] private float _platformThickness = 0.3f;
 
         private MathQuestion _question;
+        private float _shownTimeLimit;
         private PlayerController _player;
         private bool _active;
         private bool _resolved;
@@ -77,8 +78,8 @@ namespace MathRunner.Level
             _question = _director.NextQuestion();
             for (int i = 0; i < _platforms.Length; i++) _platforms[i].ShowValue(_question.Choices[i]);
 
-            float timer = _timeLimit > 0f ? LeadDistance / Mathf.Max(player.RunSpeed, 0.01f) : 0f;
-            GameEvents.RaiseQuestionShown(_question, timer);
+            _shownTimeLimit = _timeLimit > 0f ? LeadDistance / Mathf.Max(player.RunSpeed, 0.01f) : 0f;
+            GameEvents.RaiseQuestionShown(_question, _shownTimeLimit);
         }
 
         private void Update()
@@ -102,7 +103,7 @@ namespace MathRunner.Level
                 else if (i == chosenIndex) _platforms[i].Crumble();
                 else _platforms[i].FadeOut();
             }
-            GameEvents.RaiseQuestionResolved(new QuestionResult(_question, outcome, chosenIndex));
+            GameEvents.RaiseQuestionResolved(new QuestionResult(_question, outcome, chosenIndex, _shownTimeLimit));
         }
     }
 }

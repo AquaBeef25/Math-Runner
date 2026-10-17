@@ -92,10 +92,11 @@ Because the character runs automatically, the only required input is **jump**. T
 | Pause | Esc / P | Pause button (top corner) |
 
 ### 2.3 Lives, Scoring, Level Completion
-- **Lives:** start with 3. Wrong answer or obstacle hit = −1. At 0 lives you get Game Over with the options "Retry Level" or "Main Menu".
-- **Score per correct answer:** `basePoints (100) × levelNumber + timeBonus + streakBonus`
-  - `timeBonus` = remaining-time fraction × 50 (timed questions only)
-  - `streakBonus` = +25 per consecutive correct answer (resets on a wrong answer)
+- **Lives:** start with 3. Wrong answer, missed question, obstacle hit, or falling into a gap = −1. A fall respawns the player at the last checkpoint. After an obstacle hit or fall the player flashes and is invincible for 1.5 s. At 0 lives you get Game Over with "Try Again" ("Main Menu" arrives with the menus in Phase 5).
+- **Score per correct answer:** `basePoints (100) × levelNumber + timedBonus + streakBonus`
+  - `timedBonus` = +50 for a correct answer on a timed question. (A "remaining time" bonus doesn't work here: the platforms sit at fixed positions, so every player lands at about the same moment and landing time can't measure thinking speed.)
+  - `streakBonus` = +25 × the number of correct answers already in a row (0 for the first, 25 for the second, 50 for the third…); resets on a wrong answer
+  - Example, Level 5 with untimed → 4 s → 3 s → 2 s questions all correct: 500 + 575 + 600 + 625 = 2300
 - **Level completion:** reach the finish flag after all Question Zones (suggested 8 questions per level) with at least 1 life left. This unlocks the next level.
 
 ### 2.4 Progressive Difficulty Table
@@ -174,7 +175,7 @@ Assets/_Project/
 │   ├── Input/       InputReader (wraps keyboard + touch)
 │   ├── Math/        MathQuestion, QuestionGenerator, DistractorGenerator, DifficultyTracker
 │   ├── Level/       LevelBuilder, QuestionZone, AnswerPlatform, Obstacle, FinishFlag
-│   ├── Systems/     ScoreSystem, LivesSystem, QuestionTimer
+│   ├── Systems/     QuestionDirector, ScoreSystem, ScoreCalculator, LivesSystem
 │   ├── UI/          HUD, QuestionPanel, MenuControllers, Popups
 │   ├── Save/        SaveSystem (PlayerPrefs / JSON)
 │   └── Audio/       AudioManager
@@ -198,7 +199,10 @@ Assets/_Project/
 | `QuestionZone` | Requests a question, positions platforms by time limit, resolves the result |
 | `AnswerPlatform` | Shows a number and reports landing → correct/wrong |
 | `ScoreSystem` / `LivesSystem` | Points, streak, lives; raise events |
-| `QuestionTimer` | Countdown and UI bar for timed questions |
+| Question timing | Handled by `QuestionZone` (time limit = platform distance) and `QuestionPanel` (countdown bar); no separate timer class |
+| `PlayerHealth` | Obstacle hits, falls, checkpoint respawn, invincibility flashing |
+| `Obstacle` / `KillZone` / `Checkpoint` / `FinishFlag` | Level triggers (`Prefabs/Level/`) |
+| `HudView` / `OverlayController` | Lives, score, streak, level label; Pause / Game Over / Level Complete screens |
 | `SaveSystem` | Unlocked levels, best scores, settings |
 
 ### 3.4 Data Contracts
@@ -288,9 +292,17 @@ as landing on it.
 - **Done when:** one question works end to end, in both the correct and wrong cases.
 
 ### Phase 4 — Game Systems & HUD
-- [ ] `ScoreSystem`, `LivesSystem`, `QuestionTimer`, `GameEvents`
-- [ ] Obstacles and invincibility frames
-- [ ] HUD, Pause, Game Over, Level Complete overlays
+- [x] `ScoreSystem` (+ pure `ScoreCalculator`, 3 EditMode tests), `LivesSystem`, `GameManager` state machine, more `GameEvents` (question timing lives in `QuestionZone` + `QuestionPanel`)
+- [x] Obstacles (spikes), gaps with kill zone + checkpoint respawn, invincibility frames with flashing
+- [x] HUD (hearts, level, score, streak, pause button), Pause / Game Over / Level Complete overlays
+- [x] Pause via button or Esc/P; taps on buttons don't make the player jump
+- [x] Gray-box level `Scenes/Sandbox_Level` (4 zones, 5 spikes, 3 gaps, checkpoints, finish flag)
+
+Verified in Play mode with a frame-stepping bot: a winning run scores exactly 500 + 575 + 600 + 625 = 2300 and shows
+Level Complete with 3 lives; a losing run (wrong answer → fall → spike) goes 3 → 2 → 1 → 0 lives, respawns at the
+checkpoint, and shows Game Over; Play Again / Try Again reload the level; the pause button freezes time and blocks jumps.
+Not automatable (Unity ignores simulated keyboard/mouse input while the Game view is unfocused), so test by hand:
+Esc/P pausing, and that clicking the pause button doesn't also jump.
 - **Done when:** a full gray-box level can be won or lost.
 
 ### Phase 5 — Levels & Progression

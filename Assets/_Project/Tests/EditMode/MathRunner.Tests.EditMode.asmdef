@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "MathRunner.Math"
+        "MathRunner.Math",
+        "MathRunner"
     ],
     "includePlatforms": [
         "Editor"

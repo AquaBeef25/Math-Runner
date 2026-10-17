@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 97997744}
   - component: {fileID: 97997743}
   - component: {fileID: 97997742}
+  - component: {fileID: 97997746}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -173,6 +174,7 @@ MonoBehaviour:
   _runSpeed: 6
   _jumpHeight: 3.2
   _jumpCutMultiplier: 0.5
+  _minJumpTime: 0.08
   _fallGravityMultiplier: 1.4
   _maxFallSpeed: 25
   _coyoteTime: 0.1
@@ -309,6 +311,21 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &97997746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97997740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 804e2d2909f922f47a131e8cd00e7494, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MathRunner::MathRunner.Player.PlayerHealth
+  _sprite: {fileID: 97997745}
+  _invincibleSeconds: 1.5
+  _flashInterval: 0.1
 --- !u!1 &150730542
 GameObject:
   m_ObjectHideFlags: 0
@@ -1569,37 +1586,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &1298095789
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1298095790}
-  m_Layer: 0
-  m_Name: SpawnPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1298095790
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1298095789}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1417256440
 GameObject:
   m_ObjectHideFlags: 0
@@ -1748,27 +1734,14 @@ GameObject:
   m_Component:
   - component: {fileID: 1432325404}
   - component: {fileID: 1432325403}
-  - component: {fileID: 1432325402}
+  - component: {fileID: 1432325405}
   m_Layer: 0
-  m_Name: FallResetZone
+  m_Name: KillZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1432325402
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1432325401}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb2be6a5b32acfe4fb2487113c9c951e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MathRunner.Level.FallResetZone
-  _respawnPoint: {fileID: 1298095790}
 --- !u!61 &1432325403
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1830,6 +1803,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1432325405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1432325401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9aef4825fe0c3547ae85343dc75932e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.KillZone
 --- !u!1 &1748841462
 GameObject:
   m_ObjectHideFlags: 0
@@ -2126,7 +2111,6 @@ SceneRoots:
   - {fileID: 281964019}
   - {fileID: 800788872}
   - {fileID: 2121138676}
-  - {fileID: 1298095790}
   - {fileID: 97997741}
   - {fileID: 150730543}
   - {fileID: 1432325404}

@@ -40,7 +40,9 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 
 ## Current Progress
 <!-- Update this as phases finish -->
-- Phase: **3 — Question Zone** (done, verified in Play mode) → next: **Phase 4 — Game Systems & HUD**
+- Phase: **4 — Game Systems & HUD** (done, verified in Play mode) → next: **Phase 5 — Levels & Progression**
+- Playable gray-box level: `Assets/_Project/Scenes/Sandbox_Level.unity` (build index 0). `GameManager.Restart` reloads by build index, so any playable scene must be in Build Settings.
+- Still needs a manual check: Esc/P pause, and that clicking the pause button doesn't also jump
 - Question sandbox: `Assets/_Project/Scenes/Sandbox_QuestionZone.unity` (4 zones: untimed, 4 s, 3 s, 2 s; director on Level 5)
 - Player ground mask must include both `Ground` and `AnswerPlatform` layers
 - Phase 1 movement still pending my feel-test with a real keyboard
@@ -54,7 +56,10 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
   - Wrap harness code in try/catch: an uncaught exception makes the tool revert, which exits Play mode.
   - `GameObject.Find` can't see inactive objects (e.g. the hidden question panel); use `transform.Find` from an active parent.
   - The command wrapper has an `Image` namespace; alias `using UIImage = UnityEngine.UI.Image;`.
-  - Overlay canvases don't appear in `Unity_Camera_Capture`; switch the canvas to Screen Space - Camera in Play mode before capturing.
+  - Overlay canvases don't appear in `Unity_Camera_Capture`; switch the canvas to Screen Space - Camera in Play mode before capturing (world sprites may then draw over the UI in the capture only).
+  - Simulated keyboard/mouse events (`InputSystem.QueueStateEvent`) are ignored while the Game view is unfocused; call `InputReader.Notify*`, `GameManager` methods, or `Button.onClick.Invoke()` instead.
+  - `AssetDatabase.DeleteAsset` is blocked (needs a dialog); delete tracked files with `git rm` and refresh.
+- UI rule: any HUD graphic that isn't a button must have `raycastTarget = false`, otherwise taps on it won't jump.
 - Project: Unity 6000.3.11f1, URP, git repo at this folder (`MATH_RUNNERV1`)
 - Layers: 6 Ground, 7 Player, 8 Obstacle, 9 AnswerPlatform
 - Decisions made: none yet (see GAME_DESIGN.md §6)
