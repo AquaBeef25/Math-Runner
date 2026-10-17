@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2761787e181624d4cbb4386200ce0470, type: 3}
+  m_Name: Level10
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.LevelConfig
+  _levelNumber: 10
+  _topic: Multi-step challenge
+  _questions:
+    _rules:
+    - _type: 6
+      _easy:
+        _a:
+          _min: 50
+          _max: 99
+        _b:
+          _min: 2
+          _max: 5
+        _c:
+          _min: 1
+          _max: 9
+      _normal:
+        _a:
+          _min: 25
+          _max: 110
+        _b:
+          _min: 4
+          _max: 9
+        _c:
+          _min: 1
+          _max: 20
+      _hard:
+        _a:
+          _min: 17
+          _max: 111
+        _b:
+          _min: 6
+          _max: 9
+        _c:
+          _min: 10
+          _max: 50
+  _questionCount: 8
+  _runSpeed: 8
+  _timedRatio: 1
+  _timeLimit: 6
+  _untimedLeadSeconds: 6
+  _hazardsBetweenQuestions: 3
+  _gapChance: 0.5
+  _layoutSeed: 10

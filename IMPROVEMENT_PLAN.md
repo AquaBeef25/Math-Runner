@@ -1,7 +1,7 @@
 # Math Runner — "Massive Improvements" Plan
 
 Approved 2026-10-18. Work stage by stage (A → F); each stage ends with a playable build and one commit.
-**Status:** Stage A in progress.
+**Status:** Stage A in progress. Done: A1 (PlayMode suite), A2 (LevelConfig/LevelPlanner/LevelBuilder, `Game` scene, 10 level assets), A3 (all 10 levels finishable). Next: A4 SaveSystem, A5 menus.
 
 ## Context
 Phases 0–4 are done and verified: auto-run movement, math engine (75 tests), Question Zones, score/lives/HUD/overlays, and one

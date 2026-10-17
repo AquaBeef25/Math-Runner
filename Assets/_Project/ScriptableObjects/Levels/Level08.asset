@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2761787e181624d4cbb4386200ce0470, type: 3}
+  m_Name: Level08
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.LevelConfig
+  _levelNumber: 8
+  _topic: Order of operations
+  _questions:
+    _rules:
+    - _type: 4
+      _easy:
+        _a:
+          _min: 1
+          _max: 9
+        _b:
+          _min: 2
+          _max: 5
+        _c:
+          _min: 2
+          _max: 5
+      _normal:
+        _a:
+          _min: 1
+          _max: 20
+        _b:
+          _min: 2
+          _max: 9
+        _c:
+          _min: 2
+          _max: 9
+      _hard:
+        _a:
+          _min: 10
+          _max: 50
+        _b:
+          _min: 4
+          _max: 12
+        _c:
+          _min: 4
+          _max: 9
+    - _type: 5
+      _easy:
+        _a:
+          _min: 2
+          _max: 5
+        _b:
+          _min: 2
+          _max: 5
+        _c:
+          _min: 1
+          _max: 5
+      _normal:
+        _a:
+          _min: 2
+          _max: 9
+        _b:
+          _min: 2
+          _max: 9
+        _c:
+          _min: 1
+          _max: 10
+      _hard:
+        _a:
+          _min: 6
+          _max: 12
+        _b:
+          _min: 6
+          _max: 9
+        _c:
+          _min: 5
+          _max: 20
+  _questionCount: 8
+  _runSpeed: 7
+  _timedRatio: 0.75
+  _timeLimit: 8
+  _untimedLeadSeconds: 6
+  _hazardsBetweenQuestions: 2
+  _gapChance: 0.5
+  _layoutSeed: 8

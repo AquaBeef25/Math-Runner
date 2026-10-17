@@ -23,8 +23,10 @@ namespace MathRunner.Level
         [SerializeField, Min(0.1f)] private float _layoutRunSpeed = 6f;
 
         [Header("Layout")]
-        [SerializeField] private float _platformWidth = 3f;
-        [SerializeField] private float _platformGap = 1.5f;
+        [Tooltip("Seconds of running across one platform. Width = run speed × this, so the timing window is the same at every speed.")]
+        [SerializeField, Min(0.1f)] private float _platformSeconds = 0.5f;
+        [Tooltip("Seconds of running across the gap between platforms.")]
+        [SerializeField, Min(0f)] private float _platformGapSeconds = 0.25f;
         [Tooltip("Height of the platform surface above the ground. Must leave room for the player to run underneath.")]
         [SerializeField] private float _platformTop = 1.4f;
         [SerializeField] private float _platformThickness = 0.3f;
@@ -37,13 +39,22 @@ namespace MathRunner.Level
 
         public float LeadDistance => (_timeLimit > 0f ? _timeLimit : _untimedLeadTime) * _layoutRunSpeed;
 
-        private float EndX => transform.position.x + LeadDistance
-            + _platformWidth * _platforms.Length + _platformGap * (_platforms.Length - 1);
+        // Seconds of running from the first platform's left edge to the last platform's right edge.
+        public float PlatformSpanSeconds => _platformSeconds * _platforms.Length + _platformGapSeconds * (_platforms.Length - 1);
 
-        public void Configure(float runSpeed, float timeLimit)
+        public float Length => LeadDistance + PlatformSpanSeconds * _layoutRunSpeed;
+
+        private float PlatformWidth => _platformSeconds * _layoutRunSpeed;
+        private float PlatformGap => _platformGapSeconds * _layoutRunSpeed;
+        private float EndX => transform.position.x + Length;
+
+        public void SetDirector(QuestionDirector director) => _director = director;
+
+        public void Configure(float runSpeed, float timeLimit, float untimedLeadTime)
         {
             _layoutRunSpeed = runSpeed;
             _timeLimit = timeLimit;
+            _untimedLeadTime = untimedLeadTime;
             ApplyLayout();
         }
 
@@ -63,9 +74,9 @@ namespace MathRunner.Level
             for (int i = 0; i < _platforms.Length; i++)
             {
                 if (_platforms[i] == null) continue;
-                float x = LeadDistance + _platformWidth * 0.5f + i * (_platformWidth + _platformGap);
+                float x = LeadDistance + PlatformWidth * 0.5f + i * (PlatformWidth + PlatformGap);
                 var center = new Vector2(x, _platformTop - _platformThickness * 0.5f);
-                _platforms[i].SetLayout(center, new Vector2(_platformWidth, _platformThickness));
+                _platforms[i].SetLayout(center, new Vector2(PlatformWidth, _platformThickness));
             }
         }
 

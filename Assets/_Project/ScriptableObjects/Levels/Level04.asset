@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2761787e181624d4cbb4386200ce0470, type: 3}
+  m_Name: Level04
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.LevelConfig
+  _levelNumber: 4
+  _topic: Two-digit add & subtract
+  _questions:
+    _rules:
+    - _type: 0
+      _easy:
+        _a:
+          _min: 10
+          _max: 50
+        _b:
+          _min: 10
+          _max: 40
+        _c:
+          _min: 0
+          _max: 0
+      _normal:
+        _a:
+          _min: 10
+          _max: 60
+        _b:
+          _min: 10
+          _max: 39
+        _c:
+          _min: 0
+          _max: 0
+      _hard:
+        _a:
+          _min: 30
+          _max: 99
+        _b:
+          _min: 20
+          _max: 99
+        _c:
+          _min: 0
+          _max: 0
+    - _type: 1
+      _easy:
+        _a:
+          _min: 20
+          _max: 60
+        _b:
+          _min: 10
+          _max: 19
+        _c:
+          _min: 0
+          _max: 0
+      _normal:
+        _a:
+          _min: 30
+          _max: 99
+        _b:
+          _min: 10
+          _max: 60
+        _c:
+          _min: 0
+          _max: 0
+      _hard:
+        _a:
+          _min: 50
+          _max: 99
+        _b:
+          _min: 25
+          _max: 99
+        _c:
+          _min: 0
+          _max: 0
+  _questionCount: 8
+  _runSpeed: 6
+  _timedRatio: 0.4
+  _timeLimit: 10
+  _untimedLeadSeconds: 6
+  _hazardsBetweenQuestions: 2
+  _gapChance: 0.3
+  _layoutSeed: 4
