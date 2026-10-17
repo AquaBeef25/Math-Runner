@@ -1,0 +1,22 @@
+{
+    "name": "MathRunner.Tests.PlayMode",
+    "rootNamespace": "MathRunner.Tests.PlayMode",
+    "references": [
+        "UnityEngine.TestRunner",
+        "MathRunner",
+        "MathRunner.Math"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -3,6 +3,7 @@
 Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto the platform showing the correct answer to a math question. Targets PC (keyboard) and Android/iOS (touch).
 
 **Full design and roadmap: [GAME_DESIGN.md](GAME_DESIGN.md). Read it before starting any feature.**
+**Improvement stages A–F (approved 2026-10-18, supersede roadmap Phases 5–8): [IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md).**
 
 ## Rules for Claude
 - **Section 1 of GAME_DESIGN.md is instructor-approved.** Never remove or contradict it. Suggest improvements separately and mark them as optional.
@@ -40,7 +41,7 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 
 ## Current Progress
 <!-- Update this as phases finish -->
-- Phase: **4 — Game Systems & HUD** (done, verified in Play mode) → next: **Phase 5 — Levels & Progression**
+- Phase: **4 — Game Systems & HUD** (done, verified in Play mode) → now: **IMPROVEMENT_PLAN Stage A — Foundation**
 - Playable gray-box level: `Assets/_Project/Scenes/Sandbox_Level.unity` (build index 0). `GameManager.Restart` reloads by build index, so any playable scene must be in Build Settings.
 - Still needs a manual check: Esc/P pause, and that clicking the pause button doesn't also jump
 - Question sandbox: `Assets/_Project/Scenes/Sandbox_QuestionZone.unity` (4 zones: untimed, 4 s, 3 s, 2 s; director on Level 5)
@@ -48,6 +49,8 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 - Phase 1 movement still pending my feel-test with a real keyboard
 - Assemblies: `MathRunner.Math` (Scripts/Math, pure math, no MonoBehaviours), `MathRunner` (all other Scripts, references Math + Input System), `MathRunner.Tests.EditMode` (Tests/EditMode). New script folders under `Scripts/` join `MathRunner` automatically.
 - Run tests from `Unity_RunCommand` with `TestRunnerApi` + `ExecutionSettings { runSynchronously = true }` filtered to assembly `MathRunner.Tests.EditMode`, collecting results via `ICallbacks`. Or in the Editor: Window > General > Test Runner > EditMode > Run All.
+- PlayMode tests (`Tests/PlayMode`, assembly `MathRunner.Tests.PlayMode`): start them with `TestRunnerApi.Execute` (not synchronous; it enters Play mode and reloads the domain), then wait for `Logs/TestResults-PlayMode.txt`, written by `Assets/_Project/Editor/TestResultsLog.cs`. The run takes ~15 s and isn't slowed down when the Editor is unfocused. `LevelBot` plays any loaded level (answer plan per question, which hazards to jump); reuse it for new level tests.
+- `Assets/Lost Crypt/` is Unity's Lost Crypt sample, imported 2026-10-18 as an art source. It is **untracked on purpose** (160 MB); copy only the sprites we use into `Assets/_Project/Art/`. Its import overwrote ProjectSettings once; ours were restored from git and its versions are backed up in `../LostCrypt_settings_backup_2026-10-18/`. If layers 6–9 ever stop being Ground/Player/Obstacle/AnswerPlatform, check for another settings overwrite.
 - Movement sandbox: `Assets/_Project/Scenes/Sandbox_Movement.unity` (`SampleScene` is the untouched template scene)
 - Unity MCP notes: `Unity_RunCommand` blocks `System.Reflection` (use `SendMessage` / public APIs). Entering/exiting Play mode and script changes cause a domain reload, so the tools are unavailable for a few seconds. Play mode runs much slower than real time while the Editor is unfocused, so drive it deterministically instead of sampling in real time:
   - Start Play mode paused: set `EditorApplication.isPaused = true` *before* `isPlaying = true`.
