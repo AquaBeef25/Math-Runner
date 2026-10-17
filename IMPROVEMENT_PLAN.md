@@ -1,7 +1,11 @@
 # Math Runner — "Massive Improvements" Plan
 
 Approved 2026-10-18. Work stage by stage (A → F); each stage ends with a playable build and one commit.
-**Status:** Stage A in progress. Done: A1 (PlayMode suite), A2 (LevelConfig/LevelPlanner/LevelBuilder, `Game` scene, 10 level assets), A3 (all 10 levels finishable). Next: A4 SaveSystem, A5 menus.
+**Status:** Stage A done (2026-10-18), plus C4 star ratings. Next: Stage B (needs the Kenney art packs).
+- A1 PlayMode suite · A2 LevelConfig/LevelPlanner/LevelBuilder + `Game` scene + 10 level assets · A3 all 10 levels finishable ·
+  A4 `SaveSystem` (JSON, best score/stars, unlocks) · A5 `MainMenu` → `LevelSelect` → `Game`, Next Level / Levels buttons ·
+  C4 `StarRating` (shown as text "2 of 3 stars" until star icons arrive in Stage B).
+- Tests: 223 EditMode, 20 PlayMode, all passing.
 
 ## Context
 Phases 0–4 are done and verified: auto-run movement, math engine (75 tests), Question Zones, score/lives/HUD/overlays, and one

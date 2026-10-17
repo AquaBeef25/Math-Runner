@@ -41,8 +41,12 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 
 ## Current Progress
 <!-- Update this as phases finish -->
-- Phase: **4 — Game Systems & HUD** (done, verified in Play mode) → now: **IMPROVEMENT_PLAN Stage A — Foundation**
-- Playable gray-box level: `Assets/_Project/Scenes/Sandbox_Level.unity` (build index 0). `GameManager.Restart` reloads by build index, so any playable scene must be in Build Settings.
+- **IMPROVEMENT_PLAN Stage A done** → next: **Stage B — look & feel** (waiting on Kenney art packs)
+- Scene flow: `MainMenu` (build index 0) → `LevelSelect` → `Game`, via `SceneFlow`. Sandboxes stay in Build Settings for tests. `GameManager.Restart` reloads by build index, so any playable scene must be in Build Settings.
+- Progress: `SaveSystem` writes JSON to `Application.persistentDataPath/save.json`. Tests must call `SaveSystem.UseFile(tempPath)` in SetUp and `UseFile(null)` in TearDown so they never touch the real save.
+- Every scene's EventSystem uses `InputSystemUIInputModule` with `Assets/InputSystem_Actions.inputactions` (UI map). Don't use `AssignDefaultActions()` in build scripts: its temporary asset isn't saved with the scene.
+- `Unity_RunCommand` reports a command as failed if it logs a warning, even when the work succeeded (e.g. running tests that expect warnings).
+- Playable gray-box sandbox: `Assets/_Project/Scenes/Sandbox_Level.unity` (hand-built, Level 5 questions; `LevelRunTests` expect its exact layout and the 2300 score).
 - Still needs a manual check: Esc/P pause, and that clicking the pause button doesn't also jump
 - Question sandbox: `Assets/_Project/Scenes/Sandbox_QuestionZone.unity` (4 zones: untimed, 4 s, 3 s, 2 s; director on Level 5)
 - Player ground mask must include both `Ground` and `AnswerPlatform` layers

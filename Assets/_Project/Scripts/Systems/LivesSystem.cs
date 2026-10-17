@@ -8,6 +8,7 @@ namespace MathRunner.Systems
         [SerializeField, Min(1)] private int _startingLives = 3;
 
         public int Lives { get; private set; }
+        public int StartingLives => _startingLives;
 
         private void Awake()
         {

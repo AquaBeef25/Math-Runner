@@ -54,6 +54,24 @@ namespace MathRunner.Core
         public int Streak { get; }
     }
 
+    public readonly struct LevelResult
+    {
+        public LevelResult(int levelNumber, int score, int stars, bool newBest, int bestScore)
+        {
+            LevelNumber = levelNumber;
+            Score = score;
+            Stars = stars;
+            NewBest = newBest;
+            BestScore = bestScore;
+        }
+
+        public int LevelNumber { get; }
+        public int Score { get; }
+        public int Stars { get; }
+        public bool NewBest { get; }
+        public int BestScore { get; }
+    }
+
     public static class GameEvents
     {
         // Time limit in seconds; 0 means untimed.
@@ -65,6 +83,7 @@ namespace MathRunner.Core
         public static event Action<ScoreUpdate> ScoreChanged;
         public static event Action LevelCompleted;
         public static event Action<GameState> GameStateChanged;
+        public static event Action<LevelResult> ProgressSaved;
 
         public static void RaiseQuestionShown(MathQuestion question, float timeLimit) => QuestionShown?.Invoke(question, timeLimit);
         public static void RaiseQuestionResolved(QuestionResult result) => QuestionResolved?.Invoke(result);
@@ -74,5 +93,6 @@ namespace MathRunner.Core
         public static void RaiseScoreChanged(ScoreUpdate update) => ScoreChanged?.Invoke(update);
         public static void RaiseLevelCompleted() => LevelCompleted?.Invoke();
         public static void RaiseGameStateChanged(GameState state) => GameStateChanged?.Invoke(state);
+        public static void RaiseProgressSaved(LevelResult result) => ProgressSaved?.Invoke(result);
     }
 }

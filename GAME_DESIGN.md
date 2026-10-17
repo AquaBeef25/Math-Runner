@@ -306,9 +306,11 @@ Esc/P pausing, and that clicking the pause button doesn't also jump.
 - **Done when:** a full gray-box level can be won or lost.
 
 ### Phase 5 — Levels & Progression
-- [ ] `LevelConfig` assets for levels 1–10 (table in 2.4)
-- [ ] `LevelBuilder` assembles chunks from the config
-- [ ] `SaveSystem`, Level Select with locks and best scores, Main Menu
+- [x] `LevelConfig` assets for levels 1–10 (table in 2.4)
+- [x] `LevelBuilder` assembles chunks from the config (layout from the pure `LevelPlanner`)
+- [x] `SaveSystem`, Level Select with locks, stars and best scores, Main Menu
+
+Done as IMPROVEMENT_PLAN.md Stage A. Phases 6–8 continue there as Stages B–F.
 - **Done when:** you can play from Level 1 to Level 10, with unlocks saved between sessions.
 
 ### Phase 6 — Mobile

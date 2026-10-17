@@ -1,6 +1,7 @@
 using System.Collections;
 using MathRunner.Core;
 using MathRunner.Level;
+using MathRunner.Save;
 using MathRunner.Systems;
 using NUnit.Framework;
 using UnityEngine;
@@ -29,12 +30,23 @@ namespace MathRunner.Tests.PlayMode
 #endif
         }
 
+        private string _savePath;
+
+        [SetUp]
+        public void UseTemporarySave()
+        {
+            _savePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mathrunner-playmode-" + System.Guid.NewGuid() + ".json");
+            SaveSystem.UseFile(_savePath);
+        }
+
         [TearDown]
         public void TearDown()
         {
             LevelSelection.Current = null;
             Time.captureDeltaTime = 0f;
             Time.timeScale = 1f;
+            if (System.IO.File.Exists(_savePath)) System.IO.File.Delete(_savePath);
+            SaveSystem.UseFile(null);
         }
 
         [Test]
@@ -82,6 +94,13 @@ namespace MathRunner.Tests.PlayMode
                 Assert.That(lives.Lives, Is.EqualTo(3));
                 Assert.That(score.CorrectCount, Is.EqualTo(config.QuestionCount));
                 Assert.That(score.AnsweredCount, Is.EqualTo(config.QuestionCount));
+
+                var record = SaveSystem.Data.GetRecord(config.LevelNumber);
+                Assert.That(record, Is.Not.Null, "Completing a level should save it");
+                Assert.That(record.BestScore, Is.EqualTo(score.Score));
+                Assert.That(record.BestStars, Is.EqualTo(3), "An all-correct, hit-free run is flawless");
+                Assert.That(SaveSystem.Data.IsUnlocked(config.LevelNumber + 1), Is.True);
+                Assert.That(System.IO.File.Exists(_savePath), Is.True);
             }
         }
     }

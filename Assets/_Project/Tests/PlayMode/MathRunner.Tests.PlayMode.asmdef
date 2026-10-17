@@ -4,7 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "MathRunner",
-        "MathRunner.Math"
+        "MathRunner.Math",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
