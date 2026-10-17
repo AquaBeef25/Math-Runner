@@ -26,7 +26,7 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 - Tunable values go in ScriptableObjects (`LevelConfig`), not hard-coded constants
 - Systems communicate through `GameEvents` (C# events), not direct references to each other
 - Use the **new Input System** only, through `InputReader`. Never use `Input.GetKey`.
-- Use `Mathf`, not `System.Math` / `Math.`: inside `MathRunner.*` the name `Math` resolves to the `MathRunner.Math` namespace and won't compile.
+- Never write bare `Math.`: inside `MathRunner.*` the name `Math` resolves to the `MathRunner.Math` namespace and won't compile. Use `Mathf` in gameplay code and fully qualified `System.Math` / `System.Random` in the math engine.
 - Physics in `FixedUpdate`, input reading in `Update`
 
 ## Architecture Notes
@@ -40,10 +40,12 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 
 ## Current Progress
 <!-- Update this as phases finish -->
-- Phase: **1 — Core Movement** (done, pending my feel-test with a real keyboard) → next: **Phase 2 — Math Engine**
+- Phase: **2 — Math Engine** (done, 75 EditMode tests passing) → next: **Phase 3 — Question Zone**
+- Phase 1 movement still pending my feel-test with a real keyboard
+- Assemblies: `MathRunner.Math` (Scripts/Math, pure math, no MonoBehaviours), `MathRunner` (all other Scripts, references Math + Input System), `MathRunner.Tests.EditMode` (Tests/EditMode). New script folders under `Scripts/` join `MathRunner` automatically.
+- Run tests from `Unity_RunCommand` with `TestRunnerApi` + `ExecutionSettings { runSynchronously = true }` filtered to assembly `MathRunner.Tests.EditMode`, collecting results via `ICallbacks`. Or in the Editor: Window > General > Test Runner > EditMode > Run All.
 - Movement sandbox: `Assets/_Project/Scenes/Sandbox_Movement.unity` (`SampleScene` is the untouched template scene)
 - Unity MCP notes: `Unity_RunCommand` blocks `System.Reflection` (use `SendMessage` / public APIs). Entering/exiting Play mode and script changes cause a domain reload, so the tools are unavailable for a few seconds. Play mode runs much slower than real time while the Editor is unfocused, so test movement deterministically (`Physics2D.simulationMode = Script` + `Physics2D.Simulate`, restoring the mode afterwards) instead of with real-time sampling.
-- Phase 2 needs asmdefs: EditMode tests can't reference `Assembly-CSharp`, so add a runtime asmdef under `Scripts/` and a test asmdef under `Tests/EditMode/`.
 - Project: Unity 6000.3.11f1, URP, git repo at this folder (`MATH_RUNNERV1`)
 - Layers: 6 Ground, 7 Player, 8 Obstacle, 9 AnswerPlatform
 - Decisions made: none yet (see GAME_DESIGN.md §6)

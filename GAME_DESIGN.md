@@ -197,28 +197,40 @@ Assets/_Project/
 | `QuestionTimer` | Countdown and UI bar for timed questions |
 | `SaveSystem` | Unlocked levels, best scores, settings |
 
-### 3.4 Data Contracts (sketch)
+### 3.4 Data Contracts
+Math engine (built in Phase 2, `Scripts/Math/`, assembly `MathRunner.Math`):
 ```csharp
-public sealed class MathQuestion
-{
-    public string Text;          // "6 × 8 = ?"
-    public int Answer;           // 48
-    public int[] Choices;        // { 47, 48, 84 }
-    public int CorrectIndex;     // 1
-    public float TimeLimit;      // 0 = untimed
-}
+// One level's math = a list of rules; the generator picks a rule at random each question.
+QuestionSettings { List<QuestionRule> Rules; List<string> Validate(); }
+QuestionRule     { QuestionType Type; OperandRanges ForTier(DifficultyTier); }   // Easy / Normal / Hard
+OperandRanges    { IntRange A, B, C; }        // meaning of A/B/C per type: see QuestionTypes.cs
+QuestionType     Add, Subtract, Multiply, Divide, AddMultiply (a + b×c), MultiplySubtract (a×b − c), DivideAdd (a÷b + c)
 
+var gen = new QuestionGenerator(new System.Random(seed));
+MathQuestion q = gen.Generate(settings, tracker.Tier);
+q.Text          // "6 × 8 = ?"
+q.Answer        // 48
+q.Choices       // { 42, 48, 58 }  — 1 correct + 2 distractors, shuffled
+q.CorrectIndex  // 1
+q.Problem       // type + operands, for stats later
+
+LevelCurriculum.ForLevel(1..10)   // default rules from the table in 2.4 (seed LevelConfig assets from this)
+DifficultyTracker.RecordCorrect() / RecordWrong() / Tier
+```
+Timing is not part of the math engine. The Question Zone decides whether a question is timed and for how long (Phase 3), using LevelConfig.
+
+LevelConfig (Phase 5) — wraps the math rules plus level pacing:
+```csharp
 [CreateAssetMenu(menuName = "MathRunner/Level Config")]
 public class LevelConfig : ScriptableObject
 {
-    public int levelNumber;
-    public QuestionType[] questionTypes;   // Addition, Subtraction, Multiply, Divide, TwoStep, ...
-    public Vector2Int[] tierRanges;        // number range per tier (Easy/Normal/Hard)
-    public int questionCount = 8;
-    [Range(0,1)] public float timedQuestionRatio;
-    public float timeLimitSeconds;
-    public float runSpeed;
-    public GameObject[] chunkPool;
+    [SerializeField] private int _levelNumber;
+    [SerializeField] private QuestionSettings _questions;   // seeded from LevelCurriculum.ForLevel(n)
+    [SerializeField] private int _questionCount = 8;
+    [SerializeField, Range(0,1)] private float _timedQuestionRatio;
+    [SerializeField] private float _timeLimitSeconds;
+    [SerializeField] private float _runSpeed;
+    [SerializeField] private GameObject[] _chunkPool;
 }
 ```
 
@@ -248,8 +260,14 @@ gap widths when run speed rises in later levels (distance scales with speed).
 - **Done when:** jumping across gaps feels good on keyboard.
 
 ### Phase 2 — Math Engine (no visuals)
-- [ ] `MathQuestion`, `QuestionGenerator`, `DistractorGenerator`, `DifficultyTracker`
-- [ ] EditMode tests: whole-number answers, no negatives, unique choices, the correct answer is always included, and tier rules work
+- [x] `MathQuestion`, `QuestionGenerator`, `DistractorGenerator`, `DifficultyTracker`
+- [x] `LevelCurriculum` with Easy/Normal/Hard ranges for all 10 levels
+- [x] EditMode tests: whole-number answers, no negatives, unique choices, the correct answer is always included, and tier rules work (75 tests, all passing)
+
+Notes: answers are whole numbers (§6 decision #1, option A, used as the default until the instructor confirms).
+Distractors prefer one typical mistake (e.g. `(4 + 6) × 3` for `4 + 6 × 3`, a neighbouring times-table result,
+the wrong operation) plus near misses (±1, ±2, ±10, ±100), and never a pair mirrored around the answer, so the
+correct answer isn't simply "the middle number".
 - **Done when:** all tests pass for all 10 level configs.
 
 ### Phase 3 — Question Zone
