@@ -60,11 +60,14 @@ Each level is a sequence of running segments separated by **Question Zones**:
 
 1. The player runs through a normal segment (gaps, obstacles).
 2. A **trigger** shows the question on screen, e.g. `6 × 8 = ?`
-3. Ahead, **3 answer platforms** appear at different heights, each labeled with a number.
-4. The player jumps onto one.
-   - **Correct** → platform glows, +points, the run continues.
-   - **Wrong** → platform crumbles, −1 life, the correct answer is highlighted, and the player lands on a safe recovery floor below and keeps running.
-   - **Missed all platforms / time ran out** → counts as wrong.
+3. Ahead, **3 answer platforms** float side by side at the same height (1.4 units above the ground), each labeled with a number.
+4. The player chooses by **when** they jump: the first platform they land on is their answer. Each platform gives roughly a 0.5 s timing window. Platforms are one-way, so jumping up through one doesn't count as choosing it.
+   - **Correct** → platform turns green, +points, the run continues.
+   - **Wrong** → platform turns red and crumbles, −1 life, the correct platform turns green, and the player drops to the ground below (the recovery floor) and keeps running.
+   - **Missed all platforms / time ran out** → counts as wrong. Not jumping simply runs underneath the platforms.
+   - After any result the other platforms fade out and stop being solid, and the panel shows the solved equation, e.g. `6 × 2 = 12`.
+
+Why same height instead of different heights: picking low/mid/high platforms by how long you hold jump needs roughly 0.05 s precision, which is too hard for kids and for touchscreens. Timing-based choice keeps the one-button control and gives generous windows.
 
 **Key idea: the timer and the physical distance are the same thing.** The spawner places the answer platforms at `distance = runSpeed × timeLimit` ahead of the trigger. A shorter time limit therefore means the platforms are physically closer. This keeps "continuous running" and "time-limited questions" consistent with each other.
 - **Timed questions** show a visible countdown bar that empties as the player reaches the platforms.
@@ -76,7 +79,8 @@ Because the character runs automatically, the only required input is **jump**. T
 | Feature | Purpose |
 |---|---|
 | Auto-run at `LevelConfig.runSpeed` | Approved "continuously runs" |
-| Variable jump height (hold = higher) | Lets the player reach high or low answer platforms |
+| Variable jump height (hold = higher) | Short hops vs long jumps over gaps and obstacles |
+| Minimum jump (0.08 s) | Even the quickest tap rises 1.56 units, clearing the 1.4-unit answer platforms |
 | Coyote time (~0.1 s) | Allows jumping a moment after leaving a ledge, so it feels fair |
 | Jump buffer (~0.1 s) | Allows pressing jump just before landing |
 | Obstacles (spikes, gaps, rolling objects) | Approved "avoid obstacles". Hitting one = −1 life, then a short invincibility period |
@@ -271,10 +275,16 @@ correct answer isn't simply "the middle number".
 - **Done when:** all tests pass for all 10 level configs.
 
 ### Phase 3 — Question Zone
-- [ ] `QuestionZone` chunk: trigger, 3 `AnswerPlatform`s, recovery floor
-- [ ] Platform placement based on time limit (2.1)
-- [ ] Correct/wrong feedback (glow, crumble, highlight the correct answer)
-- [ ] `QuestionPanel` UI
+- [x] `QuestionZone` chunk: trigger, 3 `AnswerPlatform`s, recovery floor (`Prefabs/Chunks/QuestionZone.prefab`)
+- [x] Platform placement based on time limit (2.1)
+- [x] Correct/wrong feedback (glow, crumble, highlight the correct answer)
+- [x] `QuestionPanel` UI (question, countdown bar, result text)
+- [x] `QuestionDirector` (owns the generator + adaptive tier) and `GameEvents` (`QuestionShown`, `QuestionResolved`)
+
+Verified in Play mode (`Scenes/Sandbox_QuestionZone`, Level 5 questions) with a scripted bot stepping frame by frame:
+correct (untimed), wrong (4 s), missed (3 s) and correct (2 s) all resolve as expected; timer bar is half full at half time;
+tier drops Normal → Easy after the wrong answer. Bug found and fixed: jumping up *through* a one-way platform counted
+as landing on it.
 - **Done when:** one question works end to end, in both the correct and wrong cases.
 
 ### Phase 4 — Game Systems & HUD

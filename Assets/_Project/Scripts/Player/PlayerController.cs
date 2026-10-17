@@ -16,6 +16,8 @@ namespace MathRunner.Player
         [Header("Jump")]
         [SerializeField] private float _jumpHeight = 3.2f;
         [SerializeField, Range(0.1f, 1f)] private float _jumpCutMultiplier = 0.5f;
+        [Tooltip("Releasing jump earlier than this still gives this much jump, so a quick tap clears answer platforms.")]
+        [SerializeField] private float _minJumpTime = 0.08f;
         [SerializeField] private float _fallGravityMultiplier = 1.4f;
         [SerializeField] private float _maxFallSpeed = 25f;
 
@@ -29,6 +31,7 @@ namespace MathRunner.Player
         private float _coyoteCounter;
         private float _bufferCounter;
         private bool _isJumping;
+        private float _jumpTimer;
 
         public float RunSpeed
         {
@@ -92,10 +95,12 @@ namespace MathRunner.Player
                 _bufferCounter = 0f;
                 _coyoteCounter = 0f;
                 _isJumping = true;
+                _jumpTimer = 0f;
                 IsGrounded = false;
             }
 
-            if (_isJumping && v.y > 0f && !_input.JumpHeld)
+            if (_isJumping) _jumpTimer += dt;
+            if (_isJumping && v.y > 0f && !_input.JumpHeld && _jumpTimer >= _minJumpTime)
             {
                 v.y *= _jumpCutMultiplier;
                 _isJumping = false;

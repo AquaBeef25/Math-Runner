@@ -40,12 +40,21 @@ Educational 2D auto-runner platformer in **Unity (C#)**. The player jumps onto t
 
 ## Current Progress
 <!-- Update this as phases finish -->
-- Phase: **2 — Math Engine** (done, 75 EditMode tests passing) → next: **Phase 3 — Question Zone**
+- Phase: **3 — Question Zone** (done, verified in Play mode) → next: **Phase 4 — Game Systems & HUD**
+- Question sandbox: `Assets/_Project/Scenes/Sandbox_QuestionZone.unity` (4 zones: untimed, 4 s, 3 s, 2 s; director on Level 5)
+- Player ground mask must include both `Ground` and `AnswerPlatform` layers
 - Phase 1 movement still pending my feel-test with a real keyboard
 - Assemblies: `MathRunner.Math` (Scripts/Math, pure math, no MonoBehaviours), `MathRunner` (all other Scripts, references Math + Input System), `MathRunner.Tests.EditMode` (Tests/EditMode). New script folders under `Scripts/` join `MathRunner` automatically.
 - Run tests from `Unity_RunCommand` with `TestRunnerApi` + `ExecutionSettings { runSynchronously = true }` filtered to assembly `MathRunner.Tests.EditMode`, collecting results via `ICallbacks`. Or in the Editor: Window > General > Test Runner > EditMode > Run All.
 - Movement sandbox: `Assets/_Project/Scenes/Sandbox_Movement.unity` (`SampleScene` is the untouched template scene)
-- Unity MCP notes: `Unity_RunCommand` blocks `System.Reflection` (use `SendMessage` / public APIs). Entering/exiting Play mode and script changes cause a domain reload, so the tools are unavailable for a few seconds. Play mode runs much slower than real time while the Editor is unfocused, so test movement deterministically (`Physics2D.simulationMode = Script` + `Physics2D.Simulate`, restoring the mode afterwards) instead of with real-time sampling.
+- Unity MCP notes: `Unity_RunCommand` blocks `System.Reflection` (use `SendMessage` / public APIs). Entering/exiting Play mode and script changes cause a domain reload, so the tools are unavailable for a few seconds. Play mode runs much slower than real time while the Editor is unfocused, so drive it deterministically instead of sampling in real time:
+  - Start Play mode paused: set `EditorApplication.isPaused = true` *before* `isPlaying = true`.
+  - Set `Time.captureDeltaTime = 0.02f`, then each `EditorApplication.Step()` runs exactly one frame synchronously inside the command. Simulate input with `InputReader.NotifyJumpPressed/Released()`.
+  - Reset `captureDeltaTime = 0` and `isPaused = false` when done.
+  - Wrap harness code in try/catch: an uncaught exception makes the tool revert, which exits Play mode.
+  - `GameObject.Find` can't see inactive objects (e.g. the hidden question panel); use `transform.Find` from an active parent.
+  - The command wrapper has an `Image` namespace; alias `using UIImage = UnityEngine.UI.Image;`.
+  - Overlay canvases don't appear in `Unity_Camera_Capture`; switch the canvas to Screen Space - Camera in Play mode before capturing.
 - Project: Unity 6000.3.11f1, URP, git repo at this folder (`MATH_RUNNERV1`)
 - Layers: 6 Ground, 7 Player, 8 Obstacle, 9 AnswerPlatform
 - Decisions made: none yet (see GAME_DESIGN.md §6)

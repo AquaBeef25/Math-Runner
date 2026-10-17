@@ -3,7 +3,9 @@
     "rootNamespace": "MathRunner",
     "references": [
         "MathRunner.Math",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
