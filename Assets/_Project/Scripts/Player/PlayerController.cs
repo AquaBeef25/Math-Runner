@@ -37,6 +37,9 @@ namespace MathRunner.Player
         private float _lastAirSpeedY;
         private float _heldRealSeconds; // how long jump has been held, in the player's own (unslowed) seconds
         private readonly Collider2D[] _groundHits = new Collider2D[4];
+        private readonly RaycastHit2D[] _rayHits = new RaycastHit2D[4];
+        private const float WalkableNormalY = 0.82f; // slopes up to ~35°
+        private bool _jumpedSinceGrounded;
         private ContactFilter2D _groundFilter;
 
         public float RunSpeed
@@ -101,11 +104,14 @@ namespace MathRunner.Player
 
             bool wasGrounded = IsGrounded;
             IsGrounded = CheckGrounded(v.y);
+            // Over a crest or onto a down-slope the ground drops away a little each step: stick to it instead of flying off.
+            if (!IsGrounded && wasGrounded && !_isJumping && v.y <= 0.1f && StickToGround()) IsGrounded = true;
             if (IsGrounded && !wasGrounded) Landed?.Invoke(-_lastAirSpeedY);
             if (IsGrounded)
             {
                 _coyoteCounter = _coyoteTime;
                 _isJumping = false;
+                _jumpedSinceGrounded = false;
             }
             else
             {
@@ -119,6 +125,7 @@ namespace MathRunner.Player
                 _bufferCounter = 0f;
                 _coyoteCounter = 0f;
                 _isJumping = true;
+                _jumpedSinceGrounded = true;
                 _jumpTimer = 0f;
                 _heldRealSeconds = 0f;
                 IsGrounded = false;
@@ -138,7 +145,10 @@ namespace MathRunner.Player
                 _isJumping = false;
             }
 
-            _rb.gravityScale = v.y < 0f ? _baseGravityScale * _fallGravityMultiplier : _baseGravityScale;
+            // On the ground and not jumping: move along the surface at full run speed (flat or ramp), with no gravity bob.
+            bool onSurface = IsGrounded && !_isJumping;
+            if (onSurface && SampleGroundSlope(out float slope)) v.y = _runSpeed * slope;
+            _rb.gravityScale = onSurface ? 0f : v.y < 0f ? _baseGravityScale * _fallGravityMultiplier : _baseGravityScale;
             v.y = Mathf.Max(v.y, -_maxFallSpeed);
             v.x = _runSpeed;
             _rb.linearVelocity = v;
@@ -147,15 +157,58 @@ namespace MathRunner.Player
 
         private bool CheckGrounded(float verticalSpeed)
         {
-            if (verticalSpeed > 0.1f) return false;
+            // Moving up because of a jump is never standing; moving up a ramp is.
+            if (verticalSpeed > 0.1f && _jumpedSinceGrounded) return false;
 
             Bounds b = _col.bounds;
             Vector2 center = new Vector2(b.center.x, b.min.y - 0.05f);
             Vector2 size = new Vector2(b.size.x * 0.9f, 0.1f);
             int count = Physics2D.OverlapBox(center, size, 0f, _groundFilter, _groundHits);
-            // Only a surface at the feet counts: rising through a one-way ledge or brushing a step face is not standing.
             for (int i = 0; i < count; i++)
-                if (_groundHits[i].bounds.max.y <= b.min.y + 0.1f) return true;
+            {
+                // Rising through a one-way ledge isn't standing on it: only its top surface counts.
+                if (_groundHits[i].usedByEffector && _groundHits[i].bounds.max.y > b.min.y + 0.1f) continue;
+                return true;
+            }
+            return false;
+        }
+
+        // Slope (rise per unit of run) of the ground just ahead, from a ray under the front foot (the centre if nothing
+        // is there). False when no walkable surface is close below.
+        private bool SampleGroundSlope(out float slope)
+        {
+            Bounds b = _col.bounds;
+            slope = 0f;
+            if (!TryGroundHit(new Vector2(b.max.x - 0.05f, b.min.y + 0.3f), 0.8f, b.min.y, out var hit) &&
+                !TryGroundHit(new Vector2(b.center.x, b.min.y + 0.3f), 0.8f, b.min.y, out hit)) return false;
+            slope = -hit.normal.x / hit.normal.y;
+            return true;
+        }
+
+        // Pull the feet down onto ground that is less than StickDistance below (crests, the top of a down-slope).
+        private bool StickToGround()
+        {
+            const float StickDistance = 0.4f;
+            Bounds b = _col.bounds;
+            if (!TryGroundHit(new Vector2(b.center.x, b.min.y + 0.05f), StickDistance + 0.05f, b.min.y, out var hit) &&
+                !TryGroundHit(new Vector2(b.max.x - 0.05f, b.min.y + 0.05f), StickDistance + 0.05f, b.min.y, out hit)) return false;
+            float drop = b.min.y - hit.point.y;
+            if (drop < 0f || drop > StickDistance) return false;
+            _rb.position -= new Vector2(0f, drop);
+            return true;
+        }
+
+        private bool TryGroundHit(Vector2 origin, float distance, float feetY, out RaycastHit2D hit)
+        {
+            int count = Physics2D.Raycast(origin, Vector2.down, _groundFilter, _rayHits, distance);
+            for (int i = 0; i < count; i++)
+            {
+                hit = _rayHits[i];
+                if (hit.normal.y < WalkableNormalY) continue;                                   // too steep / a wall
+                if (hit.collider.usedByEffector && hit.collider.bounds.max.y > feetY + 0.1f) continue; // inside a ledge
+                return true;
+            }
+            hit = default;
             return false;
         }
     }

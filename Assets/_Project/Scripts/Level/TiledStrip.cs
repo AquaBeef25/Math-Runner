@@ -35,6 +35,18 @@ namespace MathRunner.Level
             if (_middle.enabled) Place(_middle, 0f, middle, height);
         }
 
+        private Sprite _leftCapSprite;
+        private Sprite _rightCapSprite;
+
+        // Hide an end cap (draw a middle tile there instead) where the strip continues seamlessly, e.g. into a ramp.
+        public void SetCaps(bool left, bool right)
+        {
+            if (_leftCapSprite == null) _leftCapSprite = _left.sprite;
+            if (_rightCapSprite == null) _rightCapSprite = _right.sprite;
+            _left.sprite = left ? _leftCapSprite : _middle.sprite;
+            _right.sprite = right ? _rightCapSprite : _middle.sprite;
+        }
+
         private static void Place(SpriteRenderer piece, float x, float width, float height)
         {
             piece.transform.localPosition = new Vector3(x, 0f, 0f);

@@ -23,6 +23,7 @@ namespace MathRunner.Level
         [SerializeField] private EnemyEncounter _encounterPrefab;
         [SerializeField] private Obstacle _spikePrefab;
         [SerializeField] private FloatingPlatform _platformPrefab;
+        [SerializeField] private RampPiece _rampPrefab;
         [SerializeField] private Walker _walkerPrefab;
         [SerializeField] private Saw _sawPrefab;
         [SerializeField] private SpriteRenderer _decorationPrefab;
@@ -55,12 +56,20 @@ namespace MathRunner.Level
             var root = transform;
 
             foreach (var (start, end, top) in Plan.Ground)
-                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, top);
+            {
+                // Where a ramp continues the ground, drop the outlined end cap so the slope joins without a seam.
+                bool rampBefore = Plan.Ramps.Exists(r => System.Math.Abs(r.End - start) < 1e-3f);
+                bool rampAfter = Plan.Ramps.Exists(r => System.Math.Abs(r.Start - end) < 1e-3f);
+                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, top, !rampBefore, !rampAfter);
+            }
             float endTop = Plan.GroundTopAt(Plan.EndX);
             Instantiate(_groundPrefab, root).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, endTop + WallHeight);
 
             foreach (var (x, y) in Plan.Spikes)
                 Instantiate(_spikePrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
+
+            foreach (var (start, end, from, to) in Plan.Ramps)
+                Instantiate(_rampPrefab, root).SetRamp(start, end, from, to, -GroundDepth);
 
             foreach (var (left, right, top) in Plan.Platforms)
                 Instantiate(_platformPrefab, root).SetRect(left, right, top);

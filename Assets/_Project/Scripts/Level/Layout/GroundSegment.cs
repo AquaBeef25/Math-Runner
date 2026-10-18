@@ -10,8 +10,10 @@ namespace MathRunner.Level
         [SerializeField] private TiledStrip _fill;
         [SerializeField] private float _topHeight = 1f;
 
-        public void SetRect(float left, float bottom, float right, float top)
+        public void SetRect(float left, float bottom, float right, float top, bool capLeft = true, bool capRight = true)
         {
+            _top.SetCaps(capLeft, capRight);
+            _fill.SetCaps(capLeft, capRight);
             float width = right - left;
             float height = top - bottom;
             transform.position = new Vector3((left + right) * 0.5f, (bottom + top) * 0.5f, 0f);
