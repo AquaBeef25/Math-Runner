@@ -118,6 +118,52 @@ namespace MathRunner.Tests
             }
         }
 
+        // Review fix: a swinging crate never hangs where the runner jumps, rides the high route, or over an encounter.
+        [Test]
+        public void SwingsStayOutOfJumpArcsPlatformsAndEncounters([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed, life: new[] { 0f, 0f, 0f, 0f, 0f, 1f });
+            var plan = LevelPlanner.Create(s);
+            float arc = JumpReach.AirTime(s, 0f) * s.RunSpeed;
+            Assert.That(plan.Life, Is.Not.Empty);
+            foreach (var l in plan.Life)
+            {
+                foreach (var j in plan.Jumps.Where(j => j.HoldSeconds > 0.3f))
+                    Assert.That(l.X < j.X - 1f || l.X > j.X + arc + 1f, Is.True, $"Swing at {l.X} is in the jump arc from {j.X}");
+                foreach (var p in plan.Platforms)
+                    Assert.That(l.X < p.Left - 2f || l.X > p.Right + 2f, Is.True, $"Swing at {l.X} hangs over the platform {p.Left}-{p.Right}");
+                for (int i = 0; i < plan.Zones.Count; i++)
+                    Assert.That(l.X < plan.Zones[i].X - 2f || l.X > plan.Zones[i].X + plan.ZoneLength(i, s) + 2f, Is.True, $"Swing at {l.X} hangs over encounter {i}");
+            }
+        }
+
+        // Review fix: a flyer's whole loop (x ± 0.8, y ± 0.4) stays 1.5 away from every floating platform.
+        [Test]
+        public void FlyersKeepClearOfPlatforms([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed, life: new[] { 0f, 0f, 1f, 0f, 0f, 0f }));
+            foreach (var l in plan.Life)
+                foreach (var p in plan.Platforms)
+                {
+                    float dx = System.Math.Max(0f, System.Math.Max(p.Left - (l.X + 0.8f), (l.X - 0.8f) - p.Right));
+                    float dy = System.Math.Max(0f, System.Math.Max(p.Top - 0.5f - (l.Y + 0.4f), (l.Y - 0.4f) - (p.Top + 1f)));
+                    Assert.That(System.Math.Sqrt(dx * dx + dy * dy), Is.GreaterThanOrEqualTo(1.5), $"Flyer at {l.X},{l.Y} is next to the platform {p.Left}-{p.Right}");
+                }
+        }
+
+        // Review fix: critters, flags and torches never stand over a low coin.
+        [Test]
+        public void GroundLifeKeepsClearOfCoins([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed, life: new[] { 1f, 1f, 0f, 1f, 1f, 0f }));
+            foreach (var l in plan.Life)
+            {
+                float right = l.Kind == LifeKind.Walker ? l.X + LevelPlanner.LifePatrol : l.X;
+                foreach (var c in plan.Coins.Where(c => c.Y - l.Y < 2.5f))
+                    Assert.That(c.X < l.X - 1.5f || c.X > right + 1.5f, Is.True, $"{l.Kind} at {l.X} stands over the coin at {c.X},{c.Y}");
+            }
+        }
+
         [Test]
         public void LifeIsSparse([Range(1, 10)] int seed)
         {

@@ -630,13 +630,33 @@ namespace MathRunner.Level
                         if (j.HoldSeconds > 0.3f && x >= j.X - 1f && x <= j.X + arc + 1f) ok = false;
                     foreach (var c in plan.Coins)
                         if (Distance(x, y, c.X, c.Y) < Clear) ok = false;
+                    // The whole loop (x ± 0.8, y ± 0.4) stays clear of the floating platforms the runner lands on.
+                    foreach (var p in plan.Platforms)
+                    {
+                        float dx = System.Math.Max(0f, System.Math.Max(p.Left - (x + 0.8f), (x - 0.8f) - p.Right));
+                        float dy = System.Math.Max(0f, System.Math.Max(p.Top - 0.5f - (y + 0.4f), (y - 0.4f) - (p.Top + 1f)));
+                        if (System.Math.Sqrt(dx * dx + dy * dy) < Clear) ok = false;
+                    }
                 }
-                else if (lifeKind != LifeKind.Swing)
+                else if (lifeKind == LifeKind.Swing)
+                {
+                    // A hanging crate never sits in a jump arc, over the high route or over an encounter (question panel).
+                    foreach (var j in plan.Jumps)
+                        if (j.HoldSeconds > 0.3f && x >= j.X - 1f && x <= j.X + arc + 1f) ok = false;
+                    foreach (var p in plan.Platforms)
+                        if (x >= p.Left - 2f && x <= p.Right + 2f) ok = false;
+                    for (int z = 0; z < plan.Zones.Count; z++)
+                        if (x >= plan.Zones[z].X - 2f && x <= plan.Zones[z].X + plan.ZoneLength(z, s) + 2f) ok = false;
+                }
+                else
                 {
                     foreach (float h in blocked)
                         if (h >= x - Clear && h <= x + footprint + Clear) ok = false;
                     foreach (var w in plan.Walkers)
                         if (w.Right >= x - Clear && w.Left <= x + footprint + Clear) ok = false;
+                    // Never stand over a low coin.
+                    foreach (var c in plan.Coins)
+                        if (c.Y - top < 2.5f && c.X >= x - Clear && c.X <= x + footprint + Clear) ok = false;
                 }
                 if (!ok) continue;
                 int variants = s.LifeVariants != null && kind < s.LifeVariants.Length ? System.Math.Max(1, s.LifeVariants[kind]) : 1;
