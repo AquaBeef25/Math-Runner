@@ -107,7 +107,7 @@ counter, not stars) and backdrop scenery. Design: `docs/superpowers/specs/2026-1
 `docs/superpowers/plans/2026-10-18-meadow-v2.md`.
 **Desert terrain (done 2026-10-18):** sand tiles, cactus/rock props and a cactus/palm/pyramid backdrop on Levels 4–5.
 **Lively world (done 2026-10-18):** harmless moving life in every level. Design: `docs/superpowers/specs/2026-10-18-lively-world-design.md` · Plan: `docs/superpowers/plans/2026-10-18-lively-world.md`.
-**Next:** improve the encounters.
+**Random encounters (done 2026-10-19):** alien, bee, frog or fly per encounter; the following fly. Design: `docs/superpowers/specs/2026-10-19-random-encounters-design.md` · Plan: `docs/superpowers/plans/2026-10-19-random-encounters.md`.
 
 ## Stage C — Learning features (the educational differentiator) · size M
 - **C1. Step-by-step solution after a mistake.**

@@ -98,6 +98,9 @@ Levels are generated from their `LevelConfig` (deterministic per seed) in a Geom
   height (jump them); **coins** along some jump arcs and above the high route (+10 score each, shown in the HUD, never
   part of the stars); **backdrop scenery** (trees, bushes, fences, small houses) just behind the play area.
   New knobs: ramp, water, bee and coin chances.
+- **Random encounters (2026-10-19):** each encounter meets one of four enemies at random — the alien (fireball, at a
+  random spot in the sky), a bee that charges, a frog that leaps or a fly. A fly answered wrong follows you: the next
+  right answer's explosion kills it, the next wrong one makes it bite too (two hearts), then it flies away.
 - **Lively world (2026-10-18):** sparse harmless moving life (about one per screen) that can never hurt or block:
   Meadow snails, ladybugs, frogs, flies, waving flags, swinging crates and fish leaping from pools; Desert mice, worms,
   flies, flags, torches and swinging crates; small emote bubbles pop over critters as you pass. Ground props were thinned.
