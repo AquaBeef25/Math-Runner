@@ -58,11 +58,11 @@ MonoBehaviour:
   _maxStepTiles: 1
   _routeSplits: 2
   _platformChance: 0.4
-  _walkerChance: 0.25
+  _walkerChance: 0
   _rampChance: 0.5
   _waterChance: 0.4
-  _sawChance: 0.1
-  _beeChance: 0.15
+  _sawChance: 0
+  _beeChance: 0
   _coinChance: 0.5
   _noSpikes: 1
   _terrain: {fileID: 11400000, guid: a49fd82bcee801b45a955b42852fe662, type: 2}
