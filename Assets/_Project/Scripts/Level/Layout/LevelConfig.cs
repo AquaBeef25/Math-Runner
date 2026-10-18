@@ -27,6 +27,9 @@ namespace MathRunner.Level
         [SerializeField, Range(0f, 1f)] private float _gapChance;
         [SerializeField] private int _layoutSeed = 1;
 
+        [Header("Look")]
+        [SerializeField] private BackgroundTheme _background;
+
         public int LevelNumber => _levelNumber;
         public string Topic => _topic;
         public QuestionSettings Questions => _questions;
@@ -38,6 +41,7 @@ namespace MathRunner.Level
         public int HazardsBetweenQuestions => _hazardsBetweenQuestions;
         public float GapChance => _gapChance;
         public int LayoutSeed => _layoutSeed;
+        public BackgroundTheme Background => _background;
 
         public void Initialize(int levelNumber, string topic, QuestionSettings questions, int questionCount, float runSpeed,
             float timedRatio, float timeLimit, int hazardsBetweenQuestions, float gapChance)

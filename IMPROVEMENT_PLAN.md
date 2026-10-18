@@ -77,7 +77,8 @@ because `GameEvents` already raises everything needed (`QuestionShown/Resolved`,
   - **Character animation:** Run / Jump / Fall / Hurt animations, driven by a new `PlayerAnimator` that reads
     `PlayerController.IsGrounded` and velocity. No logic goes into the controller.
   - **Credits:** a credits file listing the packs.
-- **B2. Parallax background** (3 layers, `ParallaxLayer` component) per world theme.
+- **B2. Parallax background** (3 layers, `ParallaxLayer` component) per world theme. ✅ Done 2026-10-18: sky / clouds /
+  horizon bands; `BackgroundTheme` per level (1–3 Hills, 4–5 Trees, 6–7 Mushrooms, 8–10 Desert).
 - **B3. Juice (`FeedbackFX` listener):**
   - correct answer: confetti, a floating "+575" score popup, and a small Cinemachine impulse
   - wrong answer: screen shake and a red edge flash

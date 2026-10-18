@@ -55,3 +55,4 @@ MonoBehaviour:
   _hazardsBetweenQuestions: 2
   _gapChance: 0.4
   _layoutSeed: 6
+  _background: {fileID: 11400000, guid: de0174ff10d14f044bb8d59b1bbc22b4, type: 2}

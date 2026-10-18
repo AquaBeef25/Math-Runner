@@ -12,6 +12,8 @@ namespace MathRunner.Level
 
         [SerializeField] private QuestionDirector _director;
         [SerializeField] private PlayerController _player;
+        [Tooltip("Optional: gets the level's background theme.")]
+        [SerializeField] private ParallaxBackground _background;
 
         [Header("Prefabs")]
         [SerializeField] private GroundSegment _groundPrefab;
@@ -34,6 +36,7 @@ namespace MathRunner.Level
         {
             _director.Configure(config);
             _player.RunSpeed = config.RunSpeed;
+            if (_background != null) _background.Apply(config.Background);
 
             float airTime = _player.AirTimeToLandOn(_zonePrefab.PlatformTop);
             var settings = LevelPlanSettings.From(config, airTime + _zonePrefab.PlatformSpanSeconds);
