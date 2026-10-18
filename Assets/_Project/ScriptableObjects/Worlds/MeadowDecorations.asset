@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5431b4b2d1cfe1948812770a80a30960, type: 3}
+  m_Name: MeadowDecorations
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.DecorationSet
+  _sprites:
+  - {fileID: 21300000, guid: 4dff6ef6ac583544e87fa2b724cae0e1, type: 3}
+  - {fileID: 21300000, guid: 65c1ea927a1b9fd4f86c7cb6de1d94c5, type: 3}
+  - {fileID: 21300000, guid: be4939bbb2ef6d44f891c45a9511d099, type: 3}
+  - {fileID: 21300000, guid: b857a8d9eee08d9488f59cd0e81ab05c, type: 3}
+  - {fileID: 21300000, guid: 6a10d747349854d4fad607c84e68968f, type: 3}
+  - {fileID: 21300000, guid: 56d3325e1472d654d964b59eda9096af, type: 3}
+  - {fileID: 21300000, guid: 383b914f008632a45b21a4809e6aabb6, type: 3}
+  _weights:
+  - 3
+  - 3
+  - 1
+  - 1
+  - 1
+  - 0.5
+  - 0.5

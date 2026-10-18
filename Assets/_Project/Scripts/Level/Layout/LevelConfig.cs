@@ -41,6 +41,9 @@ namespace MathRunner.Level
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
+        [SerializeField] private DecorationSet _decorations;
+        [Tooltip("Decorations per 10 units of ground.")]
+        [SerializeField, Min(0f)] private float _decorationDensity = 2.5f;
 
         public int LevelNumber => _levelNumber;
         public string Topic => _topic;
@@ -59,6 +62,11 @@ namespace MathRunner.Level
         public float WalkerChance => _walkerChance;
         public float SawChance => _sawChance;
         public BackgroundTheme Background => _background;
+        public DecorationSet Decorations => _decorations;
+        public float DecorationDensity => _decorationDensity;
+
+        // Editor setup: ScriptableObject fields don't always save through SerializedProperty here.
+        public void SetDecorations(DecorationSet set) => _decorations = set;
 
         public void Initialize(int levelNumber, string topic, QuestionSettings questions, int questionCount, float runSpeed,
             float timedRatio, float timeLimit, int hazardsBetweenQuestions, float gapChance)

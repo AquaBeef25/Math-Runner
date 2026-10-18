@@ -61,3 +61,5 @@ MonoBehaviour:
   _walkerChance: 0.15
   _sawChance: 0
   _background: {fileID: 11400000, guid: 767ee76bfc68a85448bfe30ee8015e15, type: 2}
+  _decorations: {fileID: 11400000, guid: b117c64952762024d99dc224d3881c8b, type: 2}
+  _decorationDensity: 2.5

@@ -25,6 +25,7 @@ namespace MathRunner.Level
         [SerializeField] private FloatingPlatform _platformPrefab;
         [SerializeField] private Walker _walkerPrefab;
         [SerializeField] private Saw _sawPrefab;
+        [SerializeField] private SpriteRenderer _decorationPrefab;
         [SerializeField, Min(0f)] private float _walkerSpeed = 1f;
         [SerializeField] private Checkpoint _checkpointPrefab;
         [SerializeField] private FinishFlag _finishPrefab;
@@ -69,6 +70,10 @@ namespace MathRunner.Level
 
             foreach (var (x, y) in Plan.Saws)
                 Instantiate(_sawPrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
+
+            if (config.Decorations != null && _decorationPrefab != null)
+                foreach (var (x, y, kind) in Plan.Decorations)
+                    Instantiate(_decorationPrefab, new Vector3(x, y, 0f), Quaternion.identity, root).sprite = config.Decorations.Sprite(kind);
 
             foreach (var zonePlan in Plan.Zones)
             {

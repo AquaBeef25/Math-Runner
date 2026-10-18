@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -33,6 +33,8 @@ namespace MathRunner.Tests
             PlatformChance = platforms,
             WalkerChance = walkers,
             SawChance = saws,
+            DecorationDensity = decor,
+            DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
 
         private static bool OnGround(LevelPlan plan, float from, float to) =>
@@ -174,6 +176,66 @@ namespace MathRunner.Tests
                 Assert.That(sw.Y, Is.EqualTo(plan.GroundTopAt(sw.X)).Within(1e-4f), $"Saw at {sw.X} floats or is buried");
                 Assert.That(plan.Jumps.Any(j => j.X < sw.X && sw.X - j.X < 0.6f * s.RunSpeed), Is.True, $"No jump planned before the saw at {sw.X}");
             }
+        }
+
+        [Test]
+        public void DecorationsKeepClearOfHazards([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed: seed, walkers: 0.3f, saws: 0.2f, decor: 2.5f);
+            var plan = LevelPlanner.Create(s);
+            Assert.That(plan.Decorations, Is.Not.Empty);
+            var gapEdges = plan.Ground.Zip(plan.Ground.Skip(1), (a, b) => b.Start - a.End > 0.01f ? new[] { a.End, b.Start } : new float[0]).SelectMany(e => e);
+            var keepClear = plan.Spikes.Select(p => p.X)
+                .Concat(plan.Saws.Select(p => p.X))
+                .Concat(plan.Jumps.Select(j => j.X))
+                .Concat(gapEdges)
+                .ToList();
+            foreach (var d in plan.Decorations)
+            {
+                foreach (float x in keepClear)
+                    Assert.That(System.Math.Abs(d.X - x), Is.GreaterThanOrEqualTo(1.5f), $"Decoration at {d.X} is too close to {x}");
+                foreach (var w in plan.Walkers)
+                    Assert.That(d.X < w.Left - 1.5f || d.X > w.Right + 1.5f, Is.True, $"Decoration at {d.X} is in a walker's patrol");
+            }
+        }
+
+        [Test]
+        public void DecorationsSitOnTheGroundTop([Range(1, 10)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, decor: 2.5f));
+            foreach (var d in plan.Decorations)
+            {
+                Assert.That(OnGround(plan, d.X - 0.6f, d.X + 0.6f), Is.True, $"Decoration at {d.X} hangs over an edge");
+                Assert.That(d.Y, Is.EqualTo(plan.GroundTopAt(d.X)).Within(1e-4f));
+                Assert.That(d.Kind, Is.InRange(0, 6));
+            }
+        }
+
+        [Test]
+        public void DecorationDensityIsRoughlyAsSet([Range(1, 10)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, decor: 2.5f));
+            float groundLength = plan.Ground.Sum(g => g.End - g.Start);
+            float perTen = plan.Decorations.Count / groundLength * 10f;
+            Assert.That(perTen, Is.InRange(2.5f * 0.6f, 2.5f * 1.4f));
+        }
+
+        [Test]
+        public void DecorationsDontChangeTheTerrain()
+        {
+            var bare = LevelPlanner.Create(Settings(seed: 3));
+            var decorated = LevelPlanner.Create(Settings(seed: 3, decor: 2.5f));
+            Assert.That(decorated.Ground, Is.EqualTo(bare.Ground));
+            Assert.That(decorated.Spikes, Is.EqualTo(bare.Spikes));
+            Assert.That(decorated.Jumps, Is.EqualTo(bare.Jumps));
+        }
+
+        [Test]
+        public void SameSeedSameDecorations()
+        {
+            var a = LevelPlanner.Create(Settings(seed: 5, decor: 2.5f));
+            var b = LevelPlanner.Create(Settings(seed: 5, decor: 2.5f));
+            Assert.That(b.Decorations, Is.EqualTo(a.Decorations));
         }
 
         [Test]

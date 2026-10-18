@@ -29,6 +29,8 @@ namespace MathRunner.Level
         public float PlatformChance; // chance a spike gets an optional platform over it
         public float WalkerChance;   // chance a hazard is a patrolling slime
         public float SawChance;      // chance a hazard is a saw
+        public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
+        public float[] DecorationWeights; // relative chance of each decoration kind
 
         // Spacing, in seconds of running (distance = seconds × run speed).
         public float IntroSeconds;
@@ -59,6 +61,8 @@ namespace MathRunner.Level
             PlatformChance = config.PlatformChance,
             WalkerChance = config.WalkerChance,
             SawChance = config.SawChance,
+            DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
+            DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             IntroSeconds = 2f,
             HazardSpacingSeconds = 1.6f,
             GapSeconds = 0.4f,
@@ -75,6 +79,7 @@ namespace MathRunner.Level
         public readonly List<(float Left, float Right, float Y)> Walkers = new List<(float Left, float Right, float Y)>();
         public readonly List<(float X, float Y)> Saws = new List<(float X, float Y)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
+        public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
         // One safe way through: press jump when crossing X, hold for HoldSeconds of scaled time.
         public readonly List<(float X, float HoldSeconds)> Jumps = new List<(float X, float HoldSeconds)>();
@@ -265,6 +270,7 @@ namespace MathRunner.Level
             b.Plan.FinishX = b.X;
             b.Plan.EndX = b.X + 3f * v;
             b.Close(b.Plan.EndX);
+            Decorate(b.Plan, s);
             return b.Plan;
         }
 
@@ -310,6 +316,75 @@ namespace MathRunner.Level
                 else b.Spike();
                 b.X += s.HazardSpacingSeconds * v;
             }
+        }
+
+        // Scatters decorations on the ground tops with its own random stream (so terrain never changes), keeping them
+        // 1.5 units clear of every hazard, jump take-off and gap edge, and off segment edges.
+        private static void Decorate(LevelPlan plan, LevelPlanSettings s)
+        {
+            if (s.DecorationDensity <= 0f || s.DecorationWeights == null || s.DecorationWeights.Length == 0) return;
+            const float Clear = 1.5f, EdgeInset = 0.6f, Spacing = 1f;
+            var rng = new System.Random(s.Seed * 31 + 7);
+
+            var blocked = new List<float>();
+            foreach (var p in plan.Spikes) blocked.Add(p.X);
+            foreach (var p in plan.Saws) blocked.Add(p.X);
+            foreach (var j in plan.Jumps) blocked.Add(j.X);
+            for (int i = 0; i + 1 < plan.Ground.Count; i++)
+            {
+                if (plan.Ground[i + 1].Start - plan.Ground[i].End <= 0.01f) continue;
+                blocked.Add(plan.Ground[i].End);
+                blocked.Add(plan.Ground[i + 1].Start);
+            }
+
+            float total = 0f;
+            foreach (var g in plan.Ground) total += System.Math.Max(0f, g.End - g.Start - 2f * EdgeInset);
+            int target = (int)System.Math.Round(s.DecorationDensity * TotalGround(plan) / 10f);
+            float weightSum = 0f;
+            foreach (float w in s.DecorationWeights) weightSum += w;
+
+            for (int attempt = 0; attempt < target * 40 && plan.Decorations.Count < target && total > 0f; attempt++)
+            {
+                // Pick a spot uniformly along the usable ground.
+                double pick = rng.NextDouble() * total;
+                float x = float.NaN, top = 0f;
+                foreach (var g in plan.Ground)
+                {
+                    float usable = System.Math.Max(0f, g.End - g.Start - 2f * EdgeInset);
+                    if (pick < usable)
+                    {
+                        x = g.Start + EdgeInset + (float)pick;
+                        top = g.Top;
+                        break;
+                    }
+                    pick -= usable;
+                }
+                if (float.IsNaN(x) || !IsClear(plan, blocked, x, Clear, Spacing)) continue;
+
+                double k = rng.NextDouble() * weightSum;
+                int kind = 0;
+                while (kind < s.DecorationWeights.Length - 1 && k >= s.DecorationWeights[kind]) k -= s.DecorationWeights[kind++];
+                plan.Decorations.Add((x, top, kind));
+            }
+            plan.Decorations.Sort((a, c) => a.X.CompareTo(c.X));
+        }
+
+        private static float TotalGround(LevelPlan plan)
+        {
+            float sum = 0f;
+            foreach (var g in plan.Ground) sum += g.End - g.Start;
+            return sum;
+        }
+
+        private static bool IsClear(LevelPlan plan, List<float> blocked, float x, float clear, float spacing)
+        {
+            foreach (float b in blocked)
+                if (System.Math.Abs(x - b) < clear) return false;
+            foreach (var w in plan.Walkers)
+                if (x >= w.Left - clear && x <= w.Right + clear) return false;
+            foreach (var d in plan.Decorations)
+                if (System.Math.Abs(x - d.X) < spacing) return false;
+            return true;
         }
 
         // Spreads route splits evenly over the questions.

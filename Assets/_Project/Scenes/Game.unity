@@ -8637,6 +8637,7 @@ MonoBehaviour:
   _platformPrefab: {fileID: 7841362427432074463, guid: d6d211fcfbe13264e976378fe0c935aa, type: 3}
   _walkerPrefab: {fileID: 3521530633282683797, guid: 190cff60fbcd16c44a420f51fa993816, type: 3}
   _sawPrefab: {fileID: 2759248983799546180, guid: 228dad957e318ee4d98a505c37cf95fc, type: 3}
+  _decorationPrefab: {fileID: 605444390240892827, guid: 430ed2d851c863a4b9c0638eb29aebf9, type: 3}
   _walkerSpeed: 1
   _checkpointPrefab: {fileID: 7423024411788774180, guid: 6705b2fc4d1f1ad469f56fc149987ac0, type: 3}
   _finishPrefab: {fileID: 7269971048085119298, guid: 67f12bc1c0bada948b45f17e9bafb9e3, type: 3}
