@@ -20,9 +20,13 @@ namespace MathRunner.Level
             float length = end - start;
             var col = GetComponent<PolygonCollider2D>();
             col.pathCount = 1;
+            // The start slants back under the flat ground it joins (hidden inside that block) instead of rising as a vertical
+            // face to the surface: the runner's box snagged on that hidden corner and stopped dead.
+            const float Undercut = 0.5f;
             col.SetPath(0, new[]
             {
-                new Vector2(0f, bottom), new Vector2(0f, fromTop), new Vector2(length, toTop), new Vector2(length, bottom),
+                new Vector2(0f, bottom), new Vector2(-Undercut, fromTop - Undercut), new Vector2(0f, fromTop),
+                new Vector2(length, toTop), new Vector2(length, bottom),
             });
 
             for (int i = transform.childCount - 1; i >= 0; i--)

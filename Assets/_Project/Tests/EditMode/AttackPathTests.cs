@@ -42,6 +42,22 @@ namespace MathRunner.Tests
             }
         }
 
+        // The frog arrives hopping along the ground: never below the ground line, small hops, and it lands exactly on its spot.
+        [Test]
+        public void HopApproachStaysOnTheGround()
+        {
+            var from = new Vector2(14f, 0f);
+            var to = new Vector2(6f, 0f);
+            for (float k = 0f; k <= 1f; k += 0.01f)
+            {
+                var p = AttackPath.HopApproach(from, to, k, 0.8f, 3);
+                Assert.That(p.y, Is.GreaterThanOrEqualTo(-1e-4f), "never below the ground");
+                Assert.That(p.y, Is.LessThanOrEqualTo(0.8f + 1e-4f), "small hops, not flying");
+            }
+            Assert.That(Vector2.Distance(AttackPath.HopApproach(from, to, 1f, 0.8f, 3), to), Is.LessThan(1e-4f));
+            Assert.That(AttackPath.HopApproach(from, to, 1f / 3f, 0.8f, 3).y, Is.EqualTo(0f).Within(1e-4f), "touches down between hops");
+        }
+
         [Test]
         public void ChargingEnemyHasNoSolidCollider()
         {

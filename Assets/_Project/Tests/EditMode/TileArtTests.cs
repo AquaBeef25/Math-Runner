@@ -157,6 +157,28 @@ namespace MathRunner.Tests
             Object.DestroyImmediate(sand);
         }
 
+        // The ramp's side under the flat ground it joins must not be a vertical face reaching the surface: the runner's box
+        // snagged on that hidden corner and stopped dead (Level 4, a down-ramp after flat ground).
+        [Test]
+        public void RampHasNoVerticalFaceAtItsStart([Values(true, false)] bool down)
+        {
+            var go = new GameObject("Ramp");
+            var ramp = go.AddComponent<RampPiece>();
+            if (down) ramp.SetRamp(479.6f, 481.6f, 1f, 0f, -3f);
+            else ramp.SetRamp(479.6f, 481.6f, 0f, 1f, -3f);
+            var path = go.GetComponent<PolygonCollider2D>().GetPath(0);
+            float top = down ? 1f : 0f;
+            for (int i = 0; i < path.Length; i++)
+            {
+                var a = path[i];
+                var b = path[(i + 1) % path.Length];
+                bool vertical = Mathf.Abs(a.x - b.x) < 1e-4f;
+                bool reachesSurfaceAtStart = Mathf.Abs(a.x) < 1e-4f && (Mathf.Abs(a.y - top) < 1e-4f || Mathf.Abs(b.y - top) < 1e-4f);
+                Assert.That(vertical && reachesSurfaceAtStart, Is.False, $"vertical face {a}->{b} ends at the surface where the ramp starts");
+            }
+            Object.DestroyImmediate(go);
+        }
+
         // Kenney's long ramp: the low half (b) is only a grass wedge; its grass band runs on into the tile below (c).
         [Test]
         public void RampLowHalfHasItsGrassBandTileBelow([Values(true, false)] bool down)

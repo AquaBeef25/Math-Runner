@@ -14,6 +14,7 @@ namespace MathRunner.Tests
             Assert.That(life, Is.Not.Null);
             Assert.That(life.Weights[(int)LifeKind.Flyer], Is.EqualTo(0f), "no harmless flies");
             Assert.That(life.Weights[(int)LifeKind.Hopper], Is.EqualTo(0f), "no harmless frogs");
+            Assert.That(life.Weights[(int)LifeKind.Flag], Is.EqualTo(0f), "no random flags");
             Assert.That(life.Weights[(int)LifeKind.Walker], Is.GreaterThan(0f), "critters stay");
         }
     }

@@ -90,6 +90,36 @@ namespace MathRunner.Tests
             Assert.That(kinds, Is.EquivalentTo(new[] { EnemyKind.Alien, EnemyKind.Bee, EnemyKind.Frog, EnemyKind.Fly }));
         }
 
+        // While answering, the runner must keep moving without a jump: no step up or pillar inside an encounter
+        // stretch (ramps are fine), and so no planned jump there either.
+        [Test]
+        public void EncounterStretchesNeedNoJump([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed, Equal);
+            var plan = LevelPlanner.Create(s);
+            for (int i = 0; i < plan.Zones.Count; i++)
+            {
+                float start = plan.Zones[i].X, end = start + plan.ZoneLength(i, s);
+                Assert.That(plan.Jumps.Any(j => j.X >= start && j.X <= end), Is.False, $"a jump is needed inside encounter {i}");
+                for (int g = 0; g + 1 < plan.Ground.Count; g++)
+                {
+                    var a = plan.Ground[g];
+                    var b = plan.Ground[g + 1];
+                    bool wall = b.Top > a.Top && System.Math.Abs(b.Start - a.End) < 1e-3f && b.End - b.Start > 1e-3f;
+                    if (wall && a.End >= start && a.End <= end) Assert.Fail($"a step up at {a.End} blocks the runner in encounter {i}");
+                }
+            }
+        }
+
+        [Test]
+        public void AliensAppearAboveLeftAndAboveRight()
+        {
+            var spots = Enumerable.Range(1, 10).SelectMany(seed => LevelPlanner.Create(Settings(seed, new[] { 1f, 0f, 0f, 0f })).ZoneEnemies).ToList();
+            Assert.That(spots.Any(e => e.SpotX < 0f), Is.True, "some aliens above-left");
+            Assert.That(spots.Any(e => e.SpotX > 0f), Is.True, "some aliens above-right");
+            foreach (var e in spots) Assert.That(System.Math.Abs(e.SpotX), Is.InRange(3f, 7f));
+        }
+
         [Test]
         public void AlienSpotsStayInTheVisibleSky([Range(1, 10)] int seed)
         {
@@ -98,7 +128,7 @@ namespace MathRunner.Tests
             foreach (var e in plan.ZoneEnemies)
             {
                 Assert.That(e.Kind, Is.EqualTo(EnemyKind.Alien));
-                Assert.That(e.SpotX, Is.InRange(3f, 8f));
+                Assert.That(System.Math.Abs(e.SpotX), Is.InRange(3f, 7f));
                 Assert.That(e.SpotY, Is.InRange(2.5f, 4.0f), "below the question panel even at the top of its bob");
             }
         }

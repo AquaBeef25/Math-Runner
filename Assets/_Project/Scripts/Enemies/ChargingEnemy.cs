@@ -67,7 +67,7 @@ namespace MathRunner.Enemies
             _player = player;
             _settings = settings;
             _smoothY = FeetY();
-            _from = (Vector3)(WaitPoint() + _entryOffset);
+            _from = (Vector3)(WaitPoint() + (_style == Style.Leap ? new Vector2(6f, 0f) : _entryOffset));
             transform.position = _from;
             Enter(Mode.Approach);
         }
@@ -119,6 +119,13 @@ namespace MathRunner.Enemies
 
         private float FeetY() => _player.position.y - 0.5f;
 
+        // The frog sits on the real ground under it (raycast down onto the Ground layer), not at the runner's height.
+        private float GroundY(float x)
+        {
+            var hit = Physics2D.Raycast(new Vector2(x, _player.position.y + 6f), Vector2.down, 20f, LayerMask.GetMask("Ground"));
+            return hit.collider != null ? hit.point.y : FeetY();
+        }
+
         private Vector2 WaitPoint() => new Vector2(_player.position.x, _smoothY) + _waitOffset;
 
         private void Update()
@@ -135,14 +142,20 @@ namespace MathRunner.Enemies
             _time += dt;
             _smoothY = Mathf.SmoothDamp(_smoothY, FeetY(), ref _smoothYVelocity, 0.25f, Mathf.Infinity, dt);
             Vector2 wait = WaitPoint();
-            if (_style != Style.Leap) wait += new Vector2(0f, 0.2f * Mathf.Sin(2f * Mathf.PI * 1.5f * _time)); // hover bob
+            if (_style == Style.Leap) wait.y = GroundY(wait.x) + MathRunner.Level.LifeMotion.HopHeight(_time, 0.7f, 0.35f); // little hops
+            else wait += new Vector2(0f, 0.2f * Mathf.Sin(2f * Mathf.PI * 1.5f * _time)); // hover bob
 
             switch (_mode)
             {
                 case Mode.Approach:
                     float k = _settings != null && _settings.FlyInSeconds > 0f ? _modeTime / _settings.FlyInSeconds : 1f;
                     Vector2 p = Vector2.Lerp(_from, wait, Ease.OutQuad(k));
-                    if (_style == Style.Leap) p.y = Mathf.Lerp(_from.y, wait.y, k) + AttackPath.LeapHeight(k, 1.5f) * (1f - k);
+                    if (_style == Style.Leap)
+                    {
+                        // Hops in along the ground (never through the air): three small hops onto its spot.
+                        var hop = AttackPath.HopApproach(_from, wait, Mathf.Clamp01(k), 0.8f, 3);
+                        p = new Vector2(hop.x, GroundY(hop.x) + (hop.y - Mathf.Lerp(_from.y, wait.y, Mathf.Clamp01(k))));
+                    }
                     transform.position = p;
                     if (k >= 1f) Enter(Mode.Wait);
                     break;

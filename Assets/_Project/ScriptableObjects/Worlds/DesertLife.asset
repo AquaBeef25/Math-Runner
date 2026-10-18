@@ -28,17 +28,8 @@ MonoBehaviour:
     Variants: []
   - Weight: 0
     Variants: []
-  - Weight: 0.5
-    Variants:
-    - _frames:
-      - {fileID: 21300000, guid: 3a30e378c8c94e74997da67a68e4a904, type: 3}
-      - {fileID: 21300000, guid: d038a0624835f35408d4213b404fd968, type: 3}
-    - _frames:
-      - {fileID: 21300000, guid: d806a522398783448bbe144088bbb054, type: 3}
-      - {fileID: 21300000, guid: a9567cd69fca43947ba0a518a706a500, type: 3}
-    - _frames:
-      - {fileID: 21300000, guid: 6d536f317d7dcdc4a853f016b79d5780, type: 3}
-      - {fileID: 21300000, guid: 076889f82ca610f44ad1053bdd4f76cd, type: 3}
+  - Weight: 0
+    Variants: []
   - Weight: 0.6
     Variants:
     - _frames:

@@ -332,6 +332,15 @@ namespace MathRunner.Level
                 else Spike();
             }
 
+            // A ramp up or down by `tiles`, staying within [0, MaxTop]: walkable without a jump.
+            public void SlopeEitherWay(int tiles)
+            {
+                bool canUp = Top + tiles <= MaxTop;
+                bool canDown = Top - tiles >= 0;
+                if (canUp && (!canDown || Rng.NextDouble() < 0.5)) Ramp(tiles, true);
+                else if (canDown) Ramp(tiles, false);
+            }
+
             // A pillar no taller than maxTiles that still ends within MaxTop; a spike if there's no room.
             public void PillarOrSpike(int maxTiles)
             {
@@ -421,7 +430,8 @@ namespace MathRunner.Level
             else b.Spike();
         }
 
-        // Inside an encounter: spikes, walkers, 1-tile steps and pillars only — never a gap, so a fall can't happen mid-question.
+        // Inside an encounter the player is answering, so the runner must never be stopped: only gentle ramps up or down
+        // (walked at full speed, no jump needed) — no steps up, pillars, gaps or hazards. Jumping stays optional.
         private static void EncounterTerrain(Builder b, float start, float end)
         {
             var s = b.S;
@@ -429,11 +439,7 @@ namespace MathRunner.Level
             b.X = start + 0.8f * v;
             while (b.X < end - 2.5f)
             {
-                double roll = b.Rng.NextDouble();
-                if (b.Rng.NextDouble() < s.WalkerChance) b.Walker();
-                else if (s.MaxStepTiles > 0 && roll < 0.3) b.StepEitherWay(1);
-                else if (s.MaxStepTiles > 0 && roll < 0.45) b.PillarOrSpike(1);
-                else b.Spike();
+                if (s.MaxStepTiles > 0 && b.Rng.NextDouble() < 0.4) b.SlopeEitherWay(1);
                 b.X += s.HazardSpacingSeconds * v;
             }
         }
@@ -596,7 +602,8 @@ namespace MathRunner.Level
                 float spotX = 0f, spotY = 0f;
                 if (kind == EnemyKind.Alien)
                 {
-                    spotX = 3f + (float)rng.NextDouble() * 5f;
+                    float side = rng.NextDouble() < 0.5 ? -1f : 1f; // above-left or above-right of the runner
+                    spotX = side * (3f + (float)rng.NextDouble() * 4f);
                     spotY = 2.5f + (float)rng.NextDouble() * 1.5f; // at most 4 up: clear of the question panel at the top of its bob
                 }
                 plan.ZoneEnemies.Add((kind, spotX, spotY));

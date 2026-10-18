@@ -27,6 +27,7 @@ namespace MathRunner.Enemies
         private float _smoothY;
         private float _smoothYVelocity;
         private Vector2 _offset;
+        private float _side = 1f; // +1: hovers ahead (right) of the runner, -1: behind (left)
         private const float FollowSmoothSeconds = 0.25f;
 
         public Vector3 MuzzlePosition => _muzzle != null ? _muzzle.position : transform.position;
@@ -43,11 +44,14 @@ namespace MathRunner.Enemies
         public void Appear(Transform player, EncounterSettings settings, Vector2 spot = default)
         {
             _offset = spot == Vector2.zero ? settings.HoverOffset : spot;
+            _side = _offset.x < 0f ? -1f : 1f;
+            var sprite = GetComponentInChildren<SpriteRenderer>();
+            if (sprite != null) sprite.flipX = _side < 0f; // face the runner
             _player = player;
             _smoothY = player.position.y;
             _smoothYVelocity = 0f;
             _settings = settings;
-            _flyFrom = (Vector2)player.position + _offset + EntryOffset;
+            _flyFrom = (Vector2)player.position + _offset + new Vector2(EntryOffset.x * _side, EntryOffset.y);
             transform.position = _flyFrom;
             Enter(Mode.FlyIn);
         }
@@ -105,7 +109,7 @@ namespace MathRunner.Enemies
                     if (_modeTime >= _settings.WindUpSeconds) Enter(Mode.Hover);
                     break;
                 case Mode.Retreat:
-                    transform.position += (Vector3)(RetreatDirection * (_settings.RetreatSpeed * dt));
+                    transform.position += (Vector3)(new Vector2(RetreatDirection.x * _side, RetreatDirection.y) * (_settings.RetreatSpeed * dt));
                     if (Vector2.Distance(transform.position, _player.position) > 20f) Destroy(gameObject); // well off-screen
                     break;
             }
