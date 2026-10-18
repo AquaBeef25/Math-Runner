@@ -42,6 +42,31 @@ namespace MathRunner.Tests.PlayMode
             Time.timeScale = 1f;
         }
 
+        // Sandbox_Level has a real pit from x 70 to 73; fill it with water and run in without jumping.
+        [UnityTest]
+        public IEnumerator WaterCostsOneHeartAndRespawns()
+        {
+            var lives = Object.FindFirstObjectByType<MathRunner.Systems.LivesSystem>();
+            var pool = new GameObject("TestWater");
+            pool.AddComponent<WaterPool>().SetRect(70f, 73f, -0.6f, -4f);
+            int falls = 0;
+            System.Action<MathRunner.Core.HitCause> onHit = c => { if (c == MathRunner.Core.HitCause.Fall) falls++; };
+            MathRunner.Core.GameEvents.PlayerHit += onHit;
+            try
+            {
+                yield return RunTo(69f);
+                int livesBefore = lives.Lives;
+                int guard = 0;
+                while (falls == 0 && guard++ < 300) yield return null;
+                yield return null;
+
+                Assert.That(falls, Is.EqualTo(1), "falling into the water should count as one fall");
+                Assert.That(lives.Lives, Is.EqualTo(livesBefore - 1));
+                Assert.That(_player.transform.position.y, Is.GreaterThan(-0.5f), "respawned out of the water (at the last checkpoint)");
+            }
+            finally { MathRunner.Core.GameEvents.PlayerHit -= onHit; }
+        }
+
         private static void BuildRamp(float start, float end, float from, float to)
         {
             var go = new GameObject("TestRamp") { layer = LayerMask.NameToLayer("Ground") };
@@ -81,16 +106,24 @@ namespace MathRunner.Tests.PlayMode
             yield return RunTo(UpStart + 0.3f);
             int airborne = 0;
             float worstGap = 0f;
+            string where = "";
+            float worstX = 0f;
             while (_player.transform.position.x < DownEnd - 0.3f)
             {
                 yield return null;
-                if (!_player.IsGrounded) airborne++;
+                if (!_player.IsGrounded)
+                {
+                    airborne++;
+                    if (where.Length < 200) where += $"{_player.transform.position.x:F2} ";
+                }
                 float gap = _col.bounds.min.y - Surface(_player.transform.position.x);
-                worstGap = Mathf.Max(worstGap, gap);
+                if (gap > worstGap) { worstGap = gap; worstX = _player.transform.position.x; }
             }
-            Assert.That(airborne, Is.Zero, "left the ground running over the ramps");
-            // A box on a 27° slope rests on its corner, so its bottom can sit up to half-width × slope above the centre line.
-            Assert.That(worstGap, Is.LessThanOrEqualTo(0.3f), "launched off a crest");
+            Assert.That(airborne, Is.Zero, "left the ground running over the ramps at x: " + where);
+            // A box on a 27° slope rests on its corner, so its bottom sits half-width × slope above the centre line; allow
+            // one physics step of climb on top of that (a real launch also shows up as airborne frames above).
+            float allowed = _col.bounds.extents.x * 0.5f + 0.1f;
+            Assert.That(worstGap, Is.LessThanOrEqualTo(allowed), $"launched off a crest at x {worstX:F2}");
         }
 
         [UnityTest]

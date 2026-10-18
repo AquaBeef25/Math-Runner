@@ -175,13 +175,39 @@ namespace MathRunner.Player
 
         // Slope (rise per unit of run) of the ground just ahead, from a ray under the front foot (the centre if nothing
         // is there). False when no walkable surface is close below.
+        private const float ClimbAllowance = 0.05f;
+
         private bool SampleGroundSlope(out float slope)
         {
             Bounds b = _col.bounds;
-            slope = 0f;
-            if (!TryGroundHit(new Vector2(b.max.x - 0.05f, b.min.y + 0.3f), 0.8f, b.min.y, out var hit) &&
-                !TryGroundHit(new Vector2(b.center.x, b.min.y + 0.3f), 0.8f, b.min.y, out hit)) return false;
-            slope = -hit.normal.x / hit.normal.y;
+            slope = float.NegativeInfinity;
+            // Front foot, plus one physics step ahead of it; take the steeper reading so the climb starts before the box
+            // reaches a ramp, but levelling off or heading down never starts early (that would bump or dip).
+            float ahead = b.max.x + _runSpeed * Time.fixedDeltaTime;
+            float highest = float.NegativeInfinity, aheadSlope = float.NegativeInfinity, frontSlope = float.NegativeInfinity;
+            if (TryGroundHit(new Vector2(ahead, b.min.y + 0.3f), 0.8f, b.min.y, out var hit))
+            {
+                aheadSlope = -hit.normal.x / hit.normal.y;
+                highest = Mathf.Max(highest, hit.point.y);
+            }
+            if (TryGroundHit(new Vector2(b.max.x - 0.05f, b.min.y + 0.3f), 0.8f, b.min.y, out hit))
+            {
+                frontSlope = -hit.normal.x / hit.normal.y;
+                highest = Mathf.Max(highest, hit.point.y);
+            }
+            slope = Mathf.Max(aheadSlope, frontSlope);
+            // Never climb past the highest ground in front of the box this step, or the steeper reading would launch it at
+            // a crest or a ramp foot. Starting a climb gets a little extra so the box clears the ramp's edge.
+            float step = _runSpeed * Time.fixedDeltaTime;
+            float allowance = aheadSlope < frontSlope ? 0f : ClimbAllowance;
+            if (slope > 0f && step > 0f) slope = Mathf.Min(slope, Mathf.Max(0f, highest - b.min.y + allowance) / step);
+            if (float.IsNegativeInfinity(slope) && TryGroundHit(new Vector2(b.center.x, b.min.y + 0.3f), 0.8f, b.min.y, out hit))
+                slope = -hit.normal.x / hit.normal.y;
+            if (float.IsNegativeInfinity(slope))
+            {
+                slope = 0f;
+                return false;
+            }
             return true;
         }
 

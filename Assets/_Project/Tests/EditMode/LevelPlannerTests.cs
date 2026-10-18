@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -35,6 +35,7 @@ namespace MathRunner.Tests
             SawChance = saws,
             DecorationDensity = decor,
             RampChance = ramps,
+            WaterChance = water,
             DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
 
@@ -333,6 +334,39 @@ namespace MathRunner.Tests
             var b = LevelPlanner.Create(Settings(seed: 4, splits: 3, platforms: 0.6f));
             Assert.That(b.Ground, Is.EqualTo(a.Ground));
             Assert.That(b.Jumps, Is.EqualTo(a.Jumps));
+        }
+
+        [Test]
+        public void WaterOnlyFillsGaps([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, gapChance: 0.6f, water: 0.7f));
+            foreach (var w in plan.Water)
+            {
+                Assert.That(plan.Ground.Any(g => System.Math.Abs(g.End - w.Left) < 1e-3f), Is.True, $"Water at {w.Left} doesn't start at a ground edge");
+                Assert.That(plan.Ground.Any(g => System.Math.Abs(g.Start - w.Right) < 1e-3f), Is.True, $"Water at {w.Left} doesn't end at a ground edge");
+                Assert.That(float.IsNaN(plan.GroundTopAt((w.Left + w.Right) * 0.5f)), Is.True, $"Water at {w.Left} isn't in a pit");
+                Assert.That(w.Surface, Is.LessThan(plan.GroundTopAt(w.Left - 0.01f) - 0.4f), "water surface must sit below the ground");
+            }
+        }
+
+        [Test]
+        public void SomeGapsBecomeWater()
+        {
+            int water = 0;
+            for (int seed = 1; seed <= 10; seed++) water += LevelPlanner.Create(Settings(seed: seed, gapChance: 0.6f, water: 0.7f)).Water.Count;
+            Assert.That(water, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void NoWaterInEncounters([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed: seed, gapChance: 0.6f, water: 0.9f);
+            var plan = LevelPlanner.Create(s);
+            for (int i = 0; i < plan.Zones.Count; i++)
+            {
+                float start = plan.Zones[i].X, end = start + plan.ZoneLength(i, s);
+                Assert.That(plan.Water.Any(w => w.Right > start && w.Left < end), Is.False, $"Water inside encounter {i}");
+            }
         }
 
         [Test]

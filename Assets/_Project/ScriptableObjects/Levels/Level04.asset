@@ -91,6 +91,7 @@ MonoBehaviour:
   _platformChance: 0.3
   _walkerChance: 0.15
   _rampChance: 0.5
+  _waterChance: 0
   _sawChance: 0.1
   _background: {fileID: 11400000, guid: bc8a95b756a34cc4daa213564f6cbc5b, type: 2}
   _decorations: {fileID: 0}

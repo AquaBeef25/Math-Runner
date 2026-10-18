@@ -24,6 +24,7 @@ namespace MathRunner.Level
         [SerializeField] private Obstacle _spikePrefab;
         [SerializeField] private FloatingPlatform _platformPrefab;
         [SerializeField] private RampPiece _rampPrefab;
+        [SerializeField] private WaterPool _waterPrefab;
         [SerializeField] private Walker _walkerPrefab;
         [SerializeField] private Saw _sawPrefab;
         [SerializeField] private SpriteRenderer _decorationPrefab;
@@ -67,6 +68,9 @@ namespace MathRunner.Level
 
             foreach (var (x, y) in Plan.Spikes)
                 Instantiate(_spikePrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
+
+            foreach (var (left, right, surface) in Plan.Water)
+                Instantiate(_waterPrefab, root).SetRect(left, right, surface, -GroundDepth);
 
             foreach (var (start, end, from, to) in Plan.Ramps)
                 Instantiate(_rampPrefab, root).SetRamp(start, end, from, to, -GroundDepth);

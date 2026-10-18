@@ -30,6 +30,7 @@ namespace MathRunner.Level
         public float WalkerChance;   // chance a hazard is a patrolling slime
         public float SawChance;      // chance a hazard is a saw
         public float RampChance;     // chance a height change is a ramp instead of a step
+        public float WaterChance;    // chance a pit is filled with water
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
 
@@ -63,6 +64,7 @@ namespace MathRunner.Level
             WalkerChance = config.WalkerChance,
             SawChance = config.SawChance,
             RampChance = config.RampChance,
+            WaterChance = config.WaterChance,
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             IntroSeconds = 2f,
@@ -85,6 +87,8 @@ namespace MathRunner.Level
         public readonly List<PlatformStyle> PlatformStyles = new List<PlatformStyle>(); // index-aligned with Platforms
         public readonly List<(float X, float Y)> Spikes = new List<(float X, float Y)>();
         public readonly List<(float Left, float Right, float Y)> Walkers = new List<(float Left, float Right, float Y)>();
+        // Water filling a pit: Left/Right are the pit's edges, Surface sits below the ground.
+        public readonly List<(float Left, float Right, float Surface)> Water = new List<(float Left, float Right, float Surface)>();
         public readonly List<(float X, float Y)> Saws = new List<(float X, float Y)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
@@ -178,6 +182,7 @@ namespace MathRunner.Level
                 float width = S.GapSeconds * V;
                 Plan.Ground.Add((_groundStart, X, Top));
                 Plan.Jumps.Add((X - GapLeadSeconds * V, FullHold));
+                if (S.WaterChance > 0f && Rng.NextDouble() < S.WaterChance) Plan.Water.Add((X, X + width, Top - 0.6f));
                 _groundStart = X + width;
                 X += width;
             }
