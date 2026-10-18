@@ -30,6 +30,13 @@ namespace MathRunner.Level
             _strip.SetSize(width, _visualHeight);
         }
 
+        // Draw with a world's ledge and pillar tiles instead of the prefab's (call before SetStyle).
+        public void SetTerrain(TerrainSet terrain)
+        {
+            _strip.SetSprites(terrain.LedgeLeft, terrain.LedgeMiddle, terrain.LedgeRight);
+            if (terrain.Pillar != null) _pillar = terrain.Pillar;
+        }
+
         // Same one-way ledge, different look. A pillar ledge gets a grass column down to the ground below its middle.
         public void SetStyle(PlatformStyle style, float groundTop)
         {

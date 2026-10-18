@@ -46,6 +46,13 @@ namespace MathRunner.Level
         public void SetEncounterSettings(EncounterSettings settings) => _encounter = settings;
         public LevelPlan Plan { get; private set; }
 
+        private GroundSegment Ground(Transform root, LevelConfig config)
+        {
+            var ground = Instantiate(_groundPrefab, root);
+            if (config.Terrain != null) ground.SetTerrain(config.Terrain);
+            return ground;
+        }
+
         // Top of the ground segment touching x from the left (or right), or null when x is a gap edge.
         private float? NeighbourTop(float x, bool after)
         {
@@ -82,9 +89,9 @@ namespace MathRunner.Level
                 float rightEdge = Plan.Ramps.Exists(r => System.Math.Abs(r.Start - end) < 1e-3f) ? float.PositiveInfinity
                     : System.Math.Abs(end - Plan.EndX) < 1e-3f ? GroundSegment.EdgeFrom(top, wallTop)
                     : GroundSegment.EdgeFrom(top, NeighbourTop(end, true));
-                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, top, leftEdge, rightEdge);
+                Ground(root, config).SetRect(start, -GroundDepth, end, top, leftEdge, rightEdge);
             }
-            Instantiate(_groundPrefab, root).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, wallTop,
+            Ground(root, config).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, wallTop,
                 GroundSegment.EdgeFrom(wallTop, endTop), float.NegativeInfinity);
 
             foreach (var (x, y) in Plan.Spikes)
@@ -94,12 +101,18 @@ namespace MathRunner.Level
                 Instantiate(_waterPrefab, root).SetRect(left, right, surface, -GroundDepth);
 
             foreach (var (start, end, from, to) in Plan.Ramps)
-                Instantiate(_rampPrefab, root).SetRamp(start, end, from, to, -GroundDepth);
+            {
+                var ramp = Instantiate(_rampPrefab, root);
+                var t = config.Terrain;
+                if (t != null) ramp.SetSprites(t.RampHigh, t.RampLow, t.RampUnder, t.Fill, t.Top);
+                ramp.SetRamp(start, end, from, to, -GroundDepth);
+            }
 
             for (int i = 0; i < Plan.Platforms.Count; i++)
             {
                 var (left, right, top) = Plan.Platforms[i];
                 var platform = Instantiate(_platformPrefab, root);
+                if (config.Terrain != null) platform.SetTerrain(config.Terrain);
                 platform.SetRect(left, right, top);
                 platform.SetStyle(Plan.PlatformStyles[i], Plan.GroundTopAt((left + right) * 0.5f));
             }

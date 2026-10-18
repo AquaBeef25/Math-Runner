@@ -68,6 +68,15 @@ namespace MathRunner.Level
             }
         }
 
+        // Draw with a world's tiles instead of the prefab's (call before SetRect).
+        public void SetTerrain(TerrainSet terrain)
+        {
+            _top.SetSprites(terrain.TopLeft, terrain.Top, terrain.TopRight);
+            _top.SetSingle(terrain.TopSingle);
+            _fill.SetSprites(terrain.FillLeft, terrain.Fill, terrain.FillRight);
+            _fill.SetSingle(terrain.FillSingle);
+        }
+
         // Editor setup and tests.
         public void SetStrips(TiledStrip top, TiledStrip fill)
         {

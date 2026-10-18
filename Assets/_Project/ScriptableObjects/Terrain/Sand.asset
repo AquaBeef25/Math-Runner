@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 775f68d74957ec54499a5a658dd0b108, type: 3}
+  m_Name: Sand
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.TerrainSet
+  _topLeft: {fileID: 21300000, guid: 0cbe11c5e54ff3647b059559f6ae3f28, type: 3}
+  _top: {fileID: 21300000, guid: 0509aa7ebf32b8b4dace8fd0f06c0afb, type: 3}
+  _topRight: {fileID: 21300000, guid: 06e2063256414a645b371beb7c7c63a8, type: 3}
+  _topSingle: {fileID: 21300000, guid: 8128bda798e6667478f7b2c238c8a09c, type: 3}
+  _fillLeft: {fileID: 21300000, guid: b26d6001322a23f4fbebd9e5677b25cf, type: 3}
+  _fill: {fileID: 21300000, guid: 96886d3c45362f24fae9dbfef91e88ce, type: 3}
+  _fillRight: {fileID: 21300000, guid: 695c2b8280ac5b64d8080475f4c826c4, type: 3}
+  _fillSingle: {fileID: 21300000, guid: ffaa05df2dcf5f44da935b3b9dcfac68, type: 3}
+  _rampHigh: {fileID: 21300000, guid: 0a0ad9bd659336d4aad981d46af9b14a, type: 3}
+  _rampLow: {fileID: 21300000, guid: a5d61ebf9efc13b438d88c66047367b2, type: 3}
+  _rampUnder: {fileID: 21300000, guid: f010740747c36c24787b956cd6ab1a2a, type: 3}
+  _ledgeLeft: {fileID: 21300000, guid: 1c31778a1001801459fcfab3b526c2f2, type: 3}
+  _ledgeMiddle: {fileID: 21300000, guid: 82b53d80c8419cb47842def49edd77a8, type: 3}
+  _ledgeRight: {fileID: 21300000, guid: 24b1fbd6e63e6e646a22d7b5f4cfb9c1, type: 3}
+  _pillar: {fileID: 21300000, guid: ffaa05df2dcf5f44da935b3b9dcfac68, type: 3}

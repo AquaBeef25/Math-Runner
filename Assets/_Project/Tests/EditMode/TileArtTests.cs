@@ -137,6 +137,26 @@ namespace MathRunner.Tests
             Object.DestroyImmediate(g.Ground.gameObject);
         }
 
+        [Test]
+        public void GroundTakesItsLevelsTerrainTiles()
+        {
+            var g = Ground();
+            var sand = ScriptableObject.CreateInstance<TerrainSet>();
+            sand.SetGround(Make("sand_top_left"), Make("sand_top"), Make("sand_top_right"), Make("sand_top_single"),
+                Make("sand_left"), Make("sand_center"), Make("sand_right"), Make("sand_single"));
+            g.Ground.SetTerrain(sand);
+            g.Ground.SetRect(0f, -4f, 1f, 1f, GroundSegment.EdgeFrom(1f, null), GroundSegment.EdgeFrom(1f, null));
+            var topPiece = g.Top.GetComponentsInChildren<SpriteRenderer>().Single(p => p.enabled);
+            Assert.That(topPiece.sprite.name, Is.EqualTo("sand_top_single"));
+            g.Ground.SetRect(0f, -4f, 5f, 1f, GroundSegment.EdgeFrom(1f, null), GroundSegment.EdgeFrom(1f, null));
+            var names = g.Top.GetComponentsInChildren<SpriteRenderer>().Where(p => p.enabled).Select(p => p.sprite.name).ToList();
+            Assert.That(names, Is.EquivalentTo(new[] { "sand_top_left", "sand_top", "sand_top_right" }));
+            var fill = g.Ground.FillBands[0].GetComponentsInChildren<SpriteRenderer>().Where(p => p.enabled).Select(p => p.sprite.name);
+            Assert.That(fill, Is.EquivalentTo(new[] { "sand_left", "sand_center", "sand_right" }));
+            Object.DestroyImmediate(g.Ground.gameObject);
+            Object.DestroyImmediate(sand);
+        }
+
         // Kenney's long ramp: the low half (b) is only a grass wedge; its grass band runs on into the tile below (c).
         [Test]
         public void RampLowHalfHasItsGrassBandTileBelow([Values(true, false)] bool down)

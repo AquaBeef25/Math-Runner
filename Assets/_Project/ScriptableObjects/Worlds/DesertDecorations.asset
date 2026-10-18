@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5431b4b2d1cfe1948812770a80a30960, type: 3}
+  m_Name: DesertDecorations
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.DecorationSet
+  _sprites:
+  - {fileID: 21300000, guid: 9d3a8df01df15db4bb854b2e01f50312, type: 3}
+  - {fileID: 21300000, guid: be4939bbb2ef6d44f891c45a9511d099, type: 3}
+  - {fileID: 21300000, guid: 4dff6ef6ac583544e87fa2b724cae0e1, type: 3}
+  - {fileID: 21300000, guid: 383b914f008632a45b21a4809e6aabb6, type: 3}
+  _weights:
+  - 3
+  - 2
+  - 1.5
+  - 0.5
+  _backdropSprites:
+  - {fileID: 21300000, guid: e997db3aa76eccd4ca01505d29ebb1ac, type: 3}
+  - {fileID: 21300000, guid: 9624016ce7f2f0745a470e52bb11d2d1, type: 3}
+  - {fileID: 21300000, guid: 143823dd428273047a800033594a85f8, type: 3}
+  - {fileID: 21300000, guid: 8e99358508063a449ba2dc7dbf9aa0fd, type: 3}
+  - {fileID: 21300000, guid: 48866d77815912e429c0b3b0094c23bd, type: 3}
+  - {fileID: 21300000, guid: fbbbd06f8ca8cf746b2bf4dff4c458ca, type: 3}
+  - {fileID: 21300000, guid: 1471b0c13f7072549a6ece1e8e26bc9e, type: 3}
+  _backdropWeights:
+  - 2
+  - 2
+  - 2
+  - 1
+  - 0.5
+  - 0.3
+  - 0.2
