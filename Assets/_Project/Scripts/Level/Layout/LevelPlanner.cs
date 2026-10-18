@@ -33,6 +33,7 @@ namespace MathRunner.Level
         public float WaterChance;    // chance a pit is filled with water
         public float BeeChance;      // chance a hazard is a hovering bee
         public float CoinChance;     // chance a full jump over a gap, slime or bee gets an arc of coins
+        public bool NoSpikes;        // spikes switched off: where one would go the ground stays plain (no jump planned)
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
         public float[] BackdropWeights;   // relative chance of each backdrop prop (trees, bushes, fences, houses); null = none
@@ -70,6 +71,7 @@ namespace MathRunner.Level
             WaterChance = config.WaterChance,
             BeeChance = config.BeeChance,
             CoinChance = config.CoinChance,
+            NoSpikes = config.NoSpikes,
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             BackdropWeights = config.Decorations != null ? config.Decorations.BackdropWeights : null,
@@ -192,6 +194,7 @@ namespace MathRunner.Level
 
             public void Spike()
             {
+                if (S.NoSpikes) return;
                 Plan.Spikes.Add((X, Top));
                 Plan.Jumps.Add((X - SpikeLeadSeconds * V, ShortHold));
             }
@@ -249,7 +252,8 @@ namespace MathRunner.Level
             public void Bee()
             {
                 float clear = BeeHeight + BeeAmplitude + BeeRadius + StepClearance * 0.5f;
-                float lead = JumpReach.RiseTime(S, clear) * V + HalfPlayerWidth + BeeRadius;
+                // + 0.08 s like a step: the press can land a frame late and the jump starts on the next physics step.
+                float lead = (JumpReach.RiseTime(S, clear) + 0.08f) * V + HalfPlayerWidth + BeeRadius;
                 Plan.Bees.Add((X, Top + BeeHeight, BeeAmplitude));
                 Plan.Jumps.Add((X - lead, FullHold));
                 ArcJumps.Add((X - lead, Top));

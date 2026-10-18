@@ -95,6 +95,7 @@ MonoBehaviour:
   _sawChance: 0.1
   _beeChance: 0.1
   _coinChance: 0.5
+  _noSpikes: 1
   _background: {fileID: 11400000, guid: bc8a95b756a34cc4daa213564f6cbc5b, type: 2}
   _decorations: {fileID: 0}
   _decorationDensity: 2.5

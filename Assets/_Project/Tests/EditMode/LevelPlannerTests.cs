@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f, float coins = 0f, bool backdrop = false) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f, float coins = 0f, bool backdrop = false, bool noSpikes = false) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -38,6 +38,7 @@ namespace MathRunner.Tests
             WaterChance = water,
             BeeChance = bees,
             CoinChance = coins,
+            NoSpikes = noSpikes,
             BackdropWeights = backdrop ? new[] { 3f, 2f, 2f, 1f, 0.3f } : null,
             DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
@@ -201,7 +202,7 @@ namespace MathRunner.Tests
         }
 
         // When the runner's front edge (half-width 0.45) reaches the bee's left edge (radius 0.35), its feet must already be
-        // above the bee at the top of its bob.
+        // above the bee at the top of its bob, even from a slightly late take-off.
         [Test]
         public void BeeJumpClearsTheBee([Values(5f, 6f, 8f)] float speed, [Range(1, 10)] int seed)
         {
@@ -211,7 +212,8 @@ namespace MathRunner.Tests
             foreach (var bee in plan.Bees)
             {
                 var jump = plan.Jumps.Where(j => j.X < bee.X).OrderBy(j => j.X).Last();
-                double t = (bee.X - 0.35 - 0.45 - jump.X) / s.RunSpeed;
+                // Take-off up to 0.04 s late (the press lands a frame late, the jump starts on the next physics step).
+                double t = (bee.X - 0.35 - 0.45 - jump.X) / s.RunSpeed - 0.04;
                 double feet = plan.GroundTopAt(jump.X) + v0 * t - 0.5 * g * t * t;
                 Assert.That(feet, Is.GreaterThanOrEqualTo(bee.BaseY + bee.Amplitude + 0.35), $"Runner at speed {speed} clips the bee at {bee.X}");
             }
@@ -295,6 +297,18 @@ namespace MathRunner.Tests
         {
             var s = Settings(seed: seed, backdrop: true);
             Assert.That(LevelPlanner.Create(s).Backdrop, Is.EqualTo(LevelPlanner.Create(s).Backdrop));
+        }
+
+        [Test]
+        public void NoSpikesWhenSpikesAreOff([Values(5f, 8f)] float speed, [Range(1, 10)] int seed)
+        {
+            var with = LevelPlanner.Create(Settings(speed: speed, seed: seed, walkers: 0.2f, bees: 0.2f));
+            var without = LevelPlanner.Create(Settings(speed: speed, seed: seed, walkers: 0.2f, bees: 0.2f, noSpikes: true));
+            Assert.That(with.Spikes, Is.Not.Empty, "spikes are on by default");
+            Assert.That(without.Spikes, Is.Empty);
+            Assert.That(without.Zones.Count, Is.EqualTo(with.Zones.Count));
+            // Every remaining planned jump is for something else (a gap, step, slime, bee...), never a missing spike.
+            Assert.That(without.Jumps.Count, Is.LessThan(with.Jumps.Count));
         }
 
         [Test]
