@@ -13,7 +13,8 @@ namespace MathRunner.Core
     public enum HitCause
     {
         Obstacle,
-        Fall
+        Fall,
+        Bullet
     }
 
     public enum GameState
@@ -90,6 +91,11 @@ namespace MathRunner.Core
         public static event Action LevelCompleted;
         public static event Action<GameState> GameStateChanged;
         public static event Action<LevelResult> ProgressSaved;
+        // An enemy fired: the world slows to this factor (e.g. 0.2) until FocusEnded.
+        public static event Action<float> FocusStarted;
+        public static event Action FocusEnded;
+        // A correct answer's shockwave destroyed the enemy at this position.
+        public static event Action<UnityEngine.Vector3> EnemyDefeated;
 
         public static void RaiseQuestionShown(MathQuestion question, float timeLimit) => QuestionShown?.Invoke(question, timeLimit);
         public static void RaiseQuestionResolved(QuestionResult result) => QuestionResolved?.Invoke(result);
@@ -102,5 +108,8 @@ namespace MathRunner.Core
         public static void RaiseLevelCompleted() => LevelCompleted?.Invoke();
         public static void RaiseGameStateChanged(GameState state) => GameStateChanged?.Invoke(state);
         public static void RaiseProgressSaved(LevelResult result) => ProgressSaved?.Invoke(result);
+        public static void RaiseFocusStarted(float factor) => FocusStarted?.Invoke(factor);
+        public static void RaiseFocusEnded() => FocusEnded?.Invoke();
+        public static void RaiseEnemyDefeated(UnityEngine.Vector3 position) => EnemyDefeated?.Invoke(position);
     }
 }

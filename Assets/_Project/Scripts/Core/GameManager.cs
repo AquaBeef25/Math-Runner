@@ -4,17 +4,27 @@ using UnityEngine.SceneManagement;
 
 namespace MathRunner.Core
 {
+    // Owns the game state and is the only writer of Time.timeScale: pause (state) combined with the Focus Zone slow-down.
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private InputReader _input;
 
+        private float _baseFixedDelta;
+
         public GameState State { get; private set; }
+
+        private void Awake()
+        {
+            _baseFixedDelta = Time.fixedDeltaTime;
+        }
 
         private void OnEnable()
         {
             _input.PausePressed += TogglePause;
             GameEvents.OutOfLives += OnOutOfLives;
             GameEvents.LevelCompleted += OnLevelCompleted;
+            GameEvents.FocusStarted += OnFocusStarted;
+            GameEvents.FocusEnded += OnFocusEnded;
         }
 
         private void OnDisable()
@@ -22,6 +32,8 @@ namespace MathRunner.Core
             _input.PausePressed -= TogglePause;
             GameEvents.OutOfLives -= OnOutOfLives;
             GameEvents.LevelCompleted -= OnLevelCompleted;
+            GameEvents.FocusStarted -= OnFocusStarted;
+            GameEvents.FocusEnded -= OnFocusEnded;
         }
 
         private void Start()
@@ -31,7 +43,7 @@ namespace MathRunner.Core
 
         private void OnDestroy()
         {
-            Time.timeScale = 1f;
+            ResetTime();
         }
 
         public void TogglePause()
@@ -42,7 +54,7 @@ namespace MathRunner.Core
 
         public void Restart()
         {
-            Time.timeScale = 1f;
+            ResetTime();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
@@ -56,12 +68,39 @@ namespace MathRunner.Core
             if (State == GameState.Playing) SetState(GameState.LevelComplete);
         }
 
+        private void OnFocusStarted(float factor)
+        {
+            WorldTime.FocusFactor = Mathf.Clamp(factor, 0.01f, 1f);
+            ApplyTimeScale();
+        }
+
+        private void OnFocusEnded()
+        {
+            WorldTime.FocusFactor = 1f;
+            ApplyTimeScale();
+        }
+
         private void SetState(GameState state)
         {
             State = state;
-            Time.timeScale = state == GameState.Playing ? 1f : 0f;
+            ApplyTimeScale();
             _input.ControlsEnabled = state == GameState.Playing;
             GameEvents.RaiseGameStateChanged(state);
+        }
+
+        private void ApplyTimeScale()
+        {
+            Time.timeScale = WorldTime.Combine(State != GameState.Playing, WorldTime.FocusFactor);
+            // Smaller physics steps in slow-mo keep movement smooth instead of stepping 5× less often.
+            Time.fixedDeltaTime = _baseFixedDelta * WorldTime.FocusFactor;
+        }
+
+        // Leaving or reloading the scene mid-focus must never carry slow-motion into the next scene.
+        private void ResetTime()
+        {
+            WorldTime.FocusFactor = 1f;
+            Time.timeScale = 1f;
+            if (_baseFixedDelta > 0f) Time.fixedDeltaTime = _baseFixedDelta;
         }
     }
 }
