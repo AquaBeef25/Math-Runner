@@ -64,7 +64,7 @@ Each level is a sequence of running segments separated by **enemy encounters** (
 
 1. The player runs through a normal segment (spikes, gaps).
 2. **Enemy arrives:** a purple jetpack enemy flies in, hovers ahead of and above the player, shakes briefly and **fires**.
-3. **Focus Zone:** the moment it fires, the whole world slows to **0.2×** (player, bullet, enemy, particles). Nothing
+3. **Focus Zone:** the moment it fires, the whole world slows to **0.5×** (player, bullet, enemy, particles). Nothing
    freezes. Screen edges darken, colours fade and the player glows. The question appears at the top with **4 big answer
    buttons** (tap/click or keys **1–4**) and a bar that empties as the bullet closes in.
    - **The first pick is final.** The buttons lock and normal speed returns at once.
@@ -72,8 +72,8 @@ Each level is a sequence of running segments separated by **enemy encounters** (
    - **Wrong** → the bullet keeps flying and hits: −1 life, then it is gone and the enemy flies away.
    - **Too slow** → the bullet lands when its time runs out: same as wrong ("Time's up! The answer is 48").
    - After any result the panel shows the solved equation, e.g. `6 × 8 = 48`.
-4. The player is on **autopilot** from the trigger until the result: no jumping, and encounters never contain spikes
-   or gaps.
+4. The player **keeps full control** during an encounter (Meadow rework, 2026-10-18): they jump steps, spikes and
+   slimes while answering. Encounter stretches never contain gaps, so a fall can't happen mid-question.
 
 **Key idea: the bullet is the timer.** It always reaches the player exactly when the question's time runs out (real
 seconds, however slow the world is). The level's time limit sets that flight time; early "untimed" questions still get a
@@ -81,6 +81,20 @@ generous one (≥ 6 s). The encounter stretch of ground = (fly-in + wind-up + ex
 so the layout and the slow-motion always match. All encounter tunables live in `EncounterSettings`.
 
 **Timed questions** (the level's timed ratio) earn the speed bonus: the share of the bullet's flight left at the pick.
+
+### 2.1b Level shape — the Meadow (levels 1–3)
+Levels are generated from their `LevelConfig` (deterministic per seed) in a Geometry Dash-like style, kept visually simple:
+- **Terrain:** ground steps up/down 1–2 tiles, 1-tile pillars, gaps, and floating one-way grass ledges.
+- **Route splits:** a high path of three ledges over a low path with spikes; both are safe if played well.
+- **Obstacles:** spikes, gaps, patrolling slimes (1.5-unit patrol) and saws; all clearable with the one jump button.
+- **Decoration:** grass, bushes, rocks, mushrooms, fences and signs, never near a hazard or a jump take-off.
+- **Always finishable:** every step, gap and ledge is checked against the real jump (`JumpReach`, 15 % margin), and the
+  planner records a reference jump plan that the test bot follows through all levels.
+- Knobs per level: max step height, route splits, platform/walker/saw chances, decoration density. Level 1 is gentle
+  (1-tile steps, slimes only); Level 3 adds 2-tile steps, saws and three route splits.
+
+**For now the game has 5 levels** (to extend after the adviser review): **Meadow 1–3**, **Desert 4–5** (Desert
+background; desert terrain and props still to design). Levels 6–10 stay as data but are out of the catalog.
 
 ### 2.2 Movement
 Because the character runs automatically, the only inputs are **jump** (for hazards) and **picking an answer**. That makes the game well suited to mobile.
@@ -90,7 +104,7 @@ Because the character runs automatically, the only inputs are **jump** (for haza
 | Auto-run at `LevelConfig.runSpeed` | Approved "continuously runs" |
 | Variable jump height (hold = higher) | Short hops vs long jumps over gaps and obstacles |
 | Minimum jump (0.08 s) | Even the quickest tap gives a usable hop (1.56 units) |
-| Autopilot in enemy encounters | Manual jumps are ignored from the encounter trigger until the answer is resolved |
+| Control during encounters | The player keeps jumping while answering; the Focus Zone runs at 0.5× so there is time to do both |
 | Coyote time (~0.1 s) | Allows jumping a moment after leaving a ledge, so it feels fair |
 | Jump buffer (~0.1 s) | Allows pressing jump just before landing |
 | Obstacles (spikes, gaps, rolling objects) | Approved "avoid obstacles". Hitting one = −1 life, then a short invincibility period |
@@ -204,7 +218,7 @@ Assets/_Project/
 |---|---|
 | `GameManager` | State machine: `Menu → Playing → Paused → LevelComplete / GameOver` |
 | `GameEvents` | Static C# events (`OnAnswerCorrect`, `OnAnswerWrong`, `OnLifeLost`, `OnLevelComplete` …) so systems stay decoupled |
-| `PlayerController` | Auto-run, jump physics (Rigidbody2D), ground check, coyote time, jump buffer; autopilot + `QueueAutoJump` for answer landings |
+| `PlayerController` | Auto-run, jump physics (Rigidbody2D), ground check, coyote time, jump buffer (no autopilot since the Meadow rework) |
 | `JumpMath` | Pure: air time from take-off to landing at a given height (used to place platforms and time the auto-jump) |
 | `InputReader` | Converts keyboard and touch into `JumpPressed` / `JumpReleased`, answer keys 1/2/3 into `GameEvents.AnswerChosen` |
 | `AnswerButtons` | The 3 on-screen answer buttons (bottom-right), locked after the first pick |

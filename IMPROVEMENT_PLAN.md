@@ -98,6 +98,12 @@ Questions are now enemy encounters with a slow-motion Focus Zone and a four-choi
 Design: `docs/superpowers/specs/2026-10-18-enemy-encounter-design.md` · Plan: `docs/superpowers/plans/2026-10-18-enemy-encounter.md`.
 Stage C items that mention platforms (e.g. C1's run-up after a zone) now apply to encounters.
 
+## Meadow world (2026-10-18)
+5 levels for now (Meadow 1–3, Desert 4–5). Meadow levels are generated Geometry Dash-style: steps, pillars, ledges, route
+splits, slimes, saws and decoration; the player keeps control during encounters at 0.5× slow-mo.
+Design: `docs/superpowers/specs/2026-10-18-meadow-world-design.md` · Plan: `docs/superpowers/plans/2026-10-18-meadow-world.md`.
+**Next:** Desert world (sand terrain, cactus, desert props) for levels 4–5; coins on high routes (optional).
+
 ## Stage C — Learning features (the educational differentiator) · size M
 - **C1. Step-by-step solution after a mistake.**
   - **New `SolutionExplainer`** in `MathRunner.Math` turns a `MathProblem` into steps, e.g. `455 ÷ 5 = 91 → 91 + 7 = 98`, or
