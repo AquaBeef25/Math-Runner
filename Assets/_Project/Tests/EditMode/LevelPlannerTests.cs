@@ -15,6 +15,7 @@ namespace MathRunner.Tests
             TimeLimit = limit,
             UntimedLeadSeconds = 6f,
             ZoneSpanSeconds = 2f,
+            FocusScale = 0.2f,
             HazardsBetweenQuestions = hazards,
             GapChance = gapChance,
             Seed = seed,
@@ -27,6 +28,18 @@ namespace MathRunner.Tests
 
         private static bool OnGround(LevelPlan plan, float from, float to) =>
             plan.Ground.Any(g => g.Start <= from && to <= g.End);
+
+        // The player only covers Lead × FocusScale seconds of ground while the world is slowed, so encounters are short.
+        [Test]
+        public void EncounterStretchUsesSlowedFocusTime()
+        {
+            var s = Settings(ratio: 1f, limit: 4f, gapChance: 0f);
+            var plan = LevelPlanner.Create(s);
+
+            Assert.That(plan.ZoneLength(0, s), Is.EqualTo((4f * 0.2f + 2f) * 6f).Within(1e-4f));
+            float spacing = plan.ZoneLength(0, s) + (s.AfterZoneSeconds + (s.HazardsBetweenQuestions + 1) * s.HazardSpacingSeconds) * 6f;
+            Assert.That(plan.Zones[1].X - plan.Zones[0].X, Is.EqualTo(spacing).Within(1e-3f));
+        }
 
         [Test]
         public void PlansOneZonePerQuestion([Values(1, 8, 12)] int count)

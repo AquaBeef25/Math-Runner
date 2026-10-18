@@ -9,8 +9,10 @@ namespace MathRunner.Level
         public float TimedRatio;
         public float TimeLimit;
         public float UntimedLeadSeconds;
-        // Seconds of a Question Zone after its decision line: landing air time + platform span.
+        // Seconds of an encounter at normal speed (enemy fly-in, wind-up, exit buffer).
         public float ZoneSpanSeconds;
+        // World speed during the Focus Zone; the Lead seconds of slow-mo only cover Lead × FocusScale seconds of ground.
+        public float FocusScale;
         public int HazardsBetweenQuestions;
         public float GapChance;
         public int Seed;
@@ -22,8 +24,9 @@ namespace MathRunner.Level
         public float AfterZoneSeconds;
         public float OutroSeconds;
 
-        public static LevelPlanSettings From(LevelConfig config, float zoneSpanSeconds) => new LevelPlanSettings
+        public static LevelPlanSettings From(LevelConfig config, float zoneSpanSeconds, float focusScale) => new LevelPlanSettings
         {
+            FocusScale = focusScale,
             QuestionCount = config.QuestionCount,
             RunSpeed = config.RunSpeed,
             TimedRatio = config.TimedRatio,
@@ -50,7 +53,7 @@ namespace MathRunner.Level
         public float FinishX;
         public float EndX;
 
-        public float ZoneLength(int index, LevelPlanSettings s) => (Zones[index].Lead + s.ZoneSpanSeconds) * s.RunSpeed;
+        public float ZoneLength(int index, LevelPlanSettings s) => (Zones[index].Lead * s.FocusScale + s.ZoneSpanSeconds) * s.RunSpeed;
     }
 
     // Lays out a level as: intro, then per question [hazards → Question Zone → recovery run], then the finish.
@@ -89,7 +92,7 @@ namespace MathRunner.Level
                 bool timed = s.TimeLimit > 0f && IsTimed(q, s.TimedRatio);
                 float lead = timed ? s.TimeLimit : System.Math.Max(s.UntimedLeadSeconds, s.TimeLimit);
                 plan.Zones.Add((x, timed, lead));
-                x += (lead + s.ZoneSpanSeconds) * v;
+                x += (lead * s.FocusScale + s.ZoneSpanSeconds) * v;
                 plan.Checkpoints.Add(x + 1f);
                 x += s.AfterZoneSeconds * v;
             }

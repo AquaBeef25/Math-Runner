@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 804ae97492f03bd489427069fc242c64, type: 3}
+  m_Name: EncounterSettings
+  m_EditorClassIdentifier: MathRunner::MathRunner.Enemies.EncounterSettings
+  _focusScale: 0.2
+  _flyInSeconds: 1.2
+  _windUpSeconds: 0.4
+  _exitBufferSeconds: 1
+  _hoverOffset: {x: 7, y: 4}
+  _bobAmplitude: 0.25
+  _bobHz: 1.5
+  _retreatSpeed: 12
+  _bulletSpinDegreesPerSecond: 360
+  _shockwaveRadius: 9
+  _shockwaveSeconds: 0.45

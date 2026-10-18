@@ -39,7 +39,7 @@ namespace MathRunner.Level
             if (_background != null) _background.Apply(config.Background);
 
             float airTime = _player.AirTimeToLandOn(_zonePrefab.PlatformTop);
-            var settings = LevelPlanSettings.From(config, airTime + _zonePrefab.PlatformSpanSeconds);
+            var settings = LevelPlanSettings.From(config, airTime + _zonePrefab.PlatformSpanSeconds, 1f);
             Plan = LevelPlanner.Create(settings);
             var root = transform;
 
