@@ -75,6 +75,68 @@ namespace MathRunner.Tests
             Object.DestroyImmediate(s.Strip.gameObject);
         }
 
+        // A side is outlined only where nothing stands next to it: above a lower neighbour's top, never against a higher
+        // or equal one, all the way down over a gap.
+        [Test]
+        public void EdgeOutlineStartsAboveTheNeighbour()
+        {
+            Assert.That(GroundSegment.EdgeFrom(2f, 1f), Is.EqualTo(1f));
+            Assert.That(float.IsPositiveInfinity(GroundSegment.EdgeFrom(1f, 2f)), Is.True, "lower side against a wall: no outline");
+            Assert.That(float.IsPositiveInfinity(GroundSegment.EdgeFrom(1f, 1f)), Is.True);
+            Assert.That(float.IsNegativeInfinity(GroundSegment.EdgeFrom(1f, null)), Is.True, "over a gap: outlined all the way down");
+        }
+
+        private static (GroundSegment Ground, TiledStrip Top) Ground()
+        {
+            var go = new GameObject("Ground");
+            go.AddComponent<BoxCollider2D>();
+            var top = Strip(true);
+            var fill = Strip(true);
+            top.Strip.transform.SetParent(go.transform, false);
+            fill.Strip.transform.SetParent(go.transform, false);
+            var ground = go.AddComponent<GroundSegment>();
+            ground.SetStrips(top.Strip, fill.Strip);
+            return (ground, top.Strip);
+        }
+
+        private static bool Capped(SpriteRenderer piece) => piece.enabled && (piece.sprite.name == "left" || piece.sprite.name == "right" || piece.sprite.name == "single");
+
+        [Test]
+        public void TallStepOutlinesOnlyTheExposedPartOfItsSide()
+        {
+            var g = Ground();
+            // Top 2 next to a neighbour at 0 on the left, a wall at 3 on the right.
+            g.Ground.SetRect(0f, -4f, 3f, 2f, GroundSegment.EdgeFrom(2f, 0f), GroundSegment.EdgeFrom(2f, 3f));
+            var bands = g.Ground.FillBands;
+            Assert.That(bands.Count, Is.EqualTo(2));
+            var low = bands.OrderBy(b => b.transform.localPosition.y).First();
+            var high = bands.OrderBy(b => b.transform.localPosition.y).Last();
+            var lowPieces = low.GetComponentsInChildren<SpriteRenderer>();
+            var highPieces = high.GetComponentsInChildren<SpriteRenderer>();
+            Assert.That(Capped(lowPieces.Single(p => p.name == "Left")), Is.False, "below the neighbour's top the dirt runs on");
+            Assert.That(Capped(highPieces.Single(p => p.name == "Left")), Is.True, "above it the side is outlined");
+            Assert.That(Capped(highPieces.Single(p => p.name == "Right")), Is.False, "against the taller wall: no outline");
+            var topPieces = g.Top.GetComponentsInChildren<SpriteRenderer>();
+            Assert.That(Capped(topPieces.Single(p => p.name == "Left")), Is.True);
+            Assert.That(Capped(topPieces.Single(p => p.name == "Right")), Is.False);
+            Object.DestroyImmediate(g.Ground.gameObject);
+        }
+
+        [Test]
+        public void OneTilePillarDirtHasNoSideOutlinesBelowTheGround()
+        {
+            var g = Ground();
+            g.Ground.SetRect(0f, -4f, 1f, 1f, GroundSegment.EdgeFrom(1f, 0f), GroundSegment.EdgeFrom(1f, 0f));
+            Assert.That(g.Ground.FillBands.Count, Is.EqualTo(1));
+            var fill = g.Ground.FillBands[0].GetComponentsInChildren<SpriteRenderer>(true);
+            Assert.That(fill.Any(p => p.enabled && p.sprite.name == "single"), Is.False, "the outlined single column is only for the exposed part");
+            Assert.That(fill.Where(p => p.enabled).All(p => p.sprite.name == "middle"), Is.True);
+            var top = g.Top.GetComponentsInChildren<SpriteRenderer>(true).Where(p => p.enabled).ToList();
+            Assert.That(top.Count, Is.EqualTo(1));
+            Assert.That(top[0].sprite.name, Is.EqualTo("single"), "the grass top keeps both rounded corners");
+            Object.DestroyImmediate(g.Ground.gameObject);
+        }
+
         // Kenney's long ramp: the low half (b) is only a grass wedge; its grass band runs on into the tile below (c).
         [Test]
         public void RampLowHalfHasItsGrassBandTileBelow([Values(true, false)] bool down)

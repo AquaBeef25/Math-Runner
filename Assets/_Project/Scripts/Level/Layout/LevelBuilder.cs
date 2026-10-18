@@ -46,6 +46,14 @@ namespace MathRunner.Level
         public void SetEncounterSettings(EncounterSettings settings) => _encounter = settings;
         public LevelPlan Plan { get; private set; }
 
+        // Top of the ground segment touching x from the left (or right), or null when x is a gap edge.
+        private float? NeighbourTop(float x, bool after)
+        {
+            foreach (var g in Plan.Ground)
+                if (g.End - g.Start > 1e-3f && System.Math.Abs((after ? g.Start : g.End) - x) < 1e-3f) return g.Top;
+            return null;
+        }
+
         // Without a menu selection (e.g. pressing Play on the Game scene) the first level in the catalog is used.
         private void Awake()
         {
@@ -64,15 +72,20 @@ namespace MathRunner.Level
             Plan = LevelPlanner.Create(settings);
             var root = transform;
 
+            float endTop = Plan.GroundTopAt(Plan.EndX);
+            float wallTop = endTop + WallHeight;
             foreach (var (start, end, top) in Plan.Ground)
             {
-                // Where a ramp continues the ground, drop the outlined end cap so the slope joins without a seam.
-                bool rampBefore = Plan.Ramps.Exists(r => System.Math.Abs(r.End - start) < 1e-3f);
-                bool rampAfter = Plan.Ramps.Exists(r => System.Math.Abs(r.Start - end) < 1e-3f);
-                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, top, !rampBefore, !rampAfter);
+                // Outline each side only where it's exposed; where a ramp continues the ground there's no outline at all.
+                float leftEdge = Plan.Ramps.Exists(r => System.Math.Abs(r.End - start) < 1e-3f) ? float.PositiveInfinity
+                    : GroundSegment.EdgeFrom(top, NeighbourTop(start, false));
+                float rightEdge = Plan.Ramps.Exists(r => System.Math.Abs(r.Start - end) < 1e-3f) ? float.PositiveInfinity
+                    : System.Math.Abs(end - Plan.EndX) < 1e-3f ? GroundSegment.EdgeFrom(top, wallTop)
+                    : GroundSegment.EdgeFrom(top, NeighbourTop(end, true));
+                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, top, leftEdge, rightEdge);
             }
-            float endTop = Plan.GroundTopAt(Plan.EndX);
-            Instantiate(_groundPrefab, root).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, endTop + WallHeight);
+            Instantiate(_groundPrefab, root).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, wallTop,
+                GroundSegment.EdgeFrom(wallTop, endTop), float.NegativeInfinity);
 
             foreach (var (x, y) in Plan.Spikes)
                 Instantiate(_spikePrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
