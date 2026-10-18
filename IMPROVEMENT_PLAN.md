@@ -93,6 +93,11 @@ because `GameEvents` already raises everything needed (`QuestionShown/Resolved`,
     per-world music (needs a CC0 music pack), volume settings.
 - **B5. Post-processing.** Subtle bloom and vignette via URP (`unity:urp-postprocessing` skill).
 
+## Enemy encounter rework (instructor-approved, 2026-10-18)
+Questions are now enemy encounters with a slow-motion Focus Zone and a four-choice answer panel (storyboard scenes 1–6).
+Design: `docs/superpowers/specs/2026-10-18-enemy-encounter-design.md` · Plan: `docs/superpowers/plans/2026-10-18-enemy-encounter.md`.
+Stage C items that mention platforms (e.g. C1's run-up after a zone) now apply to encounters.
+
 ## Stage C — Learning features (the educational differentiator) · size M
 - **C1. Step-by-step solution after a mistake.**
   - **New `SolutionExplainer`** in `MathRunner.Math` turns a `MathProblem` into steps, e.g. `455 ÷ 5 = 91 → 91 + 7 = 98`, or

@@ -17,7 +17,7 @@ This section is the instructor-approved concept. Everything else in this documen
 ### Gameplay
 - Control a character that continuously runs through different levels.
 - Math questions appear during the run.
-- Jump onto the platform showing the correct answer.
+- When a flying enemy fires, time slows down (Focus Zone): choose the correct answer before the bullet arrives to destroy the enemy.
 - Successfully complete levels to unlock harder questions.
 - Combine movement skills with quick mathematical thinking.
 
@@ -25,7 +25,7 @@ This section is the instructor-approved concept. Everything else in this documen
 | Mechanic | Approved rule |
 |---|---|
 | Movement | Run, jump, and avoid obstacles |
-| Math Choices | Choose the platform with the correct answer |
+| Math Choices | Choose the correct answer during the Focus Zone (tap/click or keys 1–4); wrong or too slow and the bullet costs a life |
 | Scoring | Correct answers give points and let the player continue |
 | Lives | Wrong answers can reduce the player's lives |
 | Difficulty | Questions become harder as the game progresses |
@@ -47,39 +47,40 @@ The better the player performs, the harder the questions become.
 
 ### Core Loop
 ```
-RUN → QUESTION → CHOOSE → REWARD → LEVEL UP
-Character moves → Math problem appears → Jump to an answer → Gain points / continue → Harder math
+RUN → ENEMY → FOCUS → ANSWER → REWARD → LEVEL UP
+Character moves → Enemy fires, time slows → Math problem appears → Tap an answer → Shockwave + points / bullet hit → Harder math
 ```
+
+> **Instructor-approved change (2026-10-18):** answer platforms were replaced by enemy encounters with a slow-motion
+> Focus Zone and a four-choice answer panel, to make the game more interactive. Design:
+> `docs/superpowers/specs/2026-10-18-enemy-encounter-design.md`.
 
 ---
 
 ## 2. Detailed Design (how the approved scope works in practice)
 
-### 2.1 The Question Zone (the heart of the game)
-Each level is a sequence of running segments separated by **Question Zones**:
+### 2.1 The Enemy Encounter (the heart of the game)
+Each level is a sequence of running segments separated by **enemy encounters** (storyboard scenes 2–6):
 
-1. The player runs through a normal segment (gaps, obstacles).
-2. A **trigger** shows the question on screen, e.g. `6 × 8 = ?`, plus **3 big answer buttons** in the bottom-right corner.
-3. Ahead, **3 answer platforms** float side by side at the same height (1.4 units above the ground), each labeled with the same numbers, in the same left-to-right order as the buttons.
-4. The player **picks an answer** by tapping/clicking a button or pressing **1, 2 or 3**:
-   - **The first pick is final.** The chosen platform lights up and becomes solid, and the buttons lock.
-   - **The runner jumps onto the chosen platform by itself** at the right moment. From the question appearing until the result, the player's own jump presses are ignored (the runner is on "autopilot"), so stray taps can't spoil the landing. Question Zones never contain spikes or gaps.
-   - **Correct** → platform turns green, +points, the run continues.
-   - **Wrong** → platform turns red and crumbles, −1 life, the correct platform turns green, and the player drops to the ground below (the recovery floor) and keeps running.
-   - **No pick before the decision line** → counts as missed straight away ("Time's up! The answer is 48"), −1 life. Unchosen platforms are never solid, so the runner just passes underneath.
-   - After any result the panel shows the solved equation, e.g. `6 × 2 = 12`.
+1. The player runs through a normal segment (spikes, gaps).
+2. **Enemy arrives:** a purple jetpack enemy flies in, hovers ahead of and above the player, shakes briefly and **fires**.
+3. **Focus Zone:** the moment it fires, the whole world slows to **0.2×** (player, bullet, enemy, particles). Nothing
+   freezes. Screen edges darken, colours fade and the player glows. The question appears at the top with **4 big answer
+   buttons** (tap/click or keys **1–4**) and a bar that empties as the bullet closes in.
+   - **The first pick is final.** The buttons lock and normal speed returns at once.
+   - **Correct** → a shockwave ring bursts from the player, the enemy pops, the bullet fizzles, +points.
+   - **Wrong** → the bullet keeps flying and hits: −1 life, then it is gone and the enemy flies away.
+   - **Too slow** → the bullet lands when its time runs out: same as wrong ("Time's up! The answer is 48").
+   - After any result the panel shows the solved equation, e.g. `6 × 8 = 48`.
+4. The player is on **autopilot** from the trigger until the result: no jumping, and encounters never contain spikes
+   or gaps.
 
-Why tap-to-answer: the first version had the player choose by timing a jump onto a platform. That mixed two skills in one moment and was hard on touchscreens. Tapping keeps the math decision clear and fair; movement skill still matters for spikes and gaps between questions. (Picking low/mid/high platforms by jump height was rejected even earlier: it needs about 0.05 s precision.)
+**Key idea: the bullet is the timer.** It always reaches the player exactly when the question's time runs out (real
+seconds, however slow the world is). The level's time limit sets that flight time; early "untimed" questions still get a
+generous one (≥ 6 s). The encounter stretch of ground = (fly-in + wind-up + exit buffer + time limit × 0.2) × run speed,
+so the layout and the slow-motion always match. All encounter tunables live in `EncounterSettings`.
 
-**Key idea: the timer and the physical distance are the same thing.**
-```
-trigger ──(time limit × run speed)──► decision line ──(landing air time × run speed)──► platforms 1  2  3
-```
-- **Decision line:** the countdown reaches 0 exactly when the runner reaches it. A shorter time limit means it is physically closer.
-- **Platforms:** the first platform's take-off point is the decision line, so a pick made at any moment before time runs out can still reach every platform.
-- **Landing air time:** computed from the jump physics (`JumpMath`), about 0.65 s at the current tuning, the same at every run speed.
-- **Timed questions** show a countdown bar. It freezes at the moment of the pick, so it shows how fast the player answered.
-- **Untimed questions** (early levels) have a generous run-up and no countdown, but still need a pick before the decision line.
+**Timed questions** (the level's timed ratio) earn the speed bonus: the share of the bullet's flight left at the pick.
 
 ### 2.2 Movement
 Because the character runs automatically, the only inputs are **jump** (for hazards) and **picking an answer**. That makes the game well suited to mobile.
@@ -89,7 +90,7 @@ Because the character runs automatically, the only inputs are **jump** (for haza
 | Auto-run at `LevelConfig.runSpeed` | Approved "continuously runs" |
 | Variable jump height (hold = higher) | Short hops vs long jumps over gaps and obstacles |
 | Minimum jump (0.08 s) | Even the quickest tap gives a usable hop (1.56 units) |
-| Autopilot in Question Zones | Manual jumps are ignored while a question is open; the runner jumps onto the picked platform by itself (full-height jump) |
+| Autopilot in enemy encounters | Manual jumps are ignored from the encounter trigger until the answer is resolved |
 | Coyote time (~0.1 s) | Allows jumping a moment after leaving a ledge, so it feels fair |
 | Jump buffer (~0.1 s) | Allows pressing jump just before landing |
 | Obstacles (spikes, gaps, rolling objects) | Approved "avoid obstacles". Hitting one = −1 life, then a short invincibility period |
@@ -335,9 +336,9 @@ Done as IMPROVEMENT_PLAN.md Stage A. Phases 6–8 continue there as Stages B–F
 - **Done when:** the game is fully playable on a phone at a stable frame rate.
 
 ### Phase 7 — Art, Animation, Audio
-- [ ] Character sprites and animations (run, jump, fall, hurt)
-- [ ] Platform/tile art, background parallax
-- [ ] SFX (jump, correct, wrong, life lost, level up) and music
+- [x] Character sprites and animations (run, jump, fall, hurt)
+- [x] Platform/tile art, background parallax
+- [ ] SFX (jump, correct, wrong, life lost, level up) and music — SFX done 2026-10-18, music still open
 - **Done when:** no gray boxes remain.
 
 ### Phase 8 — Polish & Playtesting
@@ -391,7 +392,7 @@ These add to the approved design without removing anything. Check with the instr
 ---
 
 ## 7. Playtest Checklist
-- [ ] Can a new player understand "jump on the right answer" without being told?
+- [ ] Can a new player understand "answer before the bullet lands" without being told?
 - [ ] Are numbers readable on a small phone at full run speed?
 - [ ] Do time limits at Level 10 feel hard but fair?
 - [ ] Is losing a life clearly communicated?
