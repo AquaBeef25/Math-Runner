@@ -67,6 +67,41 @@ namespace MathRunner.Tests.PlayMode
             finally { MathRunner.Core.GameEvents.PlayerHit -= onHit; }
         }
 
+        // Real levels end a ramp against a flat GroundSegment box, not another ramp piece: the runner must not snag on
+        // the box's top corner where the two meet.
+        [UnityTest]
+        public IEnumerator RunnerCrossesFromARampOntoABlock([Values(1f, 0.5f)] float focus, [Values(0.13f, 0.4f, 0.77f)] float o)
+        {
+            // Encounters run the world at half speed, physics step included (as GameManager does).
+            float baseFixed = Time.fixedDeltaTime;
+            Time.timeScale = focus;
+            Time.fixedDeltaTime = baseFixed * focus;
+            try
+            {
+            // Off-grid positions like a generated level's (Level 5 jammed at a ramp ending at x 257.4).
+            foreach (var piece in Object.FindObjectsByType<RampPiece>(FindObjectsSortMode.None)) Object.Destroy(piece.gameObject);
+            BuildRamp(UpStart + o, UpEnd + o, 0f, 1f);
+            BuildRamp(DownStart + o, DownEnd + o, 1f, 0f);
+            var block = new GameObject("TestBlock") { layer = LayerMask.NameToLayer("Ground") };
+            block.transform.position = new Vector3((UpEnd + DownStart) * 0.5f + o, 0f, 0f);
+            var box = block.AddComponent<BoxCollider2D>();
+            box.size = new Vector2(DownStart - UpEnd, 2f); // top at 1, bottom at -1
+            yield return null;
+
+            yield return RunTo(UpStart - 0.5f);
+            int guard = 0;
+            float minSpeed = float.MaxValue;
+            while (_player.transform.position.x < DownEnd + 0.9f && guard++ < 600)
+            {
+                yield return null;
+                minSpeed = Mathf.Min(minSpeed, _rb.linearVelocity.x);
+            }
+            Assert.That(_player.transform.position.x, Is.GreaterThanOrEqualTo(DownEnd + 0.9f), "the runner got stuck where the ramp meets the block");
+            Assert.That(minSpeed, Is.GreaterThanOrEqualTo(_player.RunSpeed * 0.95f), "the runner snagged on the block's corner");
+            }
+            finally { Time.fixedDeltaTime = baseFixed; }
+        }
+
         // A coin in the runner's path at x 2 (before the ramps).
         [UnityTest]
         public IEnumerator CoinAddsTenPoints()

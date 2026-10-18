@@ -102,7 +102,10 @@ Stage C items that mention platforms (e.g. C1's run-up after a zone) now apply t
 5 levels for now (Meadow 1–3, Desert 4–5). Meadow levels are generated Geometry Dash-style: steps, pillars, ledges, route
 splits, slimes, saws and decoration; the player keeps control during encounters at 0.5× slow-mo.
 Design: `docs/superpowers/specs/2026-10-18-meadow-world-design.md` · Plan: `docs/superpowers/plans/2026-10-18-meadow-world.md`.
-**Next:** Desert world (sand terrain, cactus, desert props) for levels 4–5; coins on high routes (optional).
+**Meadow v2 (done 2026-10-18):** layered ColorGrass background, ramps, water pools, styled ledges, bees, coins (+10, HUD
+counter, not stars) and backdrop scenery. Design: `docs/superpowers/specs/2026-10-18-meadow-v2-design.md` · Plan:
+`docs/superpowers/plans/2026-10-18-meadow-v2.md`.
+**Next:** Desert world (sand terrain, cactus, desert props) for levels 4–5.
 
 ## Stage C — Learning features (the educational differentiator) · size M
 - **C1. Step-by-step solution after a mistake.**

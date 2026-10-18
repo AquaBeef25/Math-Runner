@@ -157,6 +157,7 @@ namespace MathRunner.Level
         public const float WalkerPatrol = 1.5f;
         public const float BeeHeight = 0.9f;
         public const float BeeAmplitude = 0.4f;
+        private const float BeeRadius = 0.35f;
         private const float PlayerCenterAboveFeet = 0.5f;
         private const float CoinClearance = 1.5f;
 
@@ -243,12 +244,15 @@ namespace MathRunner.Level
                 Plan.Jumps.Add((X - SpikeLeadSeconds * V, FullHold));
             }
 
-            // A bee at head height: a full jump clears it (saw lead).
+            // A bee at head height: the full jump leaves early enough that the feet are above the bee's highest point (plus
+            // a little room) by the time the runner's front edge reaches it.
             public void Bee()
             {
+                float clear = BeeHeight + BeeAmplitude + BeeRadius + StepClearance * 0.5f;
+                float lead = JumpReach.RiseTime(S, clear) * V + HalfPlayerWidth + BeeRadius;
                 Plan.Bees.Add((X, Top + BeeHeight, BeeAmplitude));
-                Plan.Jumps.Add((X - SpikeLeadSeconds * V, FullHold));
-                ArcJumps.Add((X - SpikeLeadSeconds * V, Top));
+                Plan.Jumps.Add((X - lead, FullHold));
+                ArcJumps.Add((X - lead, Top));
             }
 
             public void Pillar(int tiles)

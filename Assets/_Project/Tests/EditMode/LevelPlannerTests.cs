@@ -200,6 +200,23 @@ namespace MathRunner.Tests
                     $"No full jump planned before the bee at {bee.X}");
         }
 
+        // When the runner's front edge (half-width 0.45) reaches the bee's left edge (radius 0.35), its feet must already be
+        // above the bee at the top of its bob.
+        [Test]
+        public void BeeJumpClearsTheBee([Values(5f, 6f, 8f)] float speed, [Range(1, 10)] int seed)
+        {
+            var s = Settings(speed: speed, seed: seed, bees: 0.6f);
+            var plan = LevelPlanner.Create(s);
+            double g = System.Math.Abs(s.Gravity) * s.GravityScale, v0 = System.Math.Sqrt(2.0 * g * s.JumpHeight);
+            foreach (var bee in plan.Bees)
+            {
+                var jump = plan.Jumps.Where(j => j.X < bee.X).OrderBy(j => j.X).Last();
+                double t = (bee.X - 0.35 - 0.45 - jump.X) / s.RunSpeed;
+                double feet = plan.GroundTopAt(jump.X) + v0 * t - 0.5 * g * t * t;
+                Assert.That(feet, Is.GreaterThanOrEqualTo(bee.BaseY + bee.Amplitude + 0.35), $"Runner at speed {speed} clips the bee at {bee.X}");
+            }
+        }
+
         [Test]
         public void BeesFlyOverFlatGround([Range(1, 20)] int seed)
         {

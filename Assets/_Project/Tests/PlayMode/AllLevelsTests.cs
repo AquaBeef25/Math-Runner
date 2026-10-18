@@ -79,18 +79,31 @@ namespace MathRunner.Tests.PlayMode
             Assert.That(builder.Level, Is.SameAs(config));
 
             int maxFrames = (int)(builder.Plan.FinishX / config.RunSpeed / FrameStep) + 500;
+            var player = Object.FindFirstObjectByType<MathRunner.Player.PlayerController>();
+            string hitsAt = "";
+            System.Action<HitCause> onHit = c => hitsAt += $"{c}@x{player.transform.position.x:F1} ";
+            GameEvents.PlayerHit += onHit;
             using (var bot = new LevelBot())
+            try
             {
                 int frames = 0;
+                string progress = "";
                 while (game.State == GameState.Playing && frames++ < maxFrames)
                 {
                     bot.BeforeFrame();
                     yield return null;
                     bot.AfterFrame();
+                    if (frames % 500 == 0) progress += $"{frames}:x{player.transform.position.x:F1} ";
                 }
+                var body = player.GetComponent<Rigidbody2D>();
+                var contacts = new System.Collections.Generic.List<ContactPoint2D>();
+                body.GetContacts(contacts);
+                string touching = "";
+                foreach (var c in contacts) touching += $"{c.collider.name}({c.collider.GetType().Name}) n{c.normal} p{c.point}; ";
+                string state = $"v {body.linearVelocity}, grounded {player.IsGrounded}, timeScale {Time.timeScale}, touching {touching} progress {progress}";
 
-                Assert.That(game.State, Is.EqualTo(GameState.LevelComplete), $"Level {config.LevelNumber} not finished after {frames} frames");
-                Assert.That(bot.Hits, Is.Empty, $"Level {config.LevelNumber}: the bot was hit by {string.Join(", ", bot.Hits)}");
+                Assert.That(game.State, Is.EqualTo(GameState.LevelComplete), $"Level {config.LevelNumber} not finished after {frames} frames (runner at x {player.transform.position.x:F1}, y {player.transform.position.y:F1}; finish at {builder.Plan.FinishX:F1}; hits {hitsAt}; {state})");
+                Assert.That(bot.Hits, Is.Empty, $"Level {config.LevelNumber}: the bot was hit: {hitsAt}");
                 Assert.That(lives.Lives, Is.EqualTo(3));
                 Assert.That(score.CorrectCount, Is.EqualTo(config.QuestionCount));
                 Assert.That(score.AnsweredCount, Is.EqualTo(config.QuestionCount));
@@ -102,6 +115,7 @@ namespace MathRunner.Tests.PlayMode
                 Assert.That(SaveSystem.Data.IsUnlocked(config.LevelNumber + 1), Is.True);
                 Assert.That(System.IO.File.Exists(_savePath), Is.True);
             }
+            finally { GameEvents.PlayerHit -= onHit; }
         }
     }
 }

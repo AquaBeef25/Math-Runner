@@ -92,6 +92,12 @@ Levels are generated from their `LevelConfig` (deterministic per seed) in a Geom
   planner records a reference jump plan that the test bot follows through all levels.
 - Knobs per level: max step height, route splits, platform/walker/saw chances, decoration density. Level 1 is gentle
   (1-tile steps, slimes only); Level 3 adds 2-tile steps, saws and three route splits.
+- **Meadow v2 (2026-10-18):** a layered Kenney background (ColorGrass painting); **ramps** (2 units of run per tile,
+  walked at full speed, no jump needed); **water** in some pits (−1 heart, back to the checkpoint); ledges that look like
+  things (ledges on grass pillars, bridges, rows of "!" blocks; all the same one-way ledge); **bees** bobbing at head
+  height (jump them); **coins** along some jump arcs and above the high route (+10 score each, shown in the HUD, never
+  part of the stars); **backdrop scenery** (trees, bushes, fences, small houses) just behind the play area.
+  New knobs: ramp, water, bee and coin chances.
 
 **For now the game has 5 levels** (to extend after the adviser review): **Meadow 1–3**, **Desert 4–5** (Desert
 background; desert terrain and props still to design). Levels 6–10 stay as data but are out of the catalog.

@@ -176,6 +176,9 @@ namespace MathRunner.Player
         // Slope (rise per unit of run) of the ground just ahead, from a ray under the front foot (the centre if nothing
         // is there). False when no walkable surface is close below.
         private const float ClimbAllowance = 0.05f;
+        // Levelling off onto a flat block: rise just past the block's top edge (two contact offsets), or the box wedges
+        // between the ramp's last corner and the block's side.
+        private const float LevelOffAllowance = 0.02f;
 
         private bool SampleGroundSlope(out float slope)
         {
@@ -199,7 +202,7 @@ namespace MathRunner.Player
             // Never climb past the highest ground in front of the box this step, or the steeper reading would launch it at
             // a crest or a ramp foot. Starting a climb gets a little extra so the box clears the ramp's edge.
             float step = _runSpeed * Time.fixedDeltaTime;
-            float allowance = aheadSlope < frontSlope ? 0f : ClimbAllowance;
+            float allowance = aheadSlope < frontSlope ? LevelOffAllowance : ClimbAllowance;
             if (slope > 0f && step > 0f) slope = Mathf.Min(slope, Mathf.Max(0f, highest - b.min.y + allowance) / step);
             if (float.IsNegativeInfinity(slope) && TryGroundHit(new Vector2(b.center.x, b.min.y + 0.3f), 0.8f, b.min.y, out hit))
                 slope = -hit.normal.x / hit.normal.y;
