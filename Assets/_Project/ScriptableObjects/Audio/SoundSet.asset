@@ -84,6 +84,32 @@ MonoBehaviour:
     - {fileID: 8300000, guid: ff0a4e5944b69e5478a7ac4322b173a4, type: 3}
     - {fileID: 8300000, guid: f1eb9eb0ffc0efe4c9350759ab516f9c, type: 3}
     _volume: 0.6
+  _fire:
+    _clips:
+    - {fileID: 8300000, guid: ac37c7abdea19d34eb62c7f5ff386e20, type: 3}
+    - {fileID: 8300000, guid: 7f3c5e824f724b44ca75f527b5395537, type: 3}
+    - {fileID: 8300000, guid: 8a73bc15f8c1de6409fd9356e47ff1fd, type: 3}
+    _volume: 0.7
+  _shockwave:
+    _clips:
+    - {fileID: 8300000, guid: 544351829dbe4d942a54c96d5e5e0b01, type: 3}
+    - {fileID: 8300000, guid: aa62c5dc6384af5429b80059407f3d4e, type: 3}
+    _volume: 0.8
+  _enemyPop:
+    _clips:
+    - {fileID: 8300000, guid: ef9809521f2ef554d8c7e847fd27dab1, type: 3}
+    - {fileID: 8300000, guid: 4df2865e230f6d041ba2e7e105ed42a2, type: 3}
+    _volume: 0.8
+  _focusIn:
+    _clips:
+    - {fileID: 8300000, guid: 04488b45aba763242b26adc8d9496a1a, type: 3}
+    - {fileID: 8300000, guid: 08aead9898323ae448711740ebf1bf60, type: 3}
+    _volume: 0.5
+  _focusOut:
+    _clips:
+    - {fileID: 8300000, guid: 4f3dcbddb816b0444aa8fbd7ad3a0efd, type: 3}
+    - {fileID: 8300000, guid: c013f4a2436c9574992a0679cff6e9d6, type: 3}
+    _volume: 0.5
   _streakPitchStep: 0.06
   _streakPitchMaxSteps: 8
   _tickFromSecond: 3

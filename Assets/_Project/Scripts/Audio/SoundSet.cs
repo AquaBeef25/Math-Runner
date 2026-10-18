@@ -38,6 +38,13 @@ namespace MathRunner.Audio
         [Header("UI")]
         [SerializeField] private Sound _click = new Sound();
 
+        [Header("Enemy encounter")]
+        [SerializeField] private Sound _fire = new Sound();
+        [SerializeField] private Sound _shockwave = new Sound();
+        [SerializeField] private Sound _enemyPop = new Sound();
+        [SerializeField] private Sound _focusIn = new Sound();
+        [SerializeField] private Sound _focusOut = new Sound();
+
         [Header("Tuning")]
         [Tooltip("Pitch added per correct answer in a row.")]
         [SerializeField, Range(0f, 0.2f)] private float _streakPitchStep = 0.06f;
@@ -58,6 +65,11 @@ namespace MathRunner.Audio
         public Sound LevelComplete => _levelComplete;
         public Sound GameOver => _gameOver;
         public Sound Click => _click;
+        public Sound Fire => _fire;
+        public Sound Shockwave => _shockwave;
+        public Sound EnemyPop => _enemyPop;
+        public Sound FocusIn => _focusIn;
+        public Sound FocusOut => _focusOut;
 
         public float StreakPitchStep => _streakPitchStep;
         public int StreakPitchMaxSteps => _streakPitchMaxSteps;
@@ -65,6 +77,6 @@ namespace MathRunner.Audio
         public float LandMinSpeed => _landMinSpeed;
 
         // For tests: every sound that should have at least one clip.
-        public Sound[] All => new[] { _jump, _land, _hit, _answerLocked, _correct, _wrong, _crumble, _tick, _levelComplete, _gameOver, _click };
+        public Sound[] All => new[] { _jump, _land, _hit, _answerLocked, _correct, _wrong, _crumble, _tick, _levelComplete, _gameOver, _click, _fire, _shockwave, _enemyPop, _focusIn, _focusOut };
     }
 }

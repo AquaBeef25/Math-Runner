@@ -65,6 +65,9 @@ namespace MathRunner.Audio
             GameEvents.QuestionResolved += OnQuestionResolved;
             GameEvents.PlayerHit += OnPlayerHit;
             GameEvents.GameStateChanged += OnGameStateChanged;
+            GameEvents.FocusStarted += OnFocusStarted;
+            GameEvents.FocusEnded += OnFocusEnded;
+            GameEvents.EnemyDefeated += OnEnemyDefeated;
             if (_player != null)
             {
                 _player.Jumped += OnJumped;
@@ -79,6 +82,9 @@ namespace MathRunner.Audio
             GameEvents.QuestionResolved -= OnQuestionResolved;
             GameEvents.PlayerHit -= OnPlayerHit;
             GameEvents.GameStateChanged -= OnGameStateChanged;
+            GameEvents.FocusStarted -= OnFocusStarted;
+            GameEvents.FocusEnded -= OnFocusEnded;
+            GameEvents.EnemyDefeated -= OnEnemyDefeated;
             if (_player != null)
             {
                 _player.Jumped -= OnJumped;
@@ -131,6 +137,21 @@ namespace MathRunner.Audio
         {
             if (state == GameState.LevelComplete) Play(_sounds.LevelComplete);
             else if (state == GameState.GameOver) Play(_sounds.GameOver);
+        }
+
+        // The shot and the slow-down start together.
+        private void OnFocusStarted(float factor)
+        {
+            Play(_sounds.Fire);
+            Play(_sounds.FocusIn);
+        }
+
+        private void OnFocusEnded() => Play(_sounds.FocusOut);
+
+        private void OnEnemyDefeated(Vector3 position)
+        {
+            Play(_sounds.Shockwave);
+            Play(_sounds.EnemyPop);
         }
 
         private void OnJumped() => Play(_sounds.Jump);
