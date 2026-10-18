@@ -101,7 +101,7 @@ namespace MathRunner.UI
         {
             if (_counting)
             {
-                _timeLeft = Mathf.Max(0f, _timeLeft - Time.deltaTime);
+                _timeLeft = Mathf.Max(0f, _timeLeft - WorldTime.RealDeltaTime); // real seconds: the bar matches the bullet, not the slowed world
                 SetFill(_timeLeft / _timeLimit);
                 PulseTimer();
             }

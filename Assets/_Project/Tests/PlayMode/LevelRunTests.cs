@@ -83,7 +83,7 @@ namespace MathRunner.Tests.PlayMode
                 Assert.That(_game.State, Is.EqualTo(GameState.GameOver));
                 Assert.That(_lives.Lives, Is.Zero);
                 Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
-                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Fall, HitCause.Obstacle }));
+                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Bullet, HitCause.Fall, HitCause.Obstacle }));
                 Assert.That(bot.Respawned, Is.True, "Falling should respawn the player at a checkpoint");
                 Assert.That(_score.Score, Is.Zero);
             }
@@ -105,6 +105,7 @@ namespace MathRunner.Tests.PlayMode
 
                 Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Missed));
                 Assert.That(bot.Results[0].ChosenIndex, Is.EqualTo(-1));
+                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Bullet }), "A missed question costs its heart through the bullet");
                 Assert.That(_lives.Lives, Is.EqualTo(2));
                 Assert.That(_game.State, Is.EqualTo(GameState.Playing));
             }
@@ -138,7 +139,7 @@ namespace MathRunner.Tests.PlayMode
             {
                 bot.AnswerPlanFor = _ => AnswerPlan.Wrong;
                 int frames = 0;
-                while (bot.Results.Count == 0 && frames++ < MaxFrames)
+                while (!bot.Hits.Contains(HitCause.Bullet) && frames++ < MaxFrames)
                 {
                     bot.BeforeFrame();
                     yield return null;

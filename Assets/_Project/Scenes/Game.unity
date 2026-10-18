@@ -7672,7 +7672,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 3
+  m_text: 4
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8538,8 +8538,9 @@ MonoBehaviour:
   _director: {fileID: 1825911060}
   _player: {fileID: 97997742}
   _background: {fileID: 1613703284}
+  _encounter: {fileID: 11400000, guid: 1f65d241a8c922d43942b15938a827f4, type: 2}
   _groundPrefab: {fileID: 4787762687142703320, guid: 7e41379197d1ef34cbf08866b3c8cd90, type: 3}
-  _zonePrefab: {fileID: 1141246290863348363, guid: ef2040fd428293041abf2f279ecfade1, type: 3}
+  _encounterPrefab: {fileID: 5622212957356858001, guid: 1ae936fe428d86c4d9730548669b56e6, type: 3}
   _spikePrefab: {fileID: 5587537291917595764, guid: ba9d7d5f5dd837c41a2f51fa0aab025a, type: 3}
   _checkpointPrefab: {fileID: 7423024411788774180, guid: 6705b2fc4d1f1ad469f56fc149987ac0, type: 3}
   _finishPrefab: {fileID: 7269971048085119298, guid: 67f12bc1c0bada948b45f17e9bafb9e3, type: 3}
@@ -17683,6 +17684,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MathRunner::MathRunner.Systems.QuestionDirector
   _config: {fileID: 0}
   _seed: 0
+  _choiceCount: 4
 --- !u!4 &1825911061
 Transform:
   m_ObjectHideFlags: 0

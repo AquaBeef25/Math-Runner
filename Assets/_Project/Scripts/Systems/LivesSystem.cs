@@ -17,24 +17,18 @@ namespace MathRunner.Systems
 
         private void OnEnable()
         {
-            GameEvents.QuestionResolved += OnQuestionResolved;
+            // Wrong and missed answers cost their heart through the bullet's PlayerHit, never on the answer itself.
             GameEvents.PlayerHit += OnPlayerHit;
         }
 
         private void OnDisable()
         {
-            GameEvents.QuestionResolved -= OnQuestionResolved;
             GameEvents.PlayerHit -= OnPlayerHit;
         }
 
         private void Start()
         {
             GameEvents.RaiseLivesChanged(Lives);
-        }
-
-        private void OnQuestionResolved(QuestionResult result)
-        {
-            if (result.Outcome != AnswerOutcome.Correct) LoseLife();
         }
 
         private void OnPlayerHit(HitCause cause) => LoseLife();

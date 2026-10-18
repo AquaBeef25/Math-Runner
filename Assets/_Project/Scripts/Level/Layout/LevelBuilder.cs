@@ -1,3 +1,4 @@
+using MathRunner.Enemies;
 using MathRunner.Player;
 using MathRunner.Systems;
 using UnityEngine;
@@ -15,14 +16,19 @@ namespace MathRunner.Level
         [Tooltip("Optional: gets the level's background theme.")]
         [SerializeField] private ParallaxBackground _background;
 
+        [SerializeField] private EncounterSettings _encounter;
+
         [Header("Prefabs")]
         [SerializeField] private GroundSegment _groundPrefab;
-        [SerializeField] private QuestionZone _zonePrefab;
+        [SerializeField] private EnemyEncounter _encounterPrefab;
         [SerializeField] private Obstacle _spikePrefab;
         [SerializeField] private Checkpoint _checkpointPrefab;
         [SerializeField] private FinishFlag _finishPrefab;
 
         public LevelConfig Level { get; private set; }
+
+        // Editor setup: ScriptableObject scene fields don't save reliably through SerializedProperty here.
+        public void SetEncounterSettings(EncounterSettings settings) => _encounter = settings;
         public LevelPlan Plan { get; private set; }
 
         // Without a menu selection (e.g. pressing Play on the Game scene) the first level in the catalog is used.
@@ -38,8 +44,7 @@ namespace MathRunner.Level
             _player.RunSpeed = config.RunSpeed;
             if (_background != null) _background.Apply(config.Background);
 
-            float airTime = _player.AirTimeToLandOn(_zonePrefab.PlatformTop);
-            var settings = LevelPlanSettings.From(config, airTime + _zonePrefab.PlatformSpanSeconds, 1f);
+            var settings = LevelPlanSettings.From(config, _encounter.SpanSeconds, _encounter.FocusScale);
             Plan = LevelPlanner.Create(settings);
             var root = transform;
 
@@ -52,9 +57,8 @@ namespace MathRunner.Level
 
             foreach (var zonePlan in Plan.Zones)
             {
-                var zone = Instantiate(_zonePrefab, new Vector3(zonePlan.X, 0f, 0f), Quaternion.identity, root);
-                zone.Configure(config.RunSpeed, zonePlan.Timed ? config.TimeLimit : 0f, zonePlan.Lead, airTime);
-                zone.SetDirector(_director);
+                var encounter = Instantiate(_encounterPrefab, new Vector3(zonePlan.X, 0f, 0f), Quaternion.identity, root);
+                encounter.Configure(_director, zonePlan.Lead, zonePlan.Timed);
             }
 
             foreach (float x in Plan.Checkpoints)

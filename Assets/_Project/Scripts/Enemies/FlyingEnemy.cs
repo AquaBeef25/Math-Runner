@@ -91,7 +91,7 @@ namespace MathRunner.Enemies
                     break;
                 case Mode.Retreat:
                     transform.position += (Vector3)(RetreatDirection * (_settings.RetreatSpeed * dt));
-                    if (transform.position.x - _player.position.x > 30f) Destroy(gameObject);
+                    if (Vector2.Distance(transform.position, _player.position) > 20f) Destroy(gameObject); // well off-screen
                     break;
             }
         }

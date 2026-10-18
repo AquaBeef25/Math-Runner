@@ -48,7 +48,7 @@ namespace MathRunner.Tests.PlayMode
         private readonly InputReader _input;
         private readonly List<HazardState> _hazards = new List<HazardState>();
         private int _pendingPick = -1;
-        private float _shownAt;
+        private float _sinceShown; // real seconds, so slow-mo doesn't stretch the pick delay
         private int _holdLeft;
         private float _lastX;
 
@@ -78,9 +78,9 @@ namespace MathRunner.Tests.PlayMode
 
         public Func<int, AnswerPlan> AnswerPlanFor { get; set; } = _ => AnswerPlan.Correct;
         public Func<Hazard, bool> ShouldJump { get; set; } = _ => true;
-        // Seconds to wait after a question appears before picking. 0 = pick straight away (full speed bonus).
+        // Real seconds to wait after a question appears before picking. 0 = pick straight away (full speed bonus).
         public float PickDelaySeconds { get; set; }
-        // Optional: choose the platform index directly (question number, question) → index, or -1 for no pick.
+        // Optional: choose the answer index directly (question number, question) → index, or -1 for no pick.
         // Overrides AnswerPlanFor when set.
         public Func<int, MathQuestion, int> PickFor { get; set; }
         public List<QuestionResult> Results { get; } = new List<QuestionResult>();
@@ -94,7 +94,8 @@ namespace MathRunner.Tests.PlayMode
             float speed = _player.RunSpeed;
             if (x < _lastX - 1f) Respawned = true;
 
-            if (_pendingPick >= 0 && Time.time - _shownAt >= PickDelaySeconds)
+            _sinceShown += WorldTime.RealDeltaTime;
+            if (_pendingPick >= 0 && _sinceShown >= PickDelaySeconds)
             {
                 _input.NotifyAnswerChosen(_pendingPick);
                 _pendingPick = -1;
@@ -135,7 +136,7 @@ namespace MathRunner.Tests.PlayMode
         private void OnQuestionShown(MathQuestion question, float timeLimit)
         {
             int number = QuestionsShown++;
-            _shownAt = Time.time;
+            _sinceShown = 0f;
             if (PickFor != null)
             {
                 _pendingPick = PickFor(number, question);

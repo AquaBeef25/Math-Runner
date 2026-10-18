@@ -32,6 +32,13 @@ namespace MathRunner.Player
             GameEvents.RaisePlayerHit(HitCause.Obstacle);
         }
 
+        // A wrong or missed answer always costs its heart, even right after another hit, and never moves the player.
+        public void HitByBullet()
+        {
+            _invincibleUntil = Time.time + _invincibleSeconds;
+            GameEvents.RaisePlayerHit(HitCause.Bullet);
+        }
+
         public void Fell()
         {
             _controller.Respawn(_checkpoint);

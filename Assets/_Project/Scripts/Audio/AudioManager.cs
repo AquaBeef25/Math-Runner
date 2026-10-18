@@ -86,12 +86,12 @@ namespace MathRunner.Audio
             }
         }
 
-        // Scaled time, so the countdown ticks stop while paused just like the question timer.
+        // Real (unslowed) seconds, so ticks match the bullet in slow-mo; still stops while paused.
         private void Update()
         {
             if (!_counting) return;
             float previous = _remaining;
-            _remaining -= Time.deltaTime;
+            _remaining -= WorldTime.RealDeltaTime;
             if (AudioMath.CrossedTick(previous, _remaining, _sounds.TickFromSecond)) Play(_sounds.Tick);
             if (_remaining <= 0f) _counting = false;
         }

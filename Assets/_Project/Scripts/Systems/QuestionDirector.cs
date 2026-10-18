@@ -5,13 +5,15 @@ using UnityEngine;
 
 namespace MathRunner.Systems
 {
-    // Owns the level's question generator and adaptive difficulty; Question Zones ask it for the next question.
+    // Owns the level's question generator and adaptive difficulty; enemy encounters ask it for the next question.
     public class QuestionDirector : MonoBehaviour
     {
         [Tooltip("Level whose questions are used. The LevelBuilder overrides this at runtime with the selected level.")]
         [SerializeField] private LevelConfig _config;
         [Tooltip("0 = different questions every run. Any other value repeats the same sequence.")]
         [SerializeField] private int _seed;
+        [Tooltip("Answers shown per question (one per answer button).")]
+        [SerializeField, Range(2, 4)] private int _choiceCount = 4;
 
         private QuestionGenerator _generator;
         private DifficultyTracker _tracker;
@@ -39,7 +41,7 @@ namespace MathRunner.Systems
         {
             _config = config;
             var rng = _seed == 0 ? new System.Random() : new System.Random(_seed);
-            _generator = new QuestionGenerator(rng);
+            _generator = new QuestionGenerator(rng, _choiceCount);
             _tracker = new DifficultyTracker();
         }
 
