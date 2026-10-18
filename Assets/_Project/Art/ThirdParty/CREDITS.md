@@ -11,6 +11,7 @@ commercial use. Credit isn't required; we give it anyway. Thank you, Kenney!
 | UI Pack | 2.0 | `Kenney/UIPack/` | Menu and HUD graphics (Stage B) |
 | Interface Sounds | 1.0 | `Kenney/InterfaceSounds/` | UI and feedback sounds (Stage B4) |
 | Background Elements Remastered | 2019 | `Kenney/Background/` | Meadow background painting and scenery props |
+| Emotes (vector, Style 1) | — | `Kenney/EmotesUsed/` | Emote bubbles over critters (4 sprites copied from the Emotes pack) |
 
 Each pack's original `License.txt` is kept in its folder. The packs' SVG `Vector` folders were
 removed on purpose; only the PNG sprites and OGG sounds are used.

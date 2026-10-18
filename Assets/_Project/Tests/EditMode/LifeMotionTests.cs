@@ -97,6 +97,22 @@ namespace MathRunner.Tests
             Object.DestroyImmediate(set);
         }
 
+        // A swinging crate hangs well above the runner's head (it must never read as an obstacle) from a chain that
+        // starts above the top of the screen (camera half-height 6 around the runner).
+        [Test]
+        public void SwingHangsAboveTheRunnerFromOffScreen()
+        {
+            var set = TestSet();
+            var parent = new GameObject("LifeRoot").transform;
+            var swing = LifeFactory.Build(LifeKind.Swing, 0, 5f, 1f, set, null, parent);
+            var crate = swing.GetComponentsInChildren<SpriteRenderer>().Single(r => r.sprite.name == "crate");
+            var chain = swing.GetComponentsInChildren<SpriteRenderer>().Single(r => r.sprite.name == "chain");
+            Assert.That(crate.transform.position.y - 1f, Is.GreaterThanOrEqualTo(3.5f), "crate above the runner's head");
+            Assert.That(chain.bounds.max.y - 1f, Is.GreaterThanOrEqualTo(10f), "chain starts above the screen");
+            Object.DestroyImmediate(parent.gameObject);
+            Object.DestroyImmediate(set);
+        }
+
         [Test]
         public void BuiltLifeHasNoColliders()
         {

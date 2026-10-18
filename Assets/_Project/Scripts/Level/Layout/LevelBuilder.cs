@@ -153,6 +153,16 @@ namespace MathRunner.Level
                 }
             }
 
+            if (config.Life != null && (Plan.Life.Count > 0 || Plan.Fish.Count > 0))
+            {
+                var life = new GameObject("Life").transform;
+                life.SetParent(root, false);
+                foreach (var (x, y, kind, variant) in Plan.Life)
+                    LifeFactory.Build(kind, variant, x, y, config.Life, _player.transform, life);
+                foreach (var (left, right, surface) in Plan.Fish)
+                    LifeFactory.BuildFish(left, right, surface, config.Life, life);
+            }
+
             foreach (var zonePlan in Plan.Zones)
             {
                 var encounter = Instantiate(_encounterPrefab, new Vector3(zonePlan.X, Plan.GroundTopAt(zonePlan.X), 0f), Quaternion.identity, root);

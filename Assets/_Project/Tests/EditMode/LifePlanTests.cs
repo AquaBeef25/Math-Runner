@@ -138,6 +138,28 @@ namespace MathRunner.Tests
         }
 
         [Test]
+        public void SettingsTakeLifeFromTheLevel()
+        {
+            var level = UnityEngine.ScriptableObject.CreateInstance<LevelConfig>();
+            var set = UnityEngine.ScriptableObject.CreateInstance<LifeSet>();
+            var sprite = UnityEngine.Sprite.Create(new UnityEngine.Texture2D(4, 4), new UnityEngine.Rect(0, 0, 4, 4), UnityEngine.Vector2.zero);
+            set.SetKind(LifeKind.Walker, 2f, new LifeSet.Variant(sprite, sprite), new LifeSet.Variant(sprite, sprite));
+            set.SetKind(LifeKind.Flyer, 1f, new LifeSet.Variant(sprite));
+            set.SetFish(0.5f, new LifeSet.Variant(sprite));
+            level.SetLife(set);
+
+            var s = LevelPlanSettings.From(level, 2f, 0.5f, 3.2f, -9.81f, 4f, 1.4f);
+            Assert.That(s.LifeWeights, Is.EqualTo(set.Weights));
+            Assert.That(s.LifeVariants[(int)LifeKind.Walker], Is.EqualTo(2));
+            Assert.That(s.FishChance, Is.EqualTo(0.5f));
+
+            level.SetLife(null);
+            Assert.That(LevelPlanSettings.From(level, 2f, 0.5f, 3.2f, -9.81f, 4f, 1.4f).LifeWeights, Is.Null);
+            UnityEngine.Object.DestroyImmediate(set);
+            UnityEngine.Object.DestroyImmediate(level);
+        }
+
+        [Test]
         public void NoLifeWithoutWeights()
         {
             var plan = LevelPlanner.Create(Settings(life: null));

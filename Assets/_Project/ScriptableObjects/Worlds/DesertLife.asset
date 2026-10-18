@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c9e64fe59646ca4297be7b24f98f0de, type: 3}
+  m_Name: DesertLife
+  m_EditorClassIdentifier: MathRunner::MathRunner.Level.LifeSet
+  _kinds:
+  - Weight: 1
+    Variants:
+    - _frames:
+      - {fileID: 21300000, guid: 794cd5e7c4a84284eac28c61696d602e, type: 3}
+      - {fileID: 21300000, guid: d043392378c4d144e88f8d64f5a39b1a, type: 3}
+    - _frames:
+      - {fileID: 21300000, guid: 7d3410a5efcdd334fa676ccceaf29b05, type: 3}
+      - {fileID: 21300000, guid: d868b975c69af3c4ab6fed5ea5c5cf10, type: 3}
+    - _frames:
+      - {fileID: 21300000, guid: a2d6c108bee38c64caf4541bb8f336f5, type: 3}
+      - {fileID: 21300000, guid: 202a82707b53ab84eafa7bb6aad263eb, type: 3}
+  - Weight: 0
+    Variants: []
+  - Weight: 1
+    Variants:
+    - _frames:
+      - {fileID: 21300000, guid: e0358f3add12d0a4a9f4a4567c7d77e2, type: 3}
+      - {fileID: 21300000, guid: ec3fac6a4934d7e4ebda77d3ee36bef6, type: 3}
+  - Weight: 0.5
+    Variants:
+    - _frames:
+      - {fileID: 21300000, guid: 3a30e378c8c94e74997da67a68e4a904, type: 3}
+      - {fileID: 21300000, guid: d038a0624835f35408d4213b404fd968, type: 3}
+    - _frames:
+      - {fileID: 21300000, guid: d806a522398783448bbe144088bbb054, type: 3}
+      - {fileID: 21300000, guid: a9567cd69fca43947ba0a518a706a500, type: 3}
+    - _frames:
+      - {fileID: 21300000, guid: 6d536f317d7dcdc4a853f016b79d5780, type: 3}
+      - {fileID: 21300000, guid: 076889f82ca610f44ad1053bdd4f76cd, type: 3}
+  - Weight: 0.6
+    Variants:
+    - _frames:
+      - {fileID: 21300000, guid: eec7189ac8e8b764b8be8958031ca08d, type: 3}
+      - {fileID: 21300000, guid: c9d2d20bbdae7304781c1bde969efa99, type: 3}
+  - Weight: 0.4
+    Variants:
+    - _frames:
+      - {fileID: 21300000, guid: b635aff597192394da857e0d885eaf5a, type: 3}
+      - {fileID: 21300000, guid: a903ed5d51d452848a68f49e71d1eb2e, type: 3}
+    - _frames:
+      - {fileID: 21300000, guid: b635aff597192394da857e0d885eaf5a, type: 3}
+      - {fileID: 21300000, guid: 6ee2a47fe6232814292d09b9be2345de, type: 3}
+  _fishChance: 0
+  _fish: []
+  _emotes:
+  - {fileID: 21300000, guid: 29f3ae4b9656e5b45a618f901a59480d, type: 3}
+  - {fileID: 21300000, guid: 7c4d38a54a2ef8747bdeaea3e77230a4, type: 3}
+  - {fileID: 21300000, guid: edec7b5bf351cc74296213a6cd51c50b, type: 3}
+  - {fileID: 21300000, guid: 6cfba441fbecc064899b9795a7160a65, type: 3}

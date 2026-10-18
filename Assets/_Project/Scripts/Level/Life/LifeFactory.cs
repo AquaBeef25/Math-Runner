@@ -7,7 +7,9 @@ namespace MathRunner.Level
     public static class LifeFactory
     {
         private const int GroundOrder = 4, FlyerOrder = 7, PropOrder = 3, SwingOrder = -4, FishOrder = 2, EmoteOrder = 12;
-        private const float SwingChain = 6f;   // the chain hangs from this far above the crate's resting spot
+        // A swinging crate hangs well above the runner's head (never reads as an obstacle) from a chain that starts above
+        // the top of the screen (the camera shows about 6 units above and below the runner).
+        private const float SwingChain = 7.5f, CrateHeight = 4f;
         private static readonly Color SwingTint = new Color(0.9f, 0.95f, 1f, 0.85f);
 
         public static GameObject Build(LifeKind kind, int variant, float x, float y, LifeSet set, Transform player, Transform parent)
@@ -57,7 +59,7 @@ namespace MathRunner.Level
                     // Pivot above the screen; chain down to the crate; the pivot swings.
                     var pivot = new GameObject("Pivot").transform;
                     pivot.SetParent(root.transform, false);
-                    pivot.localPosition = new Vector3(0f, SwingChain + 1f, 0f);
+                    pivot.localPosition = new Vector3(0f, CrateHeight + SwingChain + 0.5f, 0f);
                     pivot.gameObject.AddComponent<Swinger>().Configure(phase);
                     if (frames.Length > 0)
                     {

@@ -66,6 +66,8 @@ MonoBehaviour:
   _coinChance: 0.5
   _noSpikes: 1
   _terrain: {fileID: 11400000, guid: 32a3eebe93d6578478888872eadc086f, type: 2}
+  _lifeDensity: 0.6
+  _life: {fileID: 11400000, guid: 031cd2d38a4f3bc43a4338b203380858, type: 2}
   _background: {fileID: 11400000, guid: bc8a95b756a34cc4daa213564f6cbc5b, type: 2}
   _decorations: {fileID: 11400000, guid: 5d301aa0ab423f44398a0706d09797cb, type: 2}
   _decorationDensity: 1
