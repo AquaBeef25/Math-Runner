@@ -13,6 +13,13 @@ namespace MathRunner.Level
 
         private void Awake() => _renderer = GetComponent<SpriteRenderer>();
 
+        // Editor setup, tests and code-built pieces.
+        public void SetFrames(Sprite[] frames, float framesPerSecond)
+        {
+            _frames = frames;
+            _framesPerSecond = framesPerSecond;
+        }
+
         private void Update()
         {
             if (_frames == null || _frames.Length == 0) return;
