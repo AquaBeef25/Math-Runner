@@ -21,18 +21,10 @@ MonoBehaviour:
     - _frames:
       - {fileID: 21300000, guid: f2947d0c2229c5f469399f73bbf4de21, type: 3}
       - {fileID: 21300000, guid: e354da9e47fb6ae4d805935ddb4505b1, type: 3}
-  - Weight: 0.7
-    Variants:
-    - _frames:
-      - {fileID: 21300000, guid: f50fc362975ee354cb14b635094f7a0e, type: 3}
-      - {fileID: 21300000, guid: 314faa8fd54adeb44bccac9c632edeaa, type: 3}
-  - Weight: 1
-    Variants:
-    - _frames:
-      - {fileID: 21300000, guid: e0358f3add12d0a4a9f4a4567c7d77e2, type: 3}
-      - {fileID: 21300000, guid: ec3fac6a4934d7e4ebda77d3ee36bef6, type: 3}
-    - _frames:
-      - {fileID: 21300000, guid: 58dc70b074fe8a9469d150863aafbb8b, type: 3}
+  - Weight: 0
+    Variants: []
+  - Weight: 0
+    Variants: []
   - Weight: 0.5
     Variants:
     - _frames:
