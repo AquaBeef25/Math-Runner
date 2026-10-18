@@ -1,12 +1,16 @@
 # Math Runner — "Massive Improvements" Plan
 
 Approved 2026-10-18. Work stage by stage (A → F); each stage ends with a playable build and one commit.
-**Status:** Stage A done (2026-10-18), including A6 tap-to-answer and C4 star ratings. Next: Stage B (art source still to be
-decided: Kenney packs or the Lost Crypt art already in the project).
+**Status:** Stage A done (2026-10-18), including A6 tap-to-answer and C4 star ratings. **Stage B in progress** with Kenney
+packs: B3 juice (except squash & stretch) and B5 post-processing done; B1 art, B2 parallax and B4 audio wait for the Kenney
+downloads in `Assets/_Project/Art/ThirdParty/Kenney/` (Platformer Pack Redux or New Platformer Pack, UI Pack, Interface Sounds).
 - A1 PlayMode suite · A2 LevelConfig/LevelPlanner/LevelBuilder + `Game` scene + 10 level assets · A3 all 10 levels finishable ·
   A4 `SaveSystem` (JSON, best score/stars, unlocks) · A5 `MainMenu` → `LevelSelect` → `Game`, Next Level / Levels buttons ·
   A6 tap-to-answer (see below) · C4 `StarRating` (shown as text "2 of 3 stars" until star icons arrive in Stage B).
-- Tests: 227 EditMode, 28 PlayMode, all passing.
+- Tests: 235 EditMode, 30 PlayMode, all passing.
+- B3/B5 so far: `FeedbackFX` (confetti, "+N" popup, Cinemachine impulse shake, red flash, landing dust), `Ease`/`Tween`
+  helpers, question panel pop-in, timer pulse in the last second, global Volume `Settings/PostFX_Game` (bloom 0.6 above
+  threshold 0.9, vignette 0.22). Squash & stretch waits for B1, because it needs a separate visual child under the Player.
 
 **A6 — Tap-to-answer (added 2026-10-18 at the user's request).** The player picks an answer with one of 3 on-screen buttons
 or the 1/2/3 keys instead of timing a jump; the runner then jumps onto that platform by itself (autopilot inside Question

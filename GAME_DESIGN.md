@@ -217,6 +217,8 @@ Assets/_Project/
 | `Obstacle` / `KillZone` / `Checkpoint` / `FinishFlag` | Level triggers (`Prefabs/Level/`) |
 | `HudView` / `OverlayController` | Lives, score, streak, level label; Pause / Game Over / Level Complete screens |
 | `SaveSystem` | Unlocked levels, best scores, settings |
+| `FeedbackFX` | Game feel only (listens to `GameEvents` + `PlayerController.Landed`): confetti, "+N" score popup, camera impulse, red flash, landing dust |
+| `Ease` / `Tween` | Tiny in-house easing curves and coroutine tweens (panel pop-in, timer pulse, popups) |
 
 ### 3.4 Data Contracts
 Math engine (built in Phase 2, `Scripts/Math/`, assembly `MathRunner.Math`):
@@ -354,7 +356,7 @@ These add to the approved design without removing anything. Check with the instr
 1. **"Show the correct answer" on mistakes:** already part of 2.1. This is the single most important learning feature, because the player sees the right answer instead of just losing a life.
 2. **Tutorial level (Level 0):** teaches jumping and how answer platforms work with very easy questions and no lives lost.
 3. **Star rating per level (1–3 stars):** based on accuracy and lives remaining. It gives players a reason to replay.
-4. **Juice:** screen shake on wrong answers, particles on correct ones, combo sound pitch rising with streak. Cheap to add and makes the game much more fun.
+4. **Juice:** screen shake on wrong answers, particles on correct ones, combo sound pitch rising with streak. Cheap to add and makes the game much more fun. *(Shake, flash, confetti, score popups and dust done in Stage B3; the streak-pitch sound comes with B4 audio.)*
 5. **Streak display:** a "×5 STREAK!" popup rewards quick math visually.
 
 ### Medium effort

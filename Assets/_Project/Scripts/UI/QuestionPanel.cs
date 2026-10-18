@@ -16,6 +16,13 @@ namespace MathRunner.UI
         [SerializeField] private TextMeshProUGUI _feedbackText;
         [SerializeField] private float _resultDisplaySeconds = 1.5f;
 
+        [Header("Animation")]
+        [SerializeField] private float _popInSeconds = 0.25f;
+        [Tooltip("The timer bar pulses during this many final seconds.")]
+        [SerializeField] private float _pulseSeconds = 1f;
+        [SerializeField] private float _pulseScale = 0.12f;
+        [SerializeField] private float _pulsesPerSecond = 4f;
+
         [Header("Colors")]
         [SerializeField] private Color _timerColor = new Color(1f, 0.85f, 0.3f);
         [SerializeField] private Color _timerUrgentColor = new Color(0.95f, 0.35f, 0.3f);
@@ -26,6 +33,7 @@ namespace MathRunner.UI
         private float _timeLeft;
         private bool _counting;
         private float _hideAt = -1f;
+        private Coroutine _popIn;
 
         private void Awake()
         {
@@ -58,14 +66,20 @@ namespace MathRunner.UI
             _timerBar.SetActive(_counting);
             SetFill(1f);
             _hideAt = -1f;
+            PopIn();
         }
 
         // The countdown stops at the moment of the pick, so the bar shows how quickly the player answered.
-        private void OnAnswerLocked(int choiceIndex) => _counting = false;
+        private void OnAnswerLocked(int choiceIndex)
+        {
+            _counting = false;
+            _timerBar.transform.localScale = Vector3.one;
+        }
 
         private void OnQuestionResolved(QuestionResult result)
         {
             _counting = false;
+            _timerBar.transform.localScale = Vector3.one;
             _timerBar.SetActive(false);
             var q = result.Question;
             _questionText.text = q.Text.Replace("?", q.Answer.ToString());
@@ -89,12 +103,33 @@ namespace MathRunner.UI
             {
                 _timeLeft = Mathf.Max(0f, _timeLeft - Time.deltaTime);
                 SetFill(_timeLeft / _timeLimit);
+                PulseTimer();
             }
             if (_hideAt >= 0f && Time.time >= _hideAt)
             {
                 _panel.SetActive(false);
                 _hideAt = -1f;
             }
+        }
+
+        private void PopIn()
+        {
+            if (_popIn != null) StopCoroutine(_popIn);
+            var rect = _panel.transform;
+            _popIn = StartCoroutine(Tween.Run(_popInSeconds, Ease.OutBack,
+                k => rect.localScale = Vector3.one * Mathf.LerpUnclamped(0.6f, 1f, k), () => _popIn = null));
+        }
+
+        // Throbs the timer bar during the final second so running out of time is felt, not just seen.
+        private void PulseTimer()
+        {
+            float s = 1f;
+            if (_timeLeft > 0f && _timeLeft <= _pulseSeconds)
+            {
+                float phase = (_pulseSeconds - _timeLeft) * _pulsesPerSecond;
+                s += _pulseScale * Mathf.Abs(Mathf.Sin(phase * Mathf.PI));
+            }
+            _timerBar.transform.localScale = new Vector3(1f, s, 1f);
         }
 
         private void SetFill(float fraction)

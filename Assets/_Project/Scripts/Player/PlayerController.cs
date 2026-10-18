@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using MathRunner.Input;
 
@@ -36,6 +37,7 @@ namespace MathRunner.Player
         private bool _autoJumpQueued;
         private float _autoJumpX;
         private bool _autoJumping;
+        private float _lastAirSpeedY;
 
         public float RunSpeed
         {
@@ -44,6 +46,10 @@ namespace MathRunner.Player
         }
 
         public bool IsGrounded { get; private set; }
+
+        // For feedback only (dust, squash, sounds); gameplay never listens to these.
+        public event Action Jumped;
+        public event Action<float> Landed; // downward speed at touchdown
 
         private void Awake()
         {
@@ -111,7 +117,9 @@ namespace MathRunner.Player
             float dt = Time.fixedDeltaTime;
             Vector2 v = _rb.linearVelocity;
 
+            bool wasGrounded = IsGrounded;
             IsGrounded = CheckGrounded(v.y);
+            if (IsGrounded && !wasGrounded) Landed?.Invoke(-_lastAirSpeedY);
             if (IsGrounded)
             {
                 _coyoteCounter = _coyoteTime;
@@ -139,6 +147,7 @@ namespace MathRunner.Player
                 _isJumping = true;
                 _jumpTimer = 0f;
                 IsGrounded = false;
+                Jumped?.Invoke();
             }
 
             if (_isJumping) _jumpTimer += dt;
@@ -152,6 +161,7 @@ namespace MathRunner.Player
             v.y = Mathf.Max(v.y, -_maxFallSpeed);
             v.x = _runSpeed;
             _rb.linearVelocity = v;
+            _lastAirSpeedY = v.y;
         }
 
         private bool CheckGrounded(float verticalSpeed)
