@@ -289,7 +289,7 @@ namespace MathRunner.Tests
                     Assert.That(p.X < w.Left - 1.5f || p.X > w.Right + 1.5f, Is.True, $"Backdrop prop at {p.X} is behind a walker");
             }
             for (int i = 1; i < plan.Backdrop.Count; i++)
-                Assert.That(plan.Backdrop[i].X - plan.Backdrop[i - 1].X, Is.GreaterThanOrEqualTo(4f - 1e-4f), "props are at least 4 units apart");
+                Assert.That(plan.Backdrop[i].X - plan.Backdrop[i - 1].X, Is.GreaterThanOrEqualTo(6f - 1e-4f), "props are at least 6 units apart");
         }
 
         [Test]

@@ -519,13 +519,13 @@ namespace MathRunner.Level
                 if (CoinIsSafe(plan, c.X, c.Y)) plan.Coins.Add(c);
         }
 
-        // A backdrop prop every 4–9 units along each flat ground top (never on ramps), with its own random stream, kept
+        // A backdrop prop every 6–12 units along each flat ground top (never on ramps), with its own random stream, kept
         // 1.5 units clear of spikes, saws, bees and slime patrols so it never sits behind a hazard.
         private static void PlaceBackdrop(LevelPlan plan, LevelPlanSettings s)
         {
             var weights = s.BackdropWeights;
             if (weights == null || weights.Length == 0) return;
-            const float Inset = 1f, Clear = 1.5f, MinGap = 4f, MaxGap = 9f;
+            const float Inset = 1f, Clear = 1.5f, MinGap = 6f, MaxGap = 12f;
             var rng = new System.Random(s.Seed * 7 + 11);
             float weightSum = 0f;
             foreach (float w in weights) weightSum += w;
