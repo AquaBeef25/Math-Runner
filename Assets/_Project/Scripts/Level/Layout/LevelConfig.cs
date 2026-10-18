@@ -52,6 +52,8 @@ namespace MathRunner.Level
         [SerializeField, Min(0f)] private float _lifeDensity = 0.6f;
         [Tooltip("Harmless moving life for this world (critters, flyers, flags...). Empty = none.")]
         [SerializeField] private LifeSet _life;
+        [Tooltip("Relative chance of each encounter enemy: Alien, Bee, Frog, Fly. Empty = always the alien.")]
+        [SerializeField] private float[] _enemyWeights = { 1f, 1f, 1f, 1f };
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
@@ -81,6 +83,7 @@ namespace MathRunner.Level
         public TerrainSet Terrain => _terrain;
         public float LifeDensity => _lifeDensity;
         public LifeSet Life => _life;
+        public float[] EnemyWeights => _enemyWeights;
         public void SetLife(LifeSet life) => _life = life;
         // Editor setup: ScriptableObject fields don't save reliably through SerializedProperty here.
         public void SetTerrain(TerrainSet terrain) => _terrain = terrain;

@@ -41,6 +41,7 @@ namespace MathRunner.Level
         public float[] LifeWeights;       // relative chance per LifeKind (index = (int)kind); null = no life
         public int[] LifeVariants;        // sprite variants per LifeKind (at least 1)
         public float FishChance;          // chance a water pool has a leaping fish
+        public float[] EnemyWeights;      // relative chance per EnemyKind (index = (int)kind); null = always the alien
 
         // Spacing, in seconds of running (distance = seconds × run speed).
         public float IntroSeconds;
@@ -83,6 +84,7 @@ namespace MathRunner.Level
             LifeWeights = config.Life != null ? config.Life.Weights : null,
             LifeVariants = config.Life != null ? config.Life.Variants : null,
             FishChance = config.Life != null ? config.Life.FishChance : 0f,
+            EnemyWeights = config.EnemyWeights,
             IntroSeconds = 2f,
             HazardSpacingSeconds = 1.6f,
             GapSeconds = 0.4f,
@@ -116,6 +118,8 @@ namespace MathRunner.Level
         public readonly List<(float X, float Y, LifeKind Kind, int Variant)> Life = new List<(float X, float Y, LifeKind Kind, int Variant)>();
         // Water pools that get a leaping fish (same entries as Water).
         public readonly List<(float Left, float Right, float Surface)> Fish = new List<(float Left, float Right, float Surface)>();
+        // Who each encounter meets (index-aligned with Zones); SpotX/SpotY = the alien's hover offset from the runner (0 = default).
+        public readonly List<(EnemyKind Kind, float SpotX, float SpotY)> ZoneEnemies = new List<(EnemyKind Kind, float SpotX, float SpotY)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
@@ -381,6 +385,7 @@ namespace MathRunner.Level
             PlaceCoins(b, s);
             PlaceBackdrop(b.Plan, s);
             PlaceLife(b.Plan, s);
+            PickEnemies(b.Plan, s);
             return b.Plan;
         }
 
@@ -570,6 +575,52 @@ namespace MathRunner.Level
                     else x += 0.5f;
                 }
             }
+        }
+
+        // Who each encounter meets, with its own random stream (never changes anything else): a weighted pick per
+        // encounter, never two flies in a row (a following fly is never joined by another); aliens get a random spot in the
+        // visible sky ahead of the runner. No weights = today's alien at its usual spot.
+        private static void PickEnemies(LevelPlan plan, LevelPlanSettings s)
+        {
+            var weights = s.EnemyWeights;
+            var rng = new System.Random(s.Seed * 59 + 7);
+            var previous = (EnemyKind)(-1);
+            for (int i = 0; i < plan.Zones.Count; i++)
+            {
+                if (weights == null || weights.Length == 0)
+                {
+                    plan.ZoneEnemies.Add((EnemyKind.Alien, 0f, 0f));
+                    continue;
+                }
+                var kind = Pick(weights, rng, previous == EnemyKind.Fly ? (int)EnemyKind.Fly : -1);
+                float spotX = 0f, spotY = 0f;
+                if (kind == EnemyKind.Alien)
+                {
+                    spotX = 3f + (float)rng.NextDouble() * 5f;
+                    spotY = 2.5f + (float)rng.NextDouble() * 2f;
+                }
+                plan.ZoneEnemies.Add((kind, spotX, spotY));
+                previous = kind;
+            }
+        }
+
+        // Weighted pick, skipping `excluded` (and zero weights); Alien when nothing else is left.
+        private static EnemyKind Pick(float[] weights, System.Random rng, int excluded)
+        {
+            float sum = 0f;
+            for (int k = 0; k < weights.Length; k++)
+                if (k != excluded) sum += System.Math.Max(0f, weights[k]);
+            double roll = rng.NextDouble() * sum;
+            if (sum <= 0f) return EnemyKind.Alien;
+            for (int k = 0; k < weights.Length; k++)
+            {
+                if (k == excluded || weights[k] <= 0f) continue;
+                if (roll < weights[k]) return (EnemyKind)k;
+                roll -= weights[k];
+            }
+            for (int k = weights.Length - 1; k >= 0; k--)
+                if (k != excluded && weights[k] > 0f) return (EnemyKind)k;
+            return EnemyKind.Alien;
         }
 
         // Sparse harmless life with its own random stream (never changes anything else): ground life on flat ground tops
