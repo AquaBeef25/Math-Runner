@@ -73,12 +73,16 @@ namespace MathRunner.Level
         };
     }
 
+    // How a floating platform looks; all styles are the same one-way ledge to the player.
+    public enum PlatformStyle { Ledge, PillarLedge, Bridge, Blocks }
+
     public sealed class LevelPlan
     {
         public readonly List<(float Start, float End, float Top)> Ground = new List<(float Start, float End, float Top)>();
         // Sloped joints between two flat stretches (2 units of run per tile of rise); no jump needed.
         public readonly List<(float Start, float End, float FromTop, float ToTop)> Ramps = new List<(float Start, float End, float FromTop, float ToTop)>();
         public readonly List<(float Left, float Right, float Top)> Platforms = new List<(float Left, float Right, float Top)>();
+        public readonly List<PlatformStyle> PlatformStyles = new List<PlatformStyle>(); // index-aligned with Platforms
         public readonly List<(float X, float Y)> Spikes = new List<(float X, float Y)>();
         public readonly List<(float Left, float Right, float Y)> Walkers = new List<(float Left, float Right, float Y)>();
         public readonly List<(float X, float Y)> Saws = new List<(float X, float Y)>();
@@ -139,6 +143,8 @@ namespace MathRunner.Level
         private sealed class Builder
         {
             public readonly LevelPlan Plan = new LevelPlan();
+            // Why each platform exists (0 hop, 1 end of a split, 2 middle of a split), for choosing its look.
+            public readonly List<int> PlatformRoles = new List<int>();
             public readonly LevelPlanSettings S;
             public readonly System.Random Rng;
             public float X;
@@ -224,6 +230,7 @@ namespace MathRunner.Level
             public void PlatformHop()
             {
                 Plan.Platforms.Add((X - PlatformWidth * 0.5f, X + PlatformWidth * 0.5f, Top + 2));
+                PlatformRoles.Add(0);
                 Spike();
             }
 
@@ -234,6 +241,9 @@ namespace MathRunner.Level
                 Plan.Platforms.Add((x0, x0 + PlatformWidth, Top + 2));
                 Plan.Platforms.Add((x0 + 4.5f, x0 + 4.5f + PlatformWidth, Top + 3));
                 Plan.Platforms.Add((x0 + 9f, x0 + 9f + PlatformWidth, Top + 2));
+                PlatformRoles.Add(1);
+                PlatformRoles.Add(2);
+                PlatformRoles.Add(1);
                 X = x0 + 1.5f;
                 Spike();
                 X = x0 + 10.5f;
@@ -312,6 +322,7 @@ namespace MathRunner.Level
             b.Plan.FinishX = b.X;
             b.Plan.EndX = b.X + 3f * v;
             b.Close(b.Plan.EndX);
+            StylePlatforms(b.Plan, b.PlatformRoles, s.Seed);
             Decorate(b.Plan, s);
             return b.Plan;
         }
@@ -357,6 +368,20 @@ namespace MathRunner.Level
                 else if (s.MaxStepTiles > 0 && roll < 0.45) b.PillarOrSpike(1);
                 else b.Spike();
                 b.X += s.HazardSpacingSeconds * v;
+            }
+        }
+
+        // Hops become "!" block rows or plain ledges; a split's outer ledges stand on pillars, its middle one is a bridge.
+        // Own random stream, so looks never change the layout.
+        private static void StylePlatforms(LevelPlan plan, List<int> roles, int seed)
+        {
+            var rng = new System.Random(seed * 17 + 3);
+            foreach (int role in roles)
+            {
+                double roll = rng.NextDouble();
+                plan.PlatformStyles.Add(role == 2 ? PlatformStyle.Bridge
+                    : role == 1 ? (roll < 0.7 ? PlatformStyle.PillarLedge : PlatformStyle.Ledge)
+                    : (roll < 0.6 ? PlatformStyle.Blocks : PlatformStyle.Ledge));
             }
         }
 

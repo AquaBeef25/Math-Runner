@@ -206,6 +206,11 @@ MonoBehaviour:
   _strip: {fileID: 6456837742725062392}
   _thickness: 0.4
   _visualHeight: 1
+  _bridge: {fileID: 21300000, guid: a3b8334b0366c88468799c822f594a5c, type: 3}
+  _block: {fileID: 21300000, guid: fc1e188755487334db7d490469663b7d, type: 3}
+  _pillar: {fileID: 21300000, guid: e682f6df7d3ca7d458e43fbf1ad32d33, type: 3}
+  _pillarOrder: -3
+  _pillarTint: {r: 0.62, g: 0.68, b: 0.74, a: 1}
 --- !u!1 &3576124962668420831
 GameObject:
   m_ObjectHideFlags: 0

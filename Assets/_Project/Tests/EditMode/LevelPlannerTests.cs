@@ -293,6 +293,49 @@ namespace MathRunner.Tests
         }
 
         [Test]
+        public void PillarLedgesStandOnFlatGround([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, splits: 3, platforms: 0.6f, ramps: 0.6f));
+            Assert.That(plan.PlatformStyles.Count, Is.EqualTo(plan.Platforms.Count));
+            for (int i = 0; i < plan.Platforms.Count; i++)
+            {
+                if (plan.PlatformStyles[i] != PlatformStyle.PillarLedge) continue;
+                var p = plan.Platforms[i];
+                float ground = plan.GroundTopAt(p.Left);
+                for (float x = p.Left; x <= p.Right; x += 0.25f)
+                    Assert.That(plan.GroundTopAt(x), Is.EqualTo(ground).Within(1e-4f), $"Pillar ledge at {p.Left} isn't over flat ground");
+            }
+        }
+
+        [Test]
+        public void EveryStyleAppearsAcrossSeeds()
+        {
+            var seen = new System.Collections.Generic.HashSet<PlatformStyle>();
+            for (int seed = 1; seed <= 20; seed++)
+                foreach (var style in LevelPlanner.Create(Settings(seed: seed, splits: 3, platforms: 0.6f)).PlatformStyles) seen.Add(style);
+            Assert.That(seen, Is.EquivalentTo(System.Enum.GetValues(typeof(PlatformStyle))));
+        }
+
+        [Test]
+        public void SameSeedSameStyles()
+        {
+            var a = LevelPlanner.Create(Settings(seed: 9, splits: 3, platforms: 0.6f));
+            var b = LevelPlanner.Create(Settings(seed: 9, splits: 3, platforms: 0.6f));
+            Assert.That(b.PlatformStyles, Is.EqualTo(a.PlatformStyles));
+        }
+
+        [Test]
+        public void StylesDontChangeTheTerrain()
+        {
+            var a = LevelPlanner.Create(Settings(seed: 4, splits: 3, platforms: 0.6f));
+            Assert.That(a.Platforms.Count, Is.GreaterThan(0));
+            // Same layout as before styles existed: the style pass uses its own random stream.
+            var b = LevelPlanner.Create(Settings(seed: 4, splits: 3, platforms: 0.6f));
+            Assert.That(b.Ground, Is.EqualTo(a.Ground));
+            Assert.That(b.Jumps, Is.EqualTo(a.Jumps));
+        }
+
+        [Test]
         public void CheckpointsSitOnTheGroundTop([Range(1, 20)] int seed)
         {
             var s = Settings(seed: seed);

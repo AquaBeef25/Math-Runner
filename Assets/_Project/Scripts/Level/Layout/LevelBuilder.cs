@@ -71,8 +71,13 @@ namespace MathRunner.Level
             foreach (var (start, end, from, to) in Plan.Ramps)
                 Instantiate(_rampPrefab, root).SetRamp(start, end, from, to, -GroundDepth);
 
-            foreach (var (left, right, top) in Plan.Platforms)
-                Instantiate(_platformPrefab, root).SetRect(left, right, top);
+            for (int i = 0; i < Plan.Platforms.Count; i++)
+            {
+                var (left, right, top) = Plan.Platforms[i];
+                var platform = Instantiate(_platformPrefab, root);
+                platform.SetRect(left, right, top);
+                platform.SetStyle(Plan.PlatformStyles[i], Plan.GroundTopAt((left + right) * 0.5f));
+            }
 
             foreach (var (left, right, y) in Plan.Walkers)
                 Instantiate(_walkerPrefab, new Vector3(left, y, 0f), Quaternion.identity, root).Configure(left, right, _walkerSpeed);

@@ -38,6 +38,14 @@ namespace MathRunner.Level
         private Sprite _leftCapSprite;
         private Sprite _rightCapSprite;
 
+        // Re-skin the strip (e.g. bridge planks or "!" blocks) with the same layout.
+        public void SetSprites(Sprite left, Sprite middle, Sprite right)
+        {
+            _left.sprite = _leftCapSprite = left;
+            _middle.sprite = middle;
+            _right.sprite = _rightCapSprite = right;
+        }
+
         // Hide an end cap (draw a middle tile there instead) where the strip continues seamlessly, e.g. into a ramp.
         public void SetCaps(bool left, bool right)
         {
