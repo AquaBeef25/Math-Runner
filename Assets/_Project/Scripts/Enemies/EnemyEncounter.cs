@@ -149,6 +149,7 @@ namespace MathRunner.Enemies
             if (_question.IsCorrect(index))
             {
                 Instantiate(_shockwavePrefab).Play(_player.transform.position, _settings.ShockwaveRadius, _settings.ShockwaveSeconds);
+                if (FollowingFly.Current != null) FollowingFly.Current.Kill(); // the explosion also gets a following fly
                 Vector3 enemyAt;
                 if (Charger != null)
                 {
@@ -172,8 +173,19 @@ namespace MathRunner.Enemies
 
         private void OnAttackArrived()
         {
-            if (_health != null) _health.HitByBullet();
+            // A fly that was answered wrong doesn't bite yet: it follows the runner to the next encounter.
+            var followingAlready = FollowingFly.Current;
+            if (_kind == EnemyKind.Fly && Charger != null)
+            {
+                var fly = Charger;
+                Charger = null;
+                fly.Release();
+                fly.gameObject.AddComponent<FollowingFly>().Begin(_player.transform, fly.Renderer, fly.RestFrames);
+            }
+            else if (_health != null) _health.HitByBullet();
             else GameEvents.RaisePlayerHit(HitCause.Bullet);
+            // A fly from an earlier wrong answer bites now too (it adds up), then flies away.
+            if (followingAlready != null) followingAlready.BiteAndLeave(_health);
 
             if (_chosenIndex < 0)
             {

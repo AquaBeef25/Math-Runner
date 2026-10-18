@@ -49,6 +49,8 @@ namespace MathRunner.Enemies
         public Style AttackStyle => _style;
         public float RemainingFraction => _total > 0f ? Mathf.Clamp01(_remaining / _total) : 0f;
         public bool IsAttacking => _mode == Mode.Attack;
+        public SpriteRenderer Renderer => _renderer;
+        public Sprite[] RestFrames => _restFrames;
 
         // Editor setup and tests.
         public void Setup(Style style, Vector2 waitOffset, SpriteRenderer renderer, Sprite[] restFrames, Sprite[] attackFrames)
@@ -79,6 +81,13 @@ namespace MathRunner.Enemies
             _remaining = _total;
             _base = transform.position;
             Enter(Mode.Attack);
+        }
+
+        // Hands control to another component (the fly that starts following): this one stops moving it.
+        public void Release()
+        {
+            Arrived = null;
+            Enter(Mode.Idle);
         }
 
         public void Retreat()

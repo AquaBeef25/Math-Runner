@@ -428,6 +428,96 @@ namespace MathRunner.Tests.PlayMode
             }
         }
 
+        // Sets the encounters' enemies in running order (the rest stay aliens).
+        private static void UseEnemies(params MathRunner.Level.EnemyKind[] kinds)
+        {
+            var ordered = Object.FindObjectsByType<EnemyEncounter>(FindObjectsSortMode.None).OrderBy(e => e.transform.position.x).ToList();
+            for (int i = 0; i < ordered.Count; i++)
+                ordered[i].SetEnemy(i < kinds.Length ? kinds[i] : MathRunner.Level.EnemyKind.Alien, Vector2.zero);
+        }
+
+        [UnityTest]
+        public IEnumerator FlyWrongFollowsWithoutBiting()
+        {
+            UseEnemies(MathRunner.Level.EnemyKind.Fly);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => FollowingFly.Current != null);
+                yield return Frames(bot, 50);
+
+                Assert.That(FollowingFly.Current, Is.Not.Null, "the fly follows the runner");
+                Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
+                Assert.That(bot.Hits, Has.No.Member(HitCause.Bullet), "no bite yet");
+                Assert.That(_lives.Lives, Is.EqualTo(3));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FollowingFlyDiesOnNextRightAnswer()
+        {
+            UseEnemies(MathRunner.Level.EnemyKind.Fly);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => FollowingFly.Current != null);
+                yield return PlayUntil(bot, () => bot.Results.Count > 1);
+                yield return Frames(bot, 3);
+
+                Assert.That(bot.Results[1].Outcome, Is.EqualTo(AnswerOutcome.Correct));
+                Assert.That(FollowingFly.Current, Is.Null, "the explosion kills the following fly");
+                Assert.That(_lives.Lives, Is.EqualTo(3));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FollowingFlyBitesOnNextWrong()
+        {
+            UseEnemies(MathRunner.Level.EnemyKind.Fly);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n <= 1 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => FollowingFly.Current != null);
+                yield return PlayUntil(bot, () => bot.Hits.Count(h => h == HitCause.Bullet) >= 2);
+                yield return Frames(bot, 3);
+
+                Assert.That(bot.Hits.Count(h => h == HitCause.Bullet), Is.EqualTo(2), "the alien's fireball and the fly's bite");
+                Assert.That(_lives.Lives, Is.EqualTo(1), "it adds up: two hearts");
+                Assert.That(FollowingFly.Current, Is.Null, "after biting, the fly flies away");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FollowingFlyLeavesAtTheFinish()
+        {
+            UseEnemies(MathRunner.Level.EnemyKind.Fly);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => FollowingFly.Current != null);
+                GameEvents.RaiseLevelCompleted();
+                yield return Frames(bot, 3);
+
+                Assert.That(FollowingFly.Current, Is.Null, "the fly leaves at the finish");
+                Assert.That(_lives.Lives, Is.EqualTo(3), "without biting");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FollowingFlyIsForgottenOnReload()
+        {
+            UseEnemies(MathRunner.Level.EnemyKind.Fly);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => FollowingFly.Current != null);
+            }
+            SceneManager.LoadScene(LevelScene);
+            yield return null;
+            yield return null;
+            Assert.That(FollowingFly.Current, Is.Null, "a restart starts without a following fly");
+        }
+
         private static EnemyEncounter ActiveEncounter() =>
             Object.FindObjectsByType<EnemyEncounter>(FindObjectsSortMode.None).First(e => e.IsFocusActive);
 
