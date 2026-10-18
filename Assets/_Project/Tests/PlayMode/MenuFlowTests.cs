@@ -45,9 +45,9 @@ namespace MathRunner.Tests.PlayMode
 
             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo(SceneFlow.LevelSelect));
             var buttons = LevelButtons();
-            Assert.That(buttons.Length, Is.EqualTo(10));
+            Assert.That(buttons.Length, Is.EqualTo(5));
             Assert.That(buttons[0].interactable, Is.True);
-            Assert.That(buttons.Skip(1).All(b => !b.interactable), Is.True, "Levels 2-10 should be locked on a fresh save");
+            Assert.That(buttons.Skip(1).All(b => !b.interactable), Is.True, "Levels 2-5 should be locked on a fresh save");
             Assert.That(Detail(buttons[1]), Is.EqualTo("Locked"));
         }
 

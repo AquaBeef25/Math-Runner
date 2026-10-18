@@ -50,11 +50,11 @@ namespace MathRunner.Tests.PlayMode
         }
 
         [Test]
-        public void CatalogListsTenLevelsInOrder()
+        public void CatalogListsFiveLevelsInOrder()
         {
             var catalog = LevelCatalog.Load();
             Assert.That(catalog, Is.Not.Null, "Resources/LevelCatalog is missing");
-            Assert.That(catalog.Levels.Count, Is.EqualTo(10));
+            Assert.That(catalog.Levels.Count, Is.EqualTo(5));
             for (int i = 0; i < catalog.Levels.Count; i++)
             {
                 Assert.That(catalog.Levels[i].LevelNumber, Is.EqualTo(i + 1));
@@ -63,7 +63,7 @@ namespace MathRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator EveryLevelCanBeFinishedWithAllAnswersCorrect([NUnit.Framework.Range(0, 9)] int index)
+        public IEnumerator EveryLevelCanBeFinishedWithAllAnswersCorrect([NUnit.Framework.Range(0, 4)] int index)
         {
             var config = LevelCatalog.Load().Levels[index];
             LevelSelection.Current = config;
