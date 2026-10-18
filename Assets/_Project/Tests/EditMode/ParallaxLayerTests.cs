@@ -52,8 +52,13 @@ namespace MathRunner.Tests.EditMode
             foreach (var level in LevelCatalog.Load().Levels)
             {
                 Assert.That(level.Background, Is.Not.Null, $"Level {level.LevelNumber} has no background theme");
-                Assert.That(level.Background.Horizon, Is.Not.Null, $"{level.Background.name} has no horizon sprite");
-                Assert.That(level.Background.Fill, Is.Not.Null, $"{level.Background.name} has no fill sprite");
+                var layers = level.Background.Layers;
+                Assert.That(layers.Count, Is.GreaterThanOrEqualTo(1), $"{level.Background.name} has no layers");
+                for (int i = 0; i < layers.Count; i++)
+                {
+                    Assert.That(layers[i].Sprite, Is.Not.Null, $"{level.Background.name} layer {i} has no sprite");
+                    if (i > 0) Assert.That(layers[i].Order, Is.GreaterThan(layers[i - 1].Order), $"{level.Background.name} layers must go back to front");
+                }
             }
         }
     }

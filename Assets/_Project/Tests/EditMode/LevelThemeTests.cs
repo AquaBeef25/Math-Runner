@@ -14,7 +14,7 @@ namespace MathRunner.Tests.EditMode
             for (int i = 0; i < levels.Count; i++)
             {
                 Assert.That(levels[i].LevelNumber, Is.EqualTo(i + 1));
-                Assert.That(levels[i].Background.name, Is.EqualTo(i < 3 ? "Hills" : "Desert"), $"Level {i + 1}");
+                Assert.That(levels[i].Background.name, Is.EqualTo(i < 3 ? "Meadow" : "Desert"), $"Level {i + 1}");
             }
         }
     }

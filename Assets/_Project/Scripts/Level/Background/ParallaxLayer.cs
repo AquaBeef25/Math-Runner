@@ -24,6 +24,14 @@ namespace MathRunner.Level
             return new Vector2(x, anchor.y + camera.y * follow.y);
         }
 
+        public void Configure(Vector2 follow, Vector2 anchor, float tileWidth)
+        {
+            _follow = follow;
+            _anchor = anchor;
+            _tileWidth = tileWidth;
+            Refresh();
+        }
+
         private void Awake()
         {
             var cam = Camera.main;
