@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -34,11 +34,16 @@ namespace MathRunner.Tests
             WalkerChance = walkers,
             SawChance = saws,
             DecorationDensity = decor,
+            RampChance = ramps,
             DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
 
         private static bool OnGround(LevelPlan plan, float from, float to) =>
             plan.Ground.Any(g => g.Start <= from && to <= g.End);
+
+        // A ramp bridges the joint between two flat stretches; that joint is not a gap.
+        private static bool IsRampJoint(LevelPlan plan, float end, float start) =>
+            plan.Ramps.Any(r => System.Math.Abs(r.Start - end) < 1e-3f && System.Math.Abs(r.End - start) < 1e-3f);
 
         private static int HeightChanges(LevelPlan plan) =>
             plan.Ground.Zip(plan.Ground.Skip(1), (a, b) => a.Top != b.Top ? 1 : 0).Sum();
@@ -80,6 +85,7 @@ namespace MathRunner.Tests
             {
                 var a = plan.Ground[i];
                 var b = plan.Ground[i + 1];
+                if (IsRampJoint(plan, a.End, b.Start)) continue;
                 float rise = b.Top - a.Top;
                 float gap = b.Start - a.End;
                 Assert.That(rise, Is.LessThanOrEqualTo(s.MaxStepTiles), $"Step at {b.Start} rises {rise}");
@@ -143,6 +149,7 @@ namespace MathRunner.Tests
                 Assert.That(plan.Jumps.Any(j => j.X < sp.X && sp.X - j.X < 0.6f * s.RunSpeed), Is.True, $"No jump planned before spike at {sp.X}");
             for (int i = 0; i + 1 < plan.Ground.Count; i++)
             {
+                if (IsRampJoint(plan, plan.Ground[i].End, plan.Ground[i + 1].Start)) continue;
                 bool gapOrRise = plan.Ground[i + 1].Start - plan.Ground[i].End > 0.01f || plan.Ground[i + 1].Top > plan.Ground[i].Top;
                 if (!gapOrRise) continue;
                 float edge = plan.Ground[i].End;
@@ -184,7 +191,7 @@ namespace MathRunner.Tests
             var s = Settings(seed: seed, walkers: 0.3f, saws: 0.2f, decor: 2.5f);
             var plan = LevelPlanner.Create(s);
             Assert.That(plan.Decorations, Is.Not.Empty);
-            var gapEdges = plan.Ground.Zip(plan.Ground.Skip(1), (a, b) => b.Start - a.End > 0.01f ? new[] { a.End, b.Start } : new float[0]).SelectMany(e => e);
+            var gapEdges = plan.Ground.Zip(plan.Ground.Skip(1), (a, b) => b.Start - a.End > 0.01f && !IsRampJoint(plan, a.End, b.Start) ? new[] { a.End, b.Start } : new float[0]).SelectMany(e => e);
             var keepClear = plan.Spikes.Select(p => p.X)
                 .Concat(plan.Saws.Select(p => p.X))
                 .Concat(plan.Jumps.Select(j => j.X))
@@ -236,6 +243,53 @@ namespace MathRunner.Tests
             var a = LevelPlanner.Create(Settings(seed: 5, decor: 2.5f));
             var b = LevelPlanner.Create(Settings(seed: 5, decor: 2.5f));
             Assert.That(b.Decorations, Is.EqualTo(a.Decorations));
+        }
+
+        [Test]
+        public void RampsAreGentleAndJoinTheGround([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, ramps: 0.7f));
+            foreach (var r in plan.Ramps)
+            {
+                Assert.That(System.Math.Abs(r.ToTop - r.FromTop) / (r.End - r.Start), Is.LessThanOrEqualTo(0.5f + 1e-4f), $"Ramp at {r.Start} is too steep");
+                Assert.That(plan.GroundTopAt(r.Start - 0.01f), Is.EqualTo(r.FromTop).Within(1e-3f), $"Ramp at {r.Start} doesn't start on its ground");
+                Assert.That(plan.GroundTopAt(r.End + 0.01f), Is.EqualTo(r.ToTop).Within(1e-3f), $"Ramp at {r.Start} doesn't end on its ground");
+            }
+        }
+
+        [Test]
+        public void GroundTopIsContinuousAcrossRamps([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, ramps: 0.7f));
+            foreach (var r in plan.Ramps)
+            {
+                float previous = plan.GroundTopAt(r.Start - 1f);
+                for (float x = r.Start - 0.9f; x <= r.End + 1f; x += 0.1f)
+                {
+                    float top = plan.GroundTopAt(x);
+                    Assert.That(float.IsNaN(top), Is.False, $"Hole at {x} near the ramp at {r.Start}");
+                    Assert.That(System.Math.Abs(top - previous), Is.LessThanOrEqualTo(0.051f), $"Ground jumps at {x} on the ramp at {r.Start}");
+                    previous = top;
+                }
+            }
+        }
+
+        [Test]
+        public void NoHazardOnARamp([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, ramps: 0.7f, walkers: 0.3f, saws: 0.2f, decor: 2.5f));
+            var things = plan.Spikes.Select(p => p.X).Concat(plan.Saws.Select(p => p.X)).Concat(plan.Decorations.Select(d => d.X))
+                .Concat(plan.Walkers.SelectMany(w => new[] { w.Left, w.Right }));
+            foreach (var r in plan.Ramps)
+                foreach (float x in things)
+                    Assert.That(x < r.Start - 0.5f || x > r.End + 0.5f, Is.True, $"Something at {x} sits on the ramp {r.Start}-{r.End}");
+        }
+
+        [Test]
+        public void LevelsHaveRamps([Range(1, 10)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, maxStep: 1, ramps: 0.6f));
+            Assert.That(plan.Ramps.Count, Is.GreaterThanOrEqualTo(2));
         }
 
         [Test]

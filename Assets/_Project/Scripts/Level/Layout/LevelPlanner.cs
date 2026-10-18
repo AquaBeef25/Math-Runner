@@ -29,6 +29,7 @@ namespace MathRunner.Level
         public float PlatformChance; // chance a spike gets an optional platform over it
         public float WalkerChance;   // chance a hazard is a patrolling slime
         public float SawChance;      // chance a hazard is a saw
+        public float RampChance;     // chance a height change is a ramp instead of a step
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
 
@@ -61,6 +62,7 @@ namespace MathRunner.Level
             PlatformChance = config.PlatformChance,
             WalkerChance = config.WalkerChance,
             SawChance = config.SawChance,
+            RampChance = config.RampChance,
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             IntroSeconds = 2f,
@@ -74,6 +76,8 @@ namespace MathRunner.Level
     public sealed class LevelPlan
     {
         public readonly List<(float Start, float End, float Top)> Ground = new List<(float Start, float End, float Top)>();
+        // Sloped joints between two flat stretches (2 units of run per tile of rise); no jump needed.
+        public readonly List<(float Start, float End, float FromTop, float ToTop)> Ramps = new List<(float Start, float End, float FromTop, float ToTop)>();
         public readonly List<(float Left, float Right, float Top)> Platforms = new List<(float Left, float Right, float Top)>();
         public readonly List<(float X, float Y)> Spikes = new List<(float X, float Y)>();
         public readonly List<(float Left, float Right, float Y)> Walkers = new List<(float Left, float Right, float Y)>();
@@ -89,12 +93,29 @@ namespace MathRunner.Level
 
         public float ZoneLength(int index, LevelPlanSettings s) => (Zones[index].Lead * s.FocusScale + s.ZoneSpanSeconds) * s.RunSpeed;
 
-        // Height of the ground at x, or NaN over a gap.
+        // Height of the ground at x (sloped on ramps), or NaN over a gap.
         public float GroundTopAt(float x)
         {
             foreach (var g in Ground)
                 if (g.Start <= x && x <= g.End) return g.Top;
+            foreach (var r in Ramps)
+                if (r.Start <= x && x <= r.End) return r.FromTop + (r.ToTop - r.FromTop) * (x - r.Start) / (r.End - r.Start);
             return float.NaN;
+        }
+
+        // Rise per unit of run at x: 0 on flat ground and over gaps.
+        public float SurfaceSlopeAt(float x)
+        {
+            foreach (var r in Ramps)
+                if (r.Start < x && x < r.End) return (r.ToTop - r.FromTop) / (r.End - r.Start);
+            return 0f;
+        }
+
+        public bool IsRampJoint(float end, float start)
+        {
+            foreach (var r in Ramps)
+                if (System.Math.Abs(r.Start - end) < 1e-3f && System.Math.Abs(r.End - start) < 1e-3f) return true;
+            return false;
         }
     }
 
@@ -165,6 +186,18 @@ namespace MathRunner.Level
 
             public void StepDown(int tiles) => SetTop(Top - tiles);
 
+            // A gentle slope of 2 units per tile, up or down; the flat stretch before it ends where it starts.
+            public void Ramp(int tiles, bool up)
+            {
+                float length = 2f * tiles;
+                int to = up ? Top + tiles : Top - tiles;
+                Plan.Ground.Add((_groundStart, X, Top));
+                Plan.Ramps.Add((X, X + length, Top, to));
+                X += length;
+                _groundStart = X;
+                Top = to;
+            }
+
             // A slime pacing 1.5 units on flat ground. One full jump stays above it for ~0.65 s, which clears the whole
             // patrol from this take-off at run speeds of 5 and up.
             public void Walker()
@@ -217,8 +250,17 @@ namespace MathRunner.Level
                 int tiles = StepSize(maxTiles);
                 bool canUp = Top + tiles <= MaxTop;
                 bool canDown = Top - tiles >= 0;
-                if (canUp && (!canDown || Rng.NextDouble() < 0.5)) StepUp(tiles);
-                else if (canDown) StepDown(tiles);
+                bool ramp = Rng.NextDouble() < S.RampChance;
+                if (canUp && (!canDown || Rng.NextDouble() < 0.5))
+                {
+                    if (ramp) Ramp(tiles, true);
+                    else StepUp(tiles);
+                }
+                else if (canDown)
+                {
+                    if (ramp) Ramp(tiles, false);
+                    else StepDown(tiles);
+                }
                 else Spike();
             }
 
@@ -333,6 +375,7 @@ namespace MathRunner.Level
             for (int i = 0; i + 1 < plan.Ground.Count; i++)
             {
                 if (plan.Ground[i + 1].Start - plan.Ground[i].End <= 0.01f) continue;
+                if (plan.IsRampJoint(plan.Ground[i].End, plan.Ground[i + 1].Start)) continue;
                 blocked.Add(plan.Ground[i].End);
                 blocked.Add(plan.Ground[i + 1].Start);
             }
