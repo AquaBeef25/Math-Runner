@@ -47,6 +47,12 @@ namespace MathRunner.Tests.PlayMode
         private readonly PlayerController _player;
         private readonly InputReader _input;
         private readonly List<HazardState> _hazards = new List<HazardState>();
+        // On a generated level the bot follows the planner's reference jumps instead of reacting to spikes and gaps.
+        private readonly List<(float X, float HoldSeconds)> _planJumps;
+        private int _nextJump;
+        private bool _pendingJump;
+        private float _pendingHold;
+        private float _pendingFromX;
         private int _pendingPick = -1;
         private float _sinceShown; // real seconds, so slow-mo doesn't stretch the pick delay
         private int _holdLeft;
@@ -58,6 +64,25 @@ namespace MathRunner.Tests.PlayMode
             _input = UnityEngine.Object.FindFirstObjectByType<InputReader>();
             _lastX = _player.transform.position.x;
 
+            var builder = UnityEngine.Object.FindFirstObjectByType<LevelBuilder>();
+            if (builder != null && builder.Plan != null)
+            {
+                _planJumps = builder.Plan.Jumps.OrderBy(j => j.X).ToList();
+                while (_nextJump < _planJumps.Count && _planJumps[_nextJump].X < _lastX) _nextJump++;
+            }
+            else
+            {
+                FindHazardsInScene();
+            }
+
+            GameEvents.QuestionShown += OnQuestionShown;
+            GameEvents.QuestionResolved += OnQuestionResolved;
+            GameEvents.PlayerHit += OnPlayerHit;
+        }
+
+        // Hand-built scenes (Sandbox_Level): react to every spike and gap found in the scene.
+        private void FindHazardsInScene()
+        {
             foreach (var o in UnityEngine.Object.FindObjectsByType<Obstacle>(FindObjectsSortMode.None))
                 _hazards.Add(new HazardState { Kind = HazardKind.Spike, X = o.transform.position.x });
 
@@ -70,10 +95,6 @@ namespace MathRunner.Tests.PlayMode
                 if (floors[i + 1].min.x - floors[i].max.x > 0.5f)
                     _hazards.Add(new HazardState { Kind = HazardKind.Gap, X = floors[i].max.x });
             }
-
-            GameEvents.QuestionShown += OnQuestionShown;
-            GameEvents.QuestionResolved += OnQuestionResolved;
-            GameEvents.PlayerHit += OnPlayerHit;
         }
 
         public Func<int, AnswerPlan> AnswerPlanFor { get; set; } = _ => AnswerPlan.Correct;
@@ -101,6 +122,8 @@ namespace MathRunner.Tests.PlayMode
                 _pendingPick = -1;
             }
 
+            if (_planJumps != null) FollowPlan(x);
+
             foreach (var h in _hazards)
             {
                 float trigger = h.X - speed * (h.Kind == HazardKind.Spike ? SpikeLeadTime : GapLeadTime);
@@ -125,6 +148,32 @@ namespace MathRunner.Tests.PlayMode
             GameEvents.QuestionResolved -= OnQuestionResolved;
             GameEvents.PlayerHit -= OnPlayerHit;
             if (_input != null) _input.NotifyJumpReleased();
+        }
+
+        // Press at each planned take-off; if still airborne there, press on landing unless it's more than a unit late.
+        private void FollowPlan(float x)
+        {
+            if (x < _lastX - 1f)
+            {
+                _nextJump = 0;
+                while (_nextJump < _planJumps.Count && _planJumps[_nextJump].X < x) _nextJump++;
+                _pendingJump = false;
+            }
+            while (_nextJump < _planJumps.Count && x >= _planJumps[_nextJump].X)
+            {
+                _pendingJump = true;
+                _pendingHold = _planJumps[_nextJump].HoldSeconds;
+                _pendingFromX = _planJumps[_nextJump].X;
+                _nextJump++;
+            }
+            if (!_pendingJump) return;
+            if (x > _pendingFromX + 1f) { _pendingJump = false; return; }
+            if (_holdLeft == 0 && _player.IsGrounded)
+            {
+                // Hold is in scaled seconds, so it lasts the same physics time in slow-mo.
+                Press(Mathf.Max(1, Mathf.CeilToInt(_pendingHold / Mathf.Max(Time.deltaTime, 1e-4f))));
+                _pendingJump = false;
+            }
         }
 
         private void Press(int holdFrames)

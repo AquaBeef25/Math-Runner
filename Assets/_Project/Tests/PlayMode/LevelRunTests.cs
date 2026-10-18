@@ -103,6 +103,9 @@ namespace MathRunner.Tests.PlayMode
                     bot.AfterFrame();
                 }
 
+                Assert.That(bot.Results, Is.Not.Empty,
+                    $"No result after {frames} frames: x={_player.transform.position.x:F1} shown={bot.QuestionsShown} hits=[{string.Join(",", bot.Hits)}] " +
+                    $"state={_game.State} timeScale={Time.timeScale} fixedDt={Time.fixedDeltaTime} focus={WorldTime.FocusFactor} respawned={bot.Respawned}");
                 Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Missed));
                 Assert.That(bot.Results[0].ChosenIndex, Is.EqualTo(-1));
                 Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Bullet }), "A missed question costs its heart through the bullet");
