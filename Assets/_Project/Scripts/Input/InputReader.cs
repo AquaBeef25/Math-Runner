@@ -7,10 +7,10 @@ using UnityEngine.InputSystem;
 
 namespace MathRunner.Input
 {
-    // Jump: Space/W/Up, or a click/tap anywhere that isn't on a UI button. Answer: 1/2/3 (or the answer buttons). Pause: Esc/P.
+    // Jump: Space/W/Up, or a click/tap anywhere that isn't on a UI button. Answer: 1/2/3/4 (or the answer buttons). Pause: Esc/P.
     public class InputReader : MonoBehaviour
     {
-        private const int AnswerKeyCount = 3;
+        private const int AnswerKeyCount = 4;
 
         public event Action JumpPressed;
         public event Action JumpReleased;

@@ -7,14 +7,14 @@ using UnityEngine.UI;
 
 namespace MathRunner.UI
 {
-    // Big tap targets for the three answers, in the same left-to-right order as the platforms (keys 1, 2, 3).
+    // Big tap targets for the answers, left to right (keys 1–4). Buttons beyond the question's choice count stay hidden.
     public class AnswerButtons : MonoBehaviour
     {
         [SerializeField] private InputReader _input;
         [SerializeField] private GameObject _root;
         [SerializeField] private GameObject _hint;
-        [SerializeField] private Button[] _buttons = new Button[3];
-        [SerializeField] private TextMeshProUGUI[] _labels = new TextMeshProUGUI[3];
+        [SerializeField] private Button[] _buttons = new Button[4];
+        [SerializeField] private TextMeshProUGUI[] _labels = new TextMeshProUGUI[4];
 
         [Header("Colors")]
         [SerializeField] private Color _idleColor = new Color(1f, 0.78f, 0.25f);
@@ -51,6 +51,9 @@ namespace MathRunner.UI
             _hint.SetActive(true);
             for (int i = 0; i < _buttons.Length; i++)
             {
+                bool used = i < question.Choices.Count;
+                _buttons[i].gameObject.SetActive(used);
+                if (!used) continue;
                 _labels[i].text = question.Choices[i].ToString();
                 _buttons[i].interactable = true;
                 _buttons[i].targetGraphic.color = _idleColor;

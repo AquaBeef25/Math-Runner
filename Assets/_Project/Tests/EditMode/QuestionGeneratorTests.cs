@@ -15,6 +15,25 @@ namespace MathRunner.Tests
             Assert.That(errors, Is.Empty, string.Join("\n", errors));
         }
 
+        // Enemy encounters show four answers, so every shipped level must be able to produce four sensible choices.
+        [Test]
+        public void EveryLevelGivesFourDistinctNonNegativeChoices([Values] DifficultyTier tier)
+        {
+            foreach (var level in MathRunner.Level.LevelCatalog.Load().Levels)
+            {
+                var generator = new QuestionGenerator(new System.Random(level.LevelNumber * 7 + (int)tier), 4);
+                for (int i = 0; i < 300; i++)
+                {
+                    var q = generator.Generate(level.Questions, tier);
+                    string ctx = $"Level {level.LevelNumber} {tier}: '{q.Text}' [{string.Join(", ", q.Choices)}]";
+                    Assert.That(q.Choices.Count, Is.EqualTo(4), ctx);
+                    Assert.That(q.Choices.Distinct().Count(), Is.EqualTo(4), ctx);
+                    Assert.That(q.Choices.All(c => c >= 0), Is.True, ctx);
+                    Assert.That(q.Choices[q.CorrectIndex], Is.EqualTo(q.Answer), ctx);
+                }
+            }
+        }
+
         [Test]
         public void GeneratedQuestionsAreCorrectAndWellFormed(
             [Range(1, LevelCurriculum.LevelCount)] int level,
