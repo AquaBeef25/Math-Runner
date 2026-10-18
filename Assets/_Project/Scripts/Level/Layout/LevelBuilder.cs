@@ -31,6 +31,11 @@ namespace MathRunner.Level
         [SerializeField] private Coin _coinPrefab;
         [SerializeField, Min(0f)] private float _beeHz = 0.8f;
         [SerializeField] private SpriteRenderer _decorationPrefab;
+        [Header("Backdrop")]
+        [SerializeField] private int _backdropOrder = -5;
+        [Tooltip("How much of the camera's movement backdrop props copy, so they read as slightly farther away.")]
+        [SerializeField] private float _backdropFollow = 0.12f;
+        [SerializeField] private Color _backdropTint = new Color(0.9f, 0.95f, 1f, 0.9f);
         [SerializeField, Min(0f)] private float _walkerSpeed = 1f;
         [SerializeField] private Checkpoint _checkpointPrefab;
         [SerializeField] private FinishFlag _finishPrefab;
@@ -103,6 +108,24 @@ namespace MathRunner.Level
             if (config.Decorations != null && _decorationPrefab != null)
                 foreach (var (x, y, kind) in Plan.Decorations)
                     Instantiate(_decorationPrefab, new Vector3(x, y, 0f), Quaternion.identity, root).sprite = config.Decorations.Sprite(kind);
+
+            if (config.Decorations != null && Plan.Backdrop.Count > 0)
+            {
+                var backdrop = new GameObject("Backdrop").transform;
+                backdrop.SetParent(root, false);
+                foreach (var (x, y, kind) in Plan.Backdrop)
+                {
+                    var prop = new GameObject("Prop");
+                    prop.transform.SetParent(backdrop, false);
+                    prop.transform.position = new Vector3(x, y, 0f);
+                    var sr = prop.AddComponent<SpriteRenderer>();
+                    sr.sprite = config.Decorations.BackdropSprite(kind);
+                    sr.sortingOrder = _backdropOrder;
+                    sr.color = _backdropTint;
+                    // Anchored so the prop stands exactly at x when the camera is over it, drifting a little either side.
+                    prop.AddComponent<ParallaxLayer>().Configure(new Vector2(_backdropFollow, 0f), new Vector2(x * (1f - _backdropFollow), y), 0f);
+                }
+            }
 
             foreach (var zonePlan in Plan.Zones)
             {

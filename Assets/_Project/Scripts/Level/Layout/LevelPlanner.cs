@@ -35,6 +35,7 @@ namespace MathRunner.Level
         public float CoinChance;     // chance a full jump over a gap, slime or bee gets an arc of coins
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
+        public float[] BackdropWeights;   // relative chance of each backdrop prop (trees, bushes, fences, houses); null = none
 
         // Spacing, in seconds of running (distance = seconds × run speed).
         public float IntroSeconds;
@@ -71,6 +72,7 @@ namespace MathRunner.Level
             CoinChance = config.CoinChance,
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
+            BackdropWeights = config.Decorations != null ? config.Decorations.BackdropWeights : null,
             IntroSeconds = 2f,
             HazardSpacingSeconds = 1.6f,
             GapSeconds = 0.4f,
@@ -98,6 +100,8 @@ namespace MathRunner.Level
         public readonly List<(float X, float BaseY, float Amplitude)> Bees = new List<(float X, float BaseY, float Amplitude)>();
         // Coin centres: arcs along planned jumps and rows over the high route. Points only, never part of the terrain.
         public readonly List<(float X, float Y)> Coins = new List<(float X, float Y)>();
+        // Scenery standing just behind the play area (trees, bushes, fences, houses), on flat ground tops.
+        public readonly List<(float X, float Y, int Kind)> Backdrop = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
@@ -354,6 +358,7 @@ namespace MathRunner.Level
             StylePlatforms(b.Plan, b.PlatformRoles, s.Seed);
             Decorate(b.Plan, s);
             PlaceCoins(b, s);
+            PlaceBackdrop(b.Plan, s);
             return b.Plan;
         }
 
@@ -504,6 +509,45 @@ namespace MathRunner.Level
 
             foreach (var c in candidates)
                 if (CoinIsSafe(plan, c.X, c.Y)) plan.Coins.Add(c);
+        }
+
+        // A backdrop prop every 4–9 units along each flat ground top (never on ramps), with its own random stream, kept
+        // 1.5 units clear of spikes, saws, bees and slime patrols so it never sits behind a hazard.
+        private static void PlaceBackdrop(LevelPlan plan, LevelPlanSettings s)
+        {
+            var weights = s.BackdropWeights;
+            if (weights == null || weights.Length == 0) return;
+            const float Inset = 1f, Clear = 1.5f, MinGap = 4f, MaxGap = 9f;
+            var rng = new System.Random(s.Seed * 7 + 11);
+            float weightSum = 0f;
+            foreach (float w in weights) weightSum += w;
+
+            var hazards = new List<float>();
+            foreach (var p in plan.Spikes) hazards.Add(p.X);
+            foreach (var p in plan.Saws) hazards.Add(p.X);
+            foreach (var p in plan.Bees) hazards.Add(p.X);
+
+            float last = float.NegativeInfinity;
+            foreach (var g in plan.Ground)
+            {
+                float x = System.Math.Max(g.Start + Inset, last + MinGap) + (float)rng.NextDouble() * (MaxGap - MinGap) * 0.5f;
+                while (x <= g.End - Inset)
+                {
+                    bool clear = true;
+                    foreach (float h in hazards) if (System.Math.Abs(x - h) < Clear) clear = false;
+                    foreach (var w in plan.Walkers) if (x >= w.Left - Clear && x <= w.Right + Clear) clear = false;
+                    if (clear)
+                    {
+                        double k = rng.NextDouble() * weightSum;
+                        int kind = 0;
+                        while (kind < weights.Length - 1 && k >= weights[kind]) k -= weights[kind++];
+                        plan.Backdrop.Add((x, g.Top, kind));
+                        last = x;
+                        x += MinGap + (float)rng.NextDouble() * (MaxGap - MinGap);
+                    }
+                    else x += 0.5f;
+                }
+            }
         }
 
         private static bool CoinIsSafe(LevelPlan plan, float x, float y)

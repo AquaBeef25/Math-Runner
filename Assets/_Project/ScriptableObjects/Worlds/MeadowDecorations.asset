@@ -28,3 +28,29 @@ MonoBehaviour:
   - 1
   - 0.5
   - 0.5
+  _backdropSprites:
+  - {fileID: 21300000, guid: e27dfc0fb000e514fac2cbb9361de5df, type: 3}
+  - {fileID: 21300000, guid: e4b03eb5ba4cc8a4ba878df3022de6ee, type: 3}
+  - {fileID: 21300000, guid: 273af9b9a539cfc4685d51333fa6c3af, type: 3}
+  - {fileID: 21300000, guid: bdcecb2814384874fa297d5553bed60f, type: 3}
+  - {fileID: 21300000, guid: 03feea32d85c1bf4c89cf981efeb43c1, type: 3}
+  - {fileID: 21300000, guid: 97f2ff10f712bcd4e843a07f6f591783, type: 3}
+  - {fileID: 21300000, guid: 8945a8ed42d584548bb40e67bb0beca3, type: 3}
+  - {fileID: 21300000, guid: 4e83244b83520894ea52b26732519a7c, type: 3}
+  - {fileID: 21300000, guid: 5733f69960ef998439c06ce1d373819f, type: 3}
+  - {fileID: 21300000, guid: 85a7fc232771d7b4e85f79a5a64f23e4, type: 3}
+  - {fileID: 21300000, guid: 188ac31bc7286a242b649cf120e9ec06, type: 3}
+  - {fileID: 21300000, guid: 58377853a37e1af4b983d8fbcf7e0262, type: 3}
+  _backdropWeights:
+  - 2
+  - 1.5
+  - 1
+  - 1
+  - 1
+  - 1.5
+  - 1.5
+  - 1.5
+  - 1.5
+  - 1
+  - 0.3
+  - 0.3

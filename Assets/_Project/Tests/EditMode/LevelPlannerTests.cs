@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f, float coins = 0f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f, float coins = 0f, bool backdrop = false) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -38,6 +38,7 @@ namespace MathRunner.Tests
             WaterChance = water,
             BeeChance = bees,
             CoinChance = coins,
+            BackdropWeights = backdrop ? new[] { 3f, 2f, 2f, 1f, 0.3f } : null,
             DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
 
@@ -251,6 +252,32 @@ namespace MathRunner.Tests
             var with = LevelPlanner.Create(Settings(seed: seed, bees: 0.3f, coins: 1f));
             Assert.That(with.Ground, Is.EqualTo(without.Ground));
             Assert.That(with.Jumps, Is.EqualTo(without.Jumps));
+        }
+
+        [Test]
+        public void BackdropPropsSitOnTheGround([Values(5f, 8f)] float speed, [Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(speed: speed, seed: seed, walkers: 0.2f, saws: 0.2f, bees: 0.2f, ramps: 0.5f, backdrop: true));
+            Assert.That(plan.Backdrop, Is.Not.Empty);
+            foreach (var p in plan.Backdrop)
+            {
+                Assert.That(plan.Ground.Any(g => g.Start + 1f <= p.X && p.X <= g.End - 1f && System.Math.Abs(g.Top - p.Y) < 1e-4f), Is.True,
+                    $"Backdrop prop at {p.X} isn't on a flat ground top");
+                Assert.That(p.Kind, Is.InRange(0, 4));
+                foreach (float x in plan.Spikes.Select(h => h.X).Concat(plan.Saws.Select(h => h.X)).Concat(plan.Bees.Select(h => h.X)))
+                    Assert.That(System.Math.Abs(p.X - x), Is.GreaterThanOrEqualTo(1.5f), $"Backdrop prop at {p.X} sits behind a hazard at {x}");
+                foreach (var w in plan.Walkers)
+                    Assert.That(p.X < w.Left - 1.5f || p.X > w.Right + 1.5f, Is.True, $"Backdrop prop at {p.X} is behind a walker");
+            }
+            for (int i = 1; i < plan.Backdrop.Count; i++)
+                Assert.That(plan.Backdrop[i].X - plan.Backdrop[i - 1].X, Is.GreaterThanOrEqualTo(4f - 1e-4f), "props are at least 4 units apart");
+        }
+
+        [Test]
+        public void SameSeedSameBackdrop([Range(1, 5)] int seed)
+        {
+            var s = Settings(seed: seed, backdrop: true);
+            Assert.That(LevelPlanner.Create(s).Backdrop, Is.EqualTo(LevelPlanner.Create(s).Backdrop));
         }
 
         [Test]
