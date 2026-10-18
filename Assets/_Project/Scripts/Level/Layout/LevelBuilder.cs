@@ -22,6 +22,10 @@ namespace MathRunner.Level
         [SerializeField] private GroundSegment _groundPrefab;
         [SerializeField] private EnemyEncounter _encounterPrefab;
         [SerializeField] private Obstacle _spikePrefab;
+        [SerializeField] private FloatingPlatform _platformPrefab;
+        [SerializeField] private Walker _walkerPrefab;
+        [SerializeField] private Saw _sawPrefab;
+        [SerializeField, Min(0f)] private float _walkerSpeed = 1f;
         [SerializeField] private Checkpoint _checkpointPrefab;
         [SerializeField] private FinishFlag _finishPrefab;
 
@@ -56,6 +60,15 @@ namespace MathRunner.Level
 
             foreach (var (x, y) in Plan.Spikes)
                 Instantiate(_spikePrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
+
+            foreach (var (left, right, top) in Plan.Platforms)
+                Instantiate(_platformPrefab, root).SetRect(left, right, top);
+
+            foreach (var (left, right, y) in Plan.Walkers)
+                Instantiate(_walkerPrefab, new Vector3(left, y, 0f), Quaternion.identity, root).Configure(left, right, _walkerSpeed);
+
+            foreach (var (x, y) in Plan.Saws)
+                Instantiate(_sawPrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
 
             foreach (var zonePlan in Plan.Zones)
             {
