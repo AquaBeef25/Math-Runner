@@ -99,7 +99,7 @@ namespace MathRunner.Tests
             {
                 Assert.That(e.Kind, Is.EqualTo(EnemyKind.Alien));
                 Assert.That(e.SpotX, Is.InRange(3f, 8f));
-                Assert.That(e.SpotY, Is.InRange(2.5f, 4.5f));
+                Assert.That(e.SpotY, Is.InRange(2.5f, 4.0f), "below the question panel even at the top of its bob");
             }
         }
 

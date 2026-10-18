@@ -597,7 +597,7 @@ namespace MathRunner.Level
                 if (kind == EnemyKind.Alien)
                 {
                     spotX = 3f + (float)rng.NextDouble() * 5f;
-                    spotY = 2.5f + (float)rng.NextDouble() * 2f;
+                    spotY = 2.5f + (float)rng.NextDouble() * 1.5f; // at most 4 up: clear of the question panel at the top of its bob
                 }
                 plan.ZoneEnemies.Add((kind, spotX, spotY));
                 previous = kind;
