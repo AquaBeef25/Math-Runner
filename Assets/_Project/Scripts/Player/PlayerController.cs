@@ -43,6 +43,11 @@ namespace MathRunner.Player
 
         public bool IsGrounded { get; private set; }
 
+        // The jump's shape, for level planning (what a full jump can reach).
+        public float JumpHeight => _jumpHeight;
+        public float FallGravityMultiplier => _fallGravityMultiplier;
+        public float BaseGravityScale => _rb != null ? _baseGravityScale : GetComponent<Rigidbody2D>().gravityScale;
+
         // For feedback only (dust, squash, sounds); gameplay never listens to these.
         public event Action Jumped;
         public event Action<float> Landed; // downward speed at touchdown

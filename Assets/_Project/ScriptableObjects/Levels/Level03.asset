@@ -86,4 +86,7 @@ MonoBehaviour:
   _hazardsBetweenQuestions: 1
   _gapChance: 0.3
   _layoutSeed: 3
+  _maxStepTiles: 2
+  _routeSplits: 3
+  _platformChance: 0.5
   _background: {fileID: 11400000, guid: 767ee76bfc68a85448bfe30ee8015e15, type: 2}

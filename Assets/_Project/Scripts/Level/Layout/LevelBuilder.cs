@@ -44,27 +44,29 @@ namespace MathRunner.Level
             _player.RunSpeed = config.RunSpeed;
             if (_background != null) _background.Apply(config.Background);
 
-            var settings = LevelPlanSettings.From(config, _encounter.SpanSeconds, _encounter.FocusScale);
+            var settings = LevelPlanSettings.From(config, _encounter.SpanSeconds, _encounter.FocusScale,
+                _player.JumpHeight, Physics2D.gravity.y, _player.BaseGravityScale, _player.FallGravityMultiplier);
             Plan = LevelPlanner.Create(settings);
             var root = transform;
 
-            foreach (var (start, end) in Plan.Ground)
-                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, 0f);
-            Instantiate(_groundPrefab, root).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, WallHeight);
+            foreach (var (start, end, top) in Plan.Ground)
+                Instantiate(_groundPrefab, root).SetRect(start, -GroundDepth, end, top);
+            float endTop = Plan.GroundTopAt(Plan.EndX);
+            Instantiate(_groundPrefab, root).SetRect(Plan.EndX, -GroundDepth, Plan.EndX + 2f, endTop + WallHeight);
 
-            foreach (float x in Plan.Spikes)
-                Instantiate(_spikePrefab, new Vector3(x, 0f, 0f), Quaternion.identity, root);
+            foreach (var (x, y) in Plan.Spikes)
+                Instantiate(_spikePrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
 
             foreach (var zonePlan in Plan.Zones)
             {
-                var encounter = Instantiate(_encounterPrefab, new Vector3(zonePlan.X, 0f, 0f), Quaternion.identity, root);
+                var encounter = Instantiate(_encounterPrefab, new Vector3(zonePlan.X, Plan.GroundTopAt(zonePlan.X), 0f), Quaternion.identity, root);
                 encounter.Configure(_director, zonePlan.Lead, zonePlan.Timed);
             }
 
-            foreach (float x in Plan.Checkpoints)
-                Instantiate(_checkpointPrefab, new Vector3(x, 1f, 0f), Quaternion.identity, root);
+            foreach (var (x, y) in Plan.Checkpoints)
+                Instantiate(_checkpointPrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
 
-            Instantiate(_finishPrefab, new Vector3(Plan.FinishX, 0f, 0f), Quaternion.identity, root);
+            Instantiate(_finishPrefab, new Vector3(Plan.FinishX, Plan.GroundTopAt(Plan.FinishX), 0f), Quaternion.identity, root);
 
             var kill = new GameObject("KillZone");
             kill.transform.SetParent(root, false);
