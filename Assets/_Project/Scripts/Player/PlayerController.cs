@@ -1,3 +1,4 @@
+using MathRunner.Core;
 using System;
 using UnityEngine;
 using MathRunner.Input;
@@ -34,6 +35,9 @@ namespace MathRunner.Player
         private bool _isJumping;
         private float _jumpTimer;
         private float _lastAirSpeedY;
+        private float _heldRealSeconds; // how long jump has been held, in the player's own (unslowed) seconds
+        private readonly Collider2D[] _groundHits = new Collider2D[4];
+        private ContactFilter2D _groundFilter;
 
         public float RunSpeed
         {
@@ -57,6 +61,7 @@ namespace MathRunner.Player
             _rb = GetComponent<Rigidbody2D>();
             _col = GetComponent<BoxCollider2D>();
             _baseGravityScale = _rb.gravityScale;
+            _groundFilter = new ContactFilter2D { useLayerMask = true, layerMask = _groundLayer, useTriggers = false };
         }
 
         private void OnEnable()
@@ -115,12 +120,19 @@ namespace MathRunner.Player
                 _coyoteCounter = 0f;
                 _isJumping = true;
                 _jumpTimer = 0f;
+                _heldRealSeconds = 0f;
                 IsGrounded = false;
                 Jumped?.Invoke();
             }
 
-            if (_isJumping) _jumpTimer += dt;
-            if (_isJumping && v.y > 0f && !_input.JumpHeld && _jumpTimer >= _minJumpTime)
+            if (_isJumping)
+            {
+                _jumpTimer += dt;
+                if (_input.JumpHeld) _heldRealSeconds += dt / WorldTime.FocusFactor;
+            }
+            // Cut once the jump has run (in physics time) as long as the button was held (in real time), so the same tap
+            // gives the same arc in the Focus Zone as at full speed.
+            if (_isJumping && v.y > 0f && !_input.JumpHeld && _jumpTimer >= Mathf.Max(_minJumpTime, _heldRealSeconds))
             {
                 v.y *= _jumpCutMultiplier;
                 _isJumping = false;
@@ -140,7 +152,11 @@ namespace MathRunner.Player
             Bounds b = _col.bounds;
             Vector2 center = new Vector2(b.center.x, b.min.y - 0.05f);
             Vector2 size = new Vector2(b.size.x * 0.9f, 0.1f);
-            return Physics2D.OverlapBox(center, size, 0f, _groundLayer) != null;
+            int count = Physics2D.OverlapBox(center, size, 0f, _groundFilter, _groundHits);
+            // Only a surface at the feet counts: rising through a one-way ledge or brushing a step face is not standing.
+            for (int i = 0; i < count; i++)
+                if (_groundHits[i].bounds.max.y <= b.min.y + 0.1f) return true;
+            return false;
         }
     }
 }

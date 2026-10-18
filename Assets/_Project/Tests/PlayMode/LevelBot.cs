@@ -170,8 +170,8 @@ namespace MathRunner.Tests.PlayMode
             if (x > _pendingFromX + 1f) { _pendingJump = false; return; }
             if (_holdLeft == 0 && _player.IsGrounded)
             {
-                // Hold is in scaled seconds, so it lasts the same physics time in slow-mo.
-                Press(Mathf.Max(1, Mathf.CeilToInt(_pendingHold / Mathf.Max(Time.deltaTime, 1e-4f))));
+                // Hold is in real seconds: the player measures held time unslowed, so the arc matches at any speed.
+                Press(Mathf.Max(1, Mathf.CeilToInt(_pendingHold / Mathf.Max(WorldTime.RealDeltaTime, 1e-4f))));
                 _pendingJump = false;
             }
         }

@@ -274,6 +274,71 @@ namespace MathRunner.Tests.PlayMode
             }
         }
 
+        // A real-time tap must give the same jump in slow-mo: the hold is measured in the player's own seconds.
+        [UnityTest]
+        public IEnumerator ShortTapIsTheSameHeightInSlowMotion()
+        {
+            using (var bot = new LevelBot())
+            {
+                bot.PickDelaySeconds = 5f;
+                bot.ShouldJump = _ => false;
+                yield return Frames(bot, 10);
+                float normal = 0f;
+                yield return MeasureTap(8, h => normal = h); // 0.16 s of real time
+                yield return PlayUntil(bot, () => _focusStarts > 0);
+                float slow = 0f;
+                yield return MeasureTap(8, h => slow = h);
+
+                Assert.That(normal, Is.LessThan(2.7f), "a 0.16 s tap should be well short of a full jump");
+                Assert.That(slow, Is.EqualTo(normal).Within(normal * 0.05f), $"tap height {normal:F2} at 1x vs {slow:F2} in focus");
+            }
+        }
+
+        // Rising up through a one-way ledge must not count as standing on it.
+        [UnityTest]
+        public IEnumerator ShortHopUnderAOneWayPlatformIsNotGrounded()
+        {
+            for (int i = 0; i < 20; i++) yield return null;
+            float groundY = _player.GetComponent<Collider2D>().bounds.min.y;
+            float left = _player.transform.position.x + 2f;
+            var ledge = new GameObject("TestLedge") { layer = LayerMask.NameToLayer("Ground") };
+            ledge.transform.position = new Vector3(left + 1.5f, groundY + 2f, 0f);
+            var col = ledge.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(3f, 0.4f);
+            col.offset = new Vector2(0f, -0.2f);
+            col.usedByEffector = true;
+            ledge.AddComponent<PlatformEffector2D>().useOneWay = true;
+
+            while (_player.transform.position.x < left + 0.3f) yield return null;
+            int midAirLandings = 0;
+            _player.Landed += _ => { if (_player.GetComponent<Collider2D>().bounds.min.y > groundY + 0.5f) midAirLandings++; };
+            _input.NotifyJumpPressed();
+            for (int i = 0; i < 5; i++) yield return null;
+            _input.NotifyJumpReleased();
+            int phantomGrounded = 0;
+            for (int i = 0; i < 60; i++)
+            {
+                yield return null;
+                float feet = _player.GetComponent<Collider2D>().bounds.min.y;
+                if (_player.IsGrounded && feet > groundY + 0.5f && feet < groundY + 1.95f) phantomGrounded++;
+            }
+
+            Assert.That(phantomGrounded, Is.Zero, "grounded while inside the one-way ledge");
+            Assert.That(midAirLandings, Is.Zero, "Landed fired in mid-air");
+        }
+
+        private IEnumerator MeasureTap(int frames, Action<float> report)
+        {
+            float y0 = _player.transform.position.y, peak = y0;
+            _input.NotifyJumpPressed();
+            for (int i = 0; i < frames; i++) { yield return null; peak = Mathf.Max(peak, _player.transform.position.y); }
+            _input.NotifyJumpReleased();
+            int guard = 0;
+            do { yield return null; peak = Mathf.Max(peak, _player.transform.position.y); }
+            while (!_player.IsGrounded && guard++ < 600);
+            report(peak - y0);
+        }
+
         private IEnumerator MeasureFullJump(Action<float> report)
         {
             float y0 = _player.transform.position.y, peak = y0;

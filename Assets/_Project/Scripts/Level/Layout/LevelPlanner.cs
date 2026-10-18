@@ -81,7 +81,7 @@ namespace MathRunner.Level
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
-        // One safe way through: press jump when crossing X, hold for HoldSeconds of scaled time.
+        // One safe way through: press jump when crossing X, hold for HoldSeconds of real time (same arc in slow-mo).
         public readonly List<(float X, float HoldSeconds)> Jumps = new List<(float X, float HoldSeconds)>();
         public int Splits;
         public float FinishX;
