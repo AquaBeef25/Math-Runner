@@ -89,6 +89,8 @@ because `GameEvents` already raises everything needed (`QuestionShown/Resolved`,
   sounds:
   - jump, land, correct (pitch rises with the streak), wrong, crumble, button click, countdown tick
   - a looping music track per world
+  - ✅ SFX done 2026-10-18 (`AudioManager` + `SoundSet`, Kenney Interface Sounds). Still open: the mixer (create by hand),
+    per-world music (needs a CC0 music pack), volume settings.
 - **B5. Post-processing.** Subtle bloom and vignette via URP (`unity:urp-postprocessing` skill).
 
 ## Stage C — Learning features (the educational differentiator) · size M
