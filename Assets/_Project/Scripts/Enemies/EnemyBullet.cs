@@ -5,7 +5,7 @@ namespace MathRunner.Enemies
 {
     // A shot that always arrives exactly when its flight time runs out: each frame it covers its share of the remaining
     // distance to the (moving) target. Runs on scaled time, so it crawls during the Focus Zone.
-    public class EnemyBullet : MonoBehaviour
+    public class EnemyBullet : MonoBehaviour, IEncounterAttack
     {
         [SerializeField] private EncounterSettings _settings;
 
