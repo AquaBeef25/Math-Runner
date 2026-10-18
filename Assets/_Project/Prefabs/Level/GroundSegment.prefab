@@ -51,6 +51,7 @@ MonoBehaviour:
   _middle: {fileID: 8221075964169900608}
   _right: {fileID: 8588621355590980117}
   _capWidth: 1
+  _single: {fileID: 21300000, guid: e682f6df7d3ca7d458e43fbf1ad32d33, type: 3}
 --- !u!1 &2067710031265212380
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,6 +290,7 @@ MonoBehaviour:
   _middle: {fileID: 2158417885200434180}
   _right: {fileID: 323838955372875637}
   _capWidth: 1
+  _single: {fileID: 21300000, guid: 4ef26e1970a3b5644b82307561742163, type: 3}
 --- !u!1 &5577104256700240408
 GameObject:
   m_ObjectHideFlags: 0

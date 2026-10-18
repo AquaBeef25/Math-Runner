@@ -8,7 +8,8 @@ namespace MathRunner.Level
     public class RampPiece : MonoBehaviour
     {
         [SerializeField] private Sprite _highHalf;   // terrain_grass_ramp_long_a: surface from 1 down to 0.5 within its tile
-        [SerializeField] private Sprite _lowHalf;    // terrain_grass_ramp_long_b: surface from 0.5 down to 0
+        [SerializeField] private Sprite _lowHalf;    // terrain_grass_ramp_long_b: surface from 0.5 down to 0 (grass wedge only)
+        [SerializeField] private Sprite _underLow;   // terrain_grass_ramp_long_c: dirt under the low half, where its grass band ends
         [SerializeField] private Sprite _fill;       // terrain_grass_block_center
         [SerializeField] private Sprite _flatTop;    // terrain_grass_block_top (for flat pieces)
         [SerializeField] private int _sortingOrder;
@@ -50,8 +51,23 @@ namespace MathRunner.Level
                 bool lowHalf = Mathf.Abs(low - row) < 1e-3f;
                 bool rising = h1 > h0;
                 Tile(lowHalf ? _lowHalf : _highHalf, cx, row + 0.5f, rising);
-                Fill(cx, bottom, row);
+                if (lowHalf && _underLow != null)
+                {
+                    Tile(_underLow, cx, row - 0.5f, rising);
+                    Fill(cx, bottom, row - 1);
+                }
+                else Fill(cx, bottom, row);
             }
+        }
+
+        // Editor setup and tests.
+        public void SetSprites(Sprite highHalf, Sprite lowHalf, Sprite underLow, Sprite fill, Sprite flatTop)
+        {
+            _highHalf = highHalf;
+            _lowHalf = lowHalf;
+            _underLow = underLow;
+            _fill = fill;
+            _flatTop = flatTop;
         }
 
         private void Tile(Sprite sprite, float x, float y, bool flip)

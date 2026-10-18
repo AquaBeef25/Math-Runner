@@ -99,6 +99,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MathRunner::MathRunner.Level.RampPiece
   _highHalf: {fileID: 21300000, guid: fa18065eea6ad384b8901a456490b01a, type: 3}
   _lowHalf: {fileID: 21300000, guid: 49531b2543c6f614c95e50046d03b368, type: 3}
+  _underLow: {fileID: 21300000, guid: 10752f81be7e1d2429dc7dfc66de0f9f, type: 3}
   _fill: {fileID: 21300000, guid: d2949e6fd88004f4a9c360a8a420af9e, type: 3}
   _flatTop: {fileID: 21300000, guid: 58f60ad584a22dd488bc6d8fb5d03afc, type: 3}
   _sortingOrder: 0
