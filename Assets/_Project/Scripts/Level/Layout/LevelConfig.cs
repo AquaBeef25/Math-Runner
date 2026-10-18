@@ -43,6 +43,7 @@ namespace MathRunner.Level
         [Tooltip("Chance a hazard is a saw.")]
         [SerializeField, Range(0f, 1f)] private float _sawChance;
         [SerializeField, Range(0f, 1f)] private float _beeChance;
+        [SerializeField, Range(0f, 1f)] private float _coinChance = 0.5f;
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
@@ -67,6 +68,7 @@ namespace MathRunner.Level
         public float WalkerChance => _walkerChance;
         public float SawChance => _sawChance;
         public float BeeChance => _beeChance;
+        public float CoinChance => _coinChance;
         public float RampChance => _rampChance;
         public float WaterChance => _waterChance;
         public BackgroundTheme Background => _background;

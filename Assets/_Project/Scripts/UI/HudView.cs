@@ -13,28 +13,40 @@ namespace MathRunner.UI
         [SerializeField] private TextMeshProUGUI _scoreText;
         [SerializeField] private TextMeshProUGUI _streakText;
         [SerializeField] private TextMeshProUGUI _levelText;
+        [SerializeField] private TextMeshProUGUI _coinText;
         [SerializeField] private string _lifeSymbol = "♥";
+
+        private int _coins;
 
         private void OnEnable()
         {
             GameEvents.LivesChanged += OnLivesChanged;
             GameEvents.ScoreChanged += OnScoreChanged;
+            GameEvents.CoinCollected += OnCoinCollected;
         }
 
         private void OnDisable()
         {
             GameEvents.LivesChanged -= OnLivesChanged;
             GameEvents.ScoreChanged -= OnScoreChanged;
+            GameEvents.CoinCollected -= OnCoinCollected;
         }
 
         private void Start()
         {
             _levelText.text = "Level " + _director.Level;
+            if (_coinText != null) _coinText.text = "0";
         }
 
         private void OnLivesChanged(int lives)
         {
             _livesText.text = string.Join(" ", Enumerable.Repeat(_lifeSymbol, lives));
+        }
+
+        private void OnCoinCollected(int value)
+        {
+            _coins++;
+            if (_coinText != null) _coinText.text = _coins.ToString();
         }
 
         private void OnScoreChanged(ScoreUpdate update)

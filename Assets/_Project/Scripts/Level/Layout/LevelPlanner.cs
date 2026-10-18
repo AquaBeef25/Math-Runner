@@ -32,6 +32,7 @@ namespace MathRunner.Level
         public float RampChance;     // chance a height change is a ramp instead of a step
         public float WaterChance;    // chance a pit is filled with water
         public float BeeChance;      // chance a hazard is a hovering bee
+        public float CoinChance;     // chance a full jump over a gap, slime or bee gets an arc of coins
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
 
@@ -67,6 +68,7 @@ namespace MathRunner.Level
             RampChance = config.RampChance,
             WaterChance = config.WaterChance,
             BeeChance = config.BeeChance,
+            CoinChance = config.CoinChance,
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             IntroSeconds = 2f,
@@ -94,6 +96,8 @@ namespace MathRunner.Level
         public readonly List<(float X, float Y)> Saws = new List<(float X, float Y)>();
         // Bees hover at BaseY (head height over flat ground) and bob by Amplitude.
         public readonly List<(float X, float BaseY, float Amplitude)> Bees = new List<(float X, float BaseY, float Amplitude)>();
+        // Coin centres: arcs along planned jumps and rows over the high route. Points only, never part of the terrain.
+        public readonly List<(float X, float Y)> Coins = new List<(float X, float Y)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
@@ -149,12 +153,16 @@ namespace MathRunner.Level
         public const float WalkerPatrol = 1.5f;
         public const float BeeHeight = 0.9f;
         public const float BeeAmplitude = 0.4f;
+        private const float PlayerCenterAboveFeet = 0.5f;
+        private const float CoinClearance = 1.5f;
 
         private sealed class Builder
         {
             public readonly LevelPlan Plan = new LevelPlan();
             // Why each platform exists (0 hop, 1 end of a split, 2 middle of a split), for choosing its look.
             public readonly List<int> PlatformRoles = new List<int>();
+            // Full jumps over a gap, slime or bee (take-off X, take-off ground top): candidates for a coin arc.
+            public readonly List<(float X, int Top)> ArcJumps = new List<(float X, int Top)>();
             public readonly LevelPlanSettings S;
             public readonly System.Random Rng;
             public float X;
@@ -188,6 +196,7 @@ namespace MathRunner.Level
                 float width = S.GapSeconds * V;
                 Plan.Ground.Add((_groundStart, X, Top));
                 Plan.Jumps.Add((X - GapLeadSeconds * V, FullHold));
+                ArcJumps.Add((X - GapLeadSeconds * V, Top));
                 if (S.WaterChance > 0f && Rng.NextDouble() < S.WaterChance) Plan.Water.Add((X, X + width, Top - 0.6f));
                 _groundStart = X + width;
                 X += width;
@@ -221,6 +230,7 @@ namespace MathRunner.Level
             {
                 Plan.Walkers.Add((X, X + WalkerPatrol, Top));
                 Plan.Jumps.Add((X - 0.85f - 0.05f * V, FullHold));
+                ArcJumps.Add((X - 0.85f - 0.05f * V, Top));
             }
 
             public void Saw()
@@ -234,6 +244,7 @@ namespace MathRunner.Level
             {
                 Plan.Bees.Add((X, Top + BeeHeight, BeeAmplitude));
                 Plan.Jumps.Add((X - SpikeLeadSeconds * V, FullHold));
+                ArcJumps.Add((X - SpikeLeadSeconds * V, Top));
             }
 
             public void Pillar(int tiles)
@@ -342,6 +353,7 @@ namespace MathRunner.Level
             b.Close(b.Plan.EndX);
             StylePlatforms(b.Plan, b.PlatformRoles, s.Seed);
             Decorate(b.Plan, s);
+            PlaceCoins(b, s);
             return b.Plan;
         }
 
@@ -460,6 +472,60 @@ namespace MathRunner.Level
             }
             plan.Decorations.Sort((a, c) => a.X.CompareTo(c.X));
         }
+
+        // Coins with their own random stream (so terrain never changes): an arc of three (rising, apex, falling) along
+        // some full jumps, at the runner's centre height, and a row one unit above each high-route ledge. Any coin near a
+        // hazard, inside the ground or inside a ledge is dropped, so a coin never lures the player into a hit.
+        private static void PlaceCoins(Builder b, LevelPlanSettings s)
+        {
+            var plan = b.Plan;
+            var rng = new System.Random(s.Seed * 13 + 5);
+            var candidates = new List<(float X, float Y)>();
+
+            double g = System.Math.Abs(s.Gravity) * s.GravityScale;
+            double v0 = System.Math.Sqrt(2.0 * g * s.JumpHeight);
+            double apex = v0 / g;
+            double fall = System.Math.Sqrt(2.0 * 0.4 * s.JumpHeight / (g * s.FallMultiplier));
+            foreach (var (x, top) in b.ArcJumps)
+            {
+                if (s.CoinChance <= 0f || rng.NextDouble() >= s.CoinChance) continue;
+                foreach (double t in new[] { apex * 0.5, apex, apex + fall })
+                {
+                    double height = t <= apex ? v0 * t - 0.5 * g * t * t : s.JumpHeight - 0.5 * g * s.FallMultiplier * (t - apex) * (t - apex);
+                    candidates.Add((x + (float)(t * s.RunSpeed), top + (float)height + PlayerCenterAboveFeet));
+                }
+            }
+            for (int i = 0; i < plan.Platforms.Count; i++)
+            {
+                if (b.PlatformRoles[i] == 0) continue;
+                var (left, right, top) = plan.Platforms[i];
+                for (float x = left + 0.5f; x < right; x += 1f) candidates.Add((x, top + 1f));
+            }
+
+            foreach (var c in candidates)
+                if (CoinIsSafe(plan, c.X, c.Y)) plan.Coins.Add(c);
+        }
+
+        private static bool CoinIsSafe(LevelPlan plan, float x, float y)
+        {
+            float ground = plan.GroundTopAt(x);
+            if (!float.IsNaN(ground) && y - ground < 0.5f) return false;
+            foreach (var p in plan.Spikes) if (Distance(x, y, p.X, p.Y + 0.4f) < CoinClearance) return false;
+            foreach (var p in plan.Saws) if (Distance(x, y, p.X, p.Y + 0.4f) < CoinClearance) return false;
+            foreach (var p in plan.Bees) if (Distance(x, y, p.X, p.BaseY) < CoinClearance + p.Amplitude) return false;
+            foreach (var w in plan.Walkers)
+            {
+                float dx = System.Math.Max(0f, System.Math.Max(w.Left - x, x - w.Right));
+                float dy = System.Math.Max(0f, y - (w.Y + 1f));
+                if (System.Math.Sqrt(dx * dx + dy * dy) < CoinClearance) return false;
+            }
+            foreach (var p in plan.Platforms)
+                if (x > p.Left - 0.5f && x < p.Right + 0.5f && y > p.Top - 1.5f && y < p.Top + 0.5f) return false;
+            return true;
+        }
+
+        private static double Distance(float x0, float y0, float x1, float y1) =>
+            System.Math.Sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
 
         private static float TotalGround(LevelPlan plan)
         {

@@ -67,6 +67,40 @@ namespace MathRunner.Tests.PlayMode
             finally { MathRunner.Core.GameEvents.PlayerHit -= onHit; }
         }
 
+        // A coin in the runner's path at x 2 (before the ramps).
+        [UnityTest]
+        public IEnumerator CoinAddsTenPoints()
+        {
+            var score = Object.FindFirstObjectByType<MathRunner.Systems.ScoreSystem>();
+            int before = score.Score;
+            SpawnCoin(2f);
+            yield return RunTo(3f);
+            Assert.That(score.Score, Is.EqualTo(before + 10));
+        }
+
+        [UnityTest]
+        public IEnumerator CoinsDontChangeStars()
+        {
+            var score = Object.FindFirstObjectByType<MathRunner.Systems.ScoreSystem>();
+            var lives = Object.FindFirstObjectByType<MathRunner.Systems.LivesSystem>();
+            int correct = score.CorrectCount, answered = score.AnsweredCount;
+            SpawnCoin(1.5f);
+            SpawnCoin(2.5f);
+            yield return RunTo(3.5f);
+            Assert.That(score.Score, Is.GreaterThan(0), "the coins were collected");
+            Assert.That(score.CorrectCount, Is.EqualTo(correct));
+            Assert.That(score.AnsweredCount, Is.EqualTo(answered));
+            Assert.That(lives.Lives, Is.EqualTo(lives.StartingLives));
+        }
+
+        private void SpawnCoin(float x)
+        {
+            var go = new GameObject("TestCoin");
+            go.transform.position = new Vector3(x, _col.bounds.center.y, 0f);
+            go.AddComponent<CircleCollider2D>().isTrigger = true;
+            go.AddComponent<Coin>();
+        }
+
         private static void BuildRamp(float start, float end, float from, float to)
         {
             var go = new GameObject("TestRamp") { layer = LayerMask.NameToLayer("Ground") };

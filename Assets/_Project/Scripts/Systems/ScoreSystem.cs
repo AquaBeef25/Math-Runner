@@ -15,20 +15,33 @@ namespace MathRunner.Systems
         public int BestStreak { get; private set; }
         public int CorrectCount { get; private set; }
         public int AnsweredCount { get; private set; }
+        public int Coins { get; private set; }
+        public int CoinPoints { get; private set; }
 
         private void OnEnable()
         {
             GameEvents.QuestionResolved += OnQuestionResolved;
+            GameEvents.CoinCollected += OnCoinCollected;
         }
 
         private void OnDisable()
         {
             GameEvents.QuestionResolved -= OnQuestionResolved;
+            GameEvents.CoinCollected -= OnCoinCollected;
         }
 
         private void Start()
         {
             GameEvents.RaiseScoreChanged(new ScoreUpdate(Score, 0, Streak));
+        }
+
+        // Coins count toward the score only; stars come from answers and lives (StarRating.For).
+        private void OnCoinCollected(int value)
+        {
+            Coins++;
+            CoinPoints += value;
+            Score += value;
+            GameEvents.RaiseScoreChanged(new ScoreUpdate(Score, value, Streak));
         }
 
         private void OnQuestionResolved(QuestionResult result)

@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f, float coins = 0f) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -37,6 +37,7 @@ namespace MathRunner.Tests
             RampChance = ramps,
             WaterChance = water,
             BeeChance = bees,
+            CoinChance = coins,
             DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
 
@@ -210,6 +211,46 @@ namespace MathRunner.Tests
                 for (float x = bee.X - 0.5f; x <= bee.X + 0.5f; x += 0.1f)
                     Assert.That(plan.GroundTopAt(x), Is.EqualTo(top).Within(1e-4f), $"Ground under the bee at {bee.X} isn't flat at {x}");
             }
+        }
+
+        [Test]
+        public void CoinsSitOnSafeArcs([Values(5f, 6f, 8f)] float speed, [Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(speed: speed, seed: seed, gapChance: 0.4f, walkers: 0.3f, bees: 0.3f, coins: 1f));
+            Assert.That(plan.Coins, Is.Not.Empty);
+            foreach (var c in plan.Coins)
+            {
+                float ground = plan.GroundTopAt(c.X);
+                if (!float.IsNaN(ground)) Assert.That(c.Y - ground, Is.GreaterThanOrEqualTo(0.5f), $"Coin at {c.X} is in the ground");
+                foreach (var p in plan.Spikes) Assert.That(Dist(c, p.X, p.Y + 0.4f), Is.GreaterThanOrEqualTo(1.5f), $"Coin at {c.X} is next to a spike");
+                foreach (var p in plan.Saws) Assert.That(Dist(c, p.X, p.Y + 0.4f), Is.GreaterThanOrEqualTo(1.5f), $"Coin at {c.X} is next to a saw");
+                foreach (var p in plan.Bees) Assert.That(Dist(c, p.X, p.BaseY), Is.GreaterThanOrEqualTo(1.5f + p.Amplitude), $"Coin at {c.X} is next to a bee");
+                foreach (var w in plan.Walkers)
+                {
+                    float dx = System.Math.Max(0f, System.Math.Max(w.Left - c.X, c.X - w.Right));
+                    float dy = System.Math.Max(0f, c.Y - (w.Y + 1f));
+                    Assert.That(System.Math.Sqrt(dx * dx + dy * dy), Is.GreaterThanOrEqualTo(1.5f), $"Coin at {c.X} is next to a walker");
+                }
+            }
+        }
+
+        private static double Dist((float X, float Y) c, float x, float y) =>
+            System.Math.Sqrt((c.X - x) * (c.X - x) + (c.Y - y) * (c.Y - y));
+
+        [Test]
+        public void SameSeedSameCoins([Range(1, 5)] int seed)
+        {
+            var s = Settings(seed: seed, gapChance: 0.4f, walkers: 0.3f, bees: 0.3f, coins: 0.5f);
+            Assert.That(LevelPlanner.Create(s).Coins, Is.EqualTo(LevelPlanner.Create(s).Coins));
+        }
+
+        [Test]
+        public void CoinsNeverChangeTheTerrain([Range(1, 5)] int seed)
+        {
+            var without = LevelPlanner.Create(Settings(seed: seed, bees: 0.3f));
+            var with = LevelPlanner.Create(Settings(seed: seed, bees: 0.3f, coins: 1f));
+            Assert.That(with.Ground, Is.EqualTo(without.Ground));
+            Assert.That(with.Jumps, Is.EqualTo(without.Jumps));
         }
 
         [Test]
