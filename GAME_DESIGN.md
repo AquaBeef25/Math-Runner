@@ -98,6 +98,9 @@ Levels are generated from their `LevelConfig` (deterministic per seed) in a Geom
   height (jump them); **coins** along some jump arcs and above the high route (+10 score each, shown in the HUD, never
   part of the stars); **backdrop scenery** (trees, bushes, fences, small houses) just behind the play area.
   New knobs: ramp, water, bee and coin chances.
+- **Lively world (2026-10-18):** sparse harmless moving life (about one per screen) that can never hurt or block:
+  Meadow snails, ladybugs, frogs, flies, waving flags, swinging crates and fish leaping from pools; Desert mice, worms,
+  flies, flags, torches and swinging crates; small emote bubbles pop over critters as you pass. Ground props were thinned.
 
 **For now the game has 5 levels** (to extend after the adviser review): **Meadow 1–3**, **Desert 4–5** (Desert
 background; desert terrain and props still to design). Levels 6–10 stay as data but are out of the catalog.

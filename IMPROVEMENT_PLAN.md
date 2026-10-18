@@ -105,7 +105,9 @@ Design: `docs/superpowers/specs/2026-10-18-meadow-world-design.md` · Plan: `doc
 **Meadow v2 (done 2026-10-18):** layered ColorGrass background, ramps, water pools, styled ledges, bees, coins (+10, HUD
 counter, not stars) and backdrop scenery. Design: `docs/superpowers/specs/2026-10-18-meadow-v2-design.md` · Plan:
 `docs/superpowers/plans/2026-10-18-meadow-v2.md`.
-**Next:** Desert world (sand terrain, cactus, desert props) for levels 4–5.
+**Desert terrain (done 2026-10-18):** sand tiles, cactus/rock props and a cactus/palm/pyramid backdrop on Levels 4–5.
+**Lively world (done 2026-10-18):** harmless moving life in every level. Design: `docs/superpowers/specs/2026-10-18-lively-world-design.md` · Plan: `docs/superpowers/plans/2026-10-18-lively-world.md`.
+**Next:** improve the encounters.
 
 ## Stage C — Learning features (the educational differentiator) · size M
 - **C1. Step-by-step solution after a mistake.**
