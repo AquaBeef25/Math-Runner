@@ -353,6 +353,81 @@ namespace MathRunner.Tests.PlayMode
             report(peak - y0);
         }
 
+        // Random encounters: switch every encounter in the sandbox to one enemy kind.
+        private static void UseEnemy(MathRunner.Level.EnemyKind kind)
+        {
+            foreach (var e in Object.FindObjectsByType<EnemyEncounter>(FindObjectsSortMode.None)) e.SetEnemy(kind, Vector2.zero);
+        }
+
+        [UnityTest]
+        public IEnumerator BeeWrongCostsOneHeart() => WrongCostsOneHeart(MathRunner.Level.EnemyKind.Bee);
+
+        [UnityTest]
+        public IEnumerator FrogWrongCostsOneHeart() => WrongCostsOneHeart(MathRunner.Level.EnemyKind.Frog);
+
+        private IEnumerator WrongCostsOneHeart(MathRunner.Level.EnemyKind kind)
+        {
+            UseEnemy(kind);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => _focusStarts > 0);
+                var encounter = ActiveEncounter();
+                Assert.That(encounter.Charger, Is.Not.Null, $"a {kind} should be attacking");
+                Assert.That(encounter.Enemy == null, Is.True, "no alien");
+                var charger = encounter.Charger;
+                yield return PlayUntil(bot, () => bot.Hits.Contains(HitCause.Bullet));
+                yield return Frames(bot, 150);
+
+                Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
+                Assert.That(bot.Hits.Count(h => h == HitCause.Bullet), Is.EqualTo(1));
+                Assert.That(_lives.Lives, Is.EqualTo(2));
+                Assert.That(charger == null, Is.True, $"the {kind} should have left after biting");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator BeeRightDefeatsIt()
+        {
+            UseEnemy(MathRunner.Level.EnemyKind.Bee);
+            using (var bot = new LevelBot())
+            {
+                yield return PlayUntil(bot, () => _focusStarts > 0);
+                var charger = ActiveEncounter().Charger;
+                yield return PlayUntil(bot, () => bot.Results.Count > 0);
+                yield return Frames(bot, 3);
+
+                Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Correct));
+                Assert.That(_lives.Lives, Is.EqualTo(3));
+                Assert.That(charger == null, Is.True, "the shockwave should pop the bee");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator AttackLandsWhenTimeRunsOut()
+        {
+            UseEnemy(MathRunner.Level.EnemyKind.Bee);
+            using (var bot = new LevelBot())
+            {
+                bot.PickFor = (n, q) => n == 1 ? -1 : q.CorrectIndex;
+                yield return PlayUntil(bot, () => _focusStarts > 1);
+                float realSeconds = 0f;
+                int frames = 0;
+                while (!bot.Hits.Contains(HitCause.Bullet) && frames++ < MaxFrames)
+                {
+                    bot.BeforeFrame();
+                    yield return null;
+                    realSeconds += Time.captureDeltaTime;
+                    bot.AfterFrame();
+                }
+                yield return Frames(bot, 2);
+
+                Assert.That(bot.Results[1].Outcome, Is.EqualTo(AnswerOutcome.Missed));
+                Assert.That(_lives.Lives, Is.EqualTo(2));
+                Assert.That(realSeconds, Is.EqualTo(4f).Within(0.04f), "the bee arrives exactly when the time limit runs out");
+            }
+        }
+
         private static EnemyEncounter ActiveEncounter() =>
             Object.FindObjectsByType<EnemyEncounter>(FindObjectsSortMode.None).First(e => e.IsFocusActive);
 

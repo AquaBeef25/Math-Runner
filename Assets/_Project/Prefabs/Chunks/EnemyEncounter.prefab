@@ -95,6 +95,11 @@ MonoBehaviour:
   _settings: {fileID: 11400000, guid: 1f65d241a8c922d43942b15938a827f4, type: 2}
   _enemyPrefab: {fileID: 8170491391520516973, guid: c9c7a85d3ddc16c45a9c4d6674b6239f, type: 3}
   _bulletPrefab: {fileID: 5109300604991180537, guid: 433aa1564ba120247b8211924b3f9c98, type: 3}
+  _beePrefab: {fileID: 6219425838169310157, guid: 0c94c367ef0090a489154fff1641b8b5, type: 3}
+  _frogPrefab: {fileID: 4832729587511260256, guid: ec9d4ac76a7a5d1499b585ad7a409a27, type: 3}
+  _flyPrefab: {fileID: 3867618114911267116, guid: e70a7d525f2d11449b49f14dc1676c84, type: 3}
   _shockwavePrefab: {fileID: 3228820787904951591, guid: c35398f8407092c45923d22a70ddd751, type: 3}
   _flightRealSeconds: 6
   _speedBonus: 0
+  _kind: 0
+  _spot: {x: 0, y: 0}

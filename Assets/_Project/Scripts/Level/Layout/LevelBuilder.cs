@@ -163,10 +163,12 @@ namespace MathRunner.Level
                     LifeFactory.BuildFish(left, right, surface, config.Life, life);
             }
 
-            foreach (var zonePlan in Plan.Zones)
+            for (int z = 0; z < Plan.Zones.Count; z++)
             {
+                var zonePlan = Plan.Zones[z];
+                var (kind, spotX, spotY) = Plan.ZoneEnemies[z];
                 var encounter = Instantiate(_encounterPrefab, new Vector3(zonePlan.X, Plan.GroundTopAt(zonePlan.X), 0f), Quaternion.identity, root);
-                encounter.Configure(_director, zonePlan.Lead, zonePlan.Timed);
+                encounter.Configure(_director, zonePlan.Lead, zonePlan.Timed, kind, new Vector2(spotX, spotY));
             }
 
             foreach (var (x, y) in Plan.Checkpoints)
