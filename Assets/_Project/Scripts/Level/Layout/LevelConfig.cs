@@ -48,6 +48,8 @@ namespace MathRunner.Level
         [SerializeField] private bool _noSpikes;
         [Tooltip("Tiles for the ground, ramps and ledges (grass, sand...). Empty = the prefabs' grass.")]
         [SerializeField] private TerrainSet _terrain;
+        [Tooltip("Harmless moving life per 10 units of ground (about 0.6 = one per screen).")]
+        [SerializeField, Min(0f)] private float _lifeDensity = 0.6f;
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
@@ -75,6 +77,7 @@ namespace MathRunner.Level
         public float CoinChance => _coinChance;
         public bool NoSpikes => _noSpikes;
         public TerrainSet Terrain => _terrain;
+        public float LifeDensity => _lifeDensity;
         // Editor setup: ScriptableObject fields don't save reliably through SerializedProperty here.
         public void SetTerrain(TerrainSet terrain) => _terrain = terrain;
         public float RampChance => _rampChance;

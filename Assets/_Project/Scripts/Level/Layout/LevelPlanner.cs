@@ -37,6 +37,10 @@ namespace MathRunner.Level
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
         public float[] BackdropWeights;   // relative chance of each backdrop prop (trees, bushes, fences, houses); null = none
+        public float LifeDensity;         // harmless moving life per 10 units of ground
+        public float[] LifeWeights;       // relative chance per LifeKind (index = (int)kind); null = no life
+        public int[] LifeVariants;        // sprite variants per LifeKind (at least 1)
+        public float FishChance;          // chance a water pool has a leaping fish
 
         // Spacing, in seconds of running (distance = seconds × run speed).
         public float IntroSeconds;
@@ -75,6 +79,7 @@ namespace MathRunner.Level
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             BackdropWeights = config.Decorations != null ? config.Decorations.BackdropWeights : null,
+            LifeDensity = config.LifeDensity,
             IntroSeconds = 2f,
             HazardSpacingSeconds = 1.6f,
             GapSeconds = 0.4f,
@@ -104,6 +109,10 @@ namespace MathRunner.Level
         public readonly List<(float X, float Y)> Coins = new List<(float X, float Y)>();
         // Scenery standing just behind the play area (trees, bushes, fences, houses), on flat ground tops.
         public readonly List<(float X, float Y, int Kind)> Backdrop = new List<(float X, float Y, int Kind)>();
+        // Harmless moving life (critters, flyers, flags, torches, swinging crates): ground top Y, or flying height for flyers.
+        public readonly List<(float X, float Y, LifeKind Kind, int Variant)> Life = new List<(float X, float Y, LifeKind Kind, int Variant)>();
+        // Water pools that get a leaping fish (same entries as Water).
+        public readonly List<(float Left, float Right, float Surface)> Fish = new List<(float Left, float Right, float Surface)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
@@ -158,6 +167,7 @@ namespace MathRunner.Level
         private const float PlatformWidth = 3f;
         public const float WalkerPatrol = 1.5f;
         public const float BeeHeight = 0.9f;
+        public const float LifePatrol = 2f;
         public const float BeeAmplitude = 0.4f;
         private const float BeeRadius = 0.35f;
         private const float PlayerCenterAboveFeet = 0.5f;
@@ -367,6 +377,7 @@ namespace MathRunner.Level
             Decorate(b.Plan, s);
             PlaceCoins(b, s);
             PlaceBackdrop(b.Plan, s);
+            PlaceLife(b.Plan, s);
             return b.Plan;
         }
 
@@ -556,6 +567,104 @@ namespace MathRunner.Level
                     else x += 0.5f;
                 }
             }
+        }
+
+        // Sparse harmless life with its own random stream (never changes anything else): ground life on flat ground tops
+        // clear of hazards, take-offs and gap/water edges; flyers out of every full-jump arc and away from coins; every
+        // item at least 8 units from the next. Then a leaping fish in some water pools.
+        private static void PlaceLife(LevelPlan plan, LevelPlanSettings s)
+        {
+            var weights = s.LifeWeights;
+            if (weights == null || weights.Length == 0 || s.LifeDensity <= 0f) return;
+            const float Clear = 1.5f, Spacing = 8f, Inset = 1f;
+            var rng = new System.Random(s.Seed * 41 + 13);
+
+            var blocked = new List<float>();
+            foreach (var p in plan.Spikes) blocked.Add(p.X);
+            foreach (var p in plan.Saws) blocked.Add(p.X);
+            foreach (var p in plan.Bees) blocked.Add(p.X);
+            foreach (var j in plan.Jumps) blocked.Add(j.X);
+            foreach (var w in plan.Water)
+            {
+                blocked.Add(w.Left);
+                blocked.Add(w.Right);
+            }
+            for (int i = 0; i + 1 < plan.Ground.Count; i++)
+            {
+                if (plan.Ground[i + 1].Start - plan.Ground[i].End <= 0.01f) continue;
+                if (plan.IsRampJoint(plan.Ground[i].End, plan.Ground[i + 1].Start)) continue;
+                blocked.Add(plan.Ground[i].End);
+                blocked.Add(plan.Ground[i + 1].Start);
+            }
+            float arc = JumpReach.AirTime(s, 0f) * s.RunSpeed;
+
+            float weightSum = 0f;
+            foreach (float w in weights) weightSum += System.Math.Max(0f, w);
+            int target = (int)System.Math.Round(s.LifeDensity * TotalGround(plan) / 10f);
+            for (int attempt = 0; attempt < target * 40 && plan.Life.Count < target && weightSum > 0f; attempt++)
+            {
+                double k = rng.NextDouble() * weightSum;
+                int kind = 0;
+                while (kind < weights.Length - 1 && (weights[kind] <= 0f || k >= weights[kind]))
+                {
+                    k -= System.Math.Max(0f, weights[kind]);
+                    kind++;
+                }
+                if (weights[kind] <= 0f) continue;
+                var lifeKind = (LifeKind)kind;
+                float footprint = lifeKind == LifeKind.Walker ? LifePatrol : 0f;
+                if (!PickOnGround(plan, rng, Inset, footprint, out float x, out float top)) continue;
+                double roll = rng.NextDouble();
+
+                bool ok = true;
+                foreach (var l in plan.Life)
+                    if (System.Math.Abs(l.X - x) < Spacing) ok = false;
+                float y = top;
+                if (lifeKind == LifeKind.Flyer)
+                {
+                    y = top + 2.5f + (float)roll;
+                    foreach (var j in plan.Jumps)
+                        if (j.HoldSeconds > 0.3f && x >= j.X - 1f && x <= j.X + arc + 1f) ok = false;
+                    foreach (var c in plan.Coins)
+                        if (Distance(x, y, c.X, c.Y) < Clear) ok = false;
+                }
+                else if (lifeKind != LifeKind.Swing)
+                {
+                    foreach (float h in blocked)
+                        if (h >= x - Clear && h <= x + footprint + Clear) ok = false;
+                    foreach (var w in plan.Walkers)
+                        if (w.Right >= x - Clear && w.Left <= x + footprint + Clear) ok = false;
+                }
+                if (!ok) continue;
+                int variants = s.LifeVariants != null && kind < s.LifeVariants.Length ? System.Math.Max(1, s.LifeVariants[kind]) : 1;
+                plan.Life.Add((x, y, lifeKind, System.Math.Min(variants - 1, (int)(roll * variants))));
+            }
+            plan.Life.Sort((a, c) => a.X.CompareTo(c.X));
+
+            foreach (var pool in plan.Water)
+                if (s.FishChance > 0f && rng.NextDouble() < s.FishChance) plan.Fish.Add(pool);
+        }
+
+        // A spot on a flat ground top, inset from the segment ends, with room for a footprint to its right.
+        private static bool PickOnGround(LevelPlan plan, System.Random rng, float inset, float footprint, out float x, out float top)
+        {
+            float total = 0f;
+            foreach (var g in plan.Ground) total += System.Math.Max(0f, g.End - g.Start - 2f * inset - footprint);
+            x = top = 0f;
+            if (total <= 0f) return false;
+            double pick = rng.NextDouble() * total;
+            foreach (var g in plan.Ground)
+            {
+                float usable = System.Math.Max(0f, g.End - g.Start - 2f * inset - footprint);
+                if (pick < usable)
+                {
+                    x = g.Start + inset + (float)pick;
+                    top = g.Top;
+                    return true;
+                }
+                pick -= usable;
+            }
+            return false;
         }
 
         private static bool CoinIsSafe(LevelPlan plan, float x, float y)
