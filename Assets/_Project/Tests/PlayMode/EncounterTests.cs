@@ -22,6 +22,7 @@ namespace MathRunner.Tests.PlayMode
     {
         private const string LevelScene = "Sandbox_Level";
         private const int MaxFrames = 9000;
+        private const float FocusScale = 0.5f;
 
         private string _savePath;
         private float _baseFixedDelta;
@@ -141,8 +142,8 @@ namespace MathRunner.Tests.PlayMode
                 yield return Frames(bot, 5);
 
                 Assert.That(ActiveEncounter().IsFocusActive, Is.True);
-                Assert.That(Time.timeScale, Is.EqualTo(0.2f).Within(1e-5f));
-                Assert.That(Time.fixedDeltaTime, Is.EqualTo(_baseFixedDelta * 0.2f).Within(1e-5f));
+                Assert.That(Time.timeScale, Is.EqualTo(FocusScale).Within(1e-5f));
+                Assert.That(Time.fixedDeltaTime, Is.EqualTo(_baseFixedDelta * FocusScale).Within(1e-5f));
             }
         }
 
@@ -174,7 +175,7 @@ namespace MathRunner.Tests.PlayMode
                 _game.TogglePause();
                 Assert.That(Time.timeScale, Is.Zero);
                 _game.TogglePause();
-                Assert.That(Time.timeScale, Is.EqualTo(0.2f).Within(1e-5f), "Unpausing must return to slow-mo, not full speed");
+                Assert.That(Time.timeScale, Is.EqualTo(FocusScale).Within(1e-5f), "Unpausing must return to slow-mo, not full speed");
             }
         }
 
@@ -229,6 +230,62 @@ namespace MathRunner.Tests.PlayMode
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(Time.fixedDeltaTime, Is.EqualTo(_baseFixedDelta).Within(1e-6f));
             Assert.That(WorldTime.FocusFactor, Is.EqualTo(1f));
+        }
+
+        // No autopilot any more: the player keeps jumping while the question is open.
+        [UnityTest]
+        public IEnumerator PlayerCanJumpDuringFocus()
+        {
+            using (var bot = new LevelBot())
+            {
+                bot.PickDelaySeconds = 4f;
+                yield return PlayUntil(bot, () => _focusStarts > 0);
+                yield return Frames(bot, 3);
+                bool jumped = false;
+                _player.Jumped += () => jumped = true;
+                float y0 = _player.transform.position.y;
+                _input.NotifyJumpPressed();
+                float peak = y0;
+                for (int i = 0; i < 40; i++) { yield return null; peak = Mathf.Max(peak, _player.transform.position.y); }
+                _input.NotifyJumpReleased();
+
+                Assert.That(jumped, Is.True);
+                Assert.That(peak - y0, Is.GreaterThan(1f));
+            }
+        }
+
+        // Slow-mo only slows the jump down; it still goes exactly as high.
+        [UnityTest]
+        public IEnumerator JumpReachIsTheSameInSlowMotion()
+        {
+            using (var bot = new LevelBot())
+            {
+                bot.PickDelaySeconds = 5f;
+                bot.ShouldJump = _ => false;
+                yield return Frames(bot, 10);
+                float normal = 0f;
+                yield return MeasureFullJump(h => normal = h);
+                yield return PlayUntil(bot, () => _focusStarts > 0);
+                float slow = 0f;
+                yield return MeasureFullJump(h => slow = h);
+
+                // Within 5 %: slow-mo halves the physics step, so the arc is integrated a little more finely (measured 3.04 vs 3.12).
+                Assert.That(slow, Is.EqualTo(normal).Within(normal * 0.05f));
+            }
+        }
+
+        private IEnumerator MeasureFullJump(Action<float> report)
+        {
+            float y0 = _player.transform.position.y, peak = y0;
+            _input.NotifyJumpPressed();
+            int frames = 0;
+            do
+            {
+                yield return null;
+                peak = Mathf.Max(peak, _player.transform.position.y);
+            } while ((!_player.IsGrounded || frames++ < 5) && frames < 600);
+            _input.NotifyJumpReleased();
+            report(peak - y0);
         }
 
         private static EnemyEncounter ActiveEncounter() =>

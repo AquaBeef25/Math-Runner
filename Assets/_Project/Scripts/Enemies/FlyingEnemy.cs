@@ -24,6 +24,9 @@ namespace MathRunner.Enemies
         private float _modeTime;
         private float _bobTime;
         private Vector3 _flyFrom;
+        private float _smoothY;
+        private float _smoothYVelocity;
+        private const float FollowSmoothSeconds = 0.25f;
 
         public Vector3 MuzzlePosition => _muzzle != null ? _muzzle.position : transform.position;
 
@@ -31,9 +34,15 @@ namespace MathRunner.Enemies
         public static Vector2 HoverPoint(Vector2 player, Vector2 offset, float time, float amplitude, float hz) =>
             player + offset + new Vector2(0f, amplitude * Mathf.Sin(2f * Mathf.PI * hz * time));
 
+        // Pure so it can be tested: eases the followed height toward the player's without overshooting.
+        public static float SmoothY(float current, float target, ref float velocity, float smoothTime, float dt) =>
+            Mathf.SmoothDamp(current, target, ref velocity, smoothTime, Mathf.Infinity, dt);
+
         public void Appear(Transform player, EncounterSettings settings)
         {
             _player = player;
+            _smoothY = player.position.y;
+            _smoothYVelocity = 0f;
             _settings = settings;
             _flyFrom = (Vector2)player.position + settings.HoverOffset + EntryOffset;
             transform.position = _flyFrom;
@@ -73,7 +82,10 @@ namespace MathRunner.Enemies
             float dt = Time.deltaTime;
             _modeTime += dt;
             _bobTime += dt;
-            Vector2 hover = HoverPoint(_player.position, _settings.HoverOffset, _bobTime, _settings.BobAmplitude, _settings.BobHz);
+            // Follow the player's height smoothly, so jumps and steps don't yank the enemy around.
+            _smoothY = SmoothY(_smoothY, _player.position.y, ref _smoothYVelocity, FollowSmoothSeconds, dt);
+            var followed = new Vector2(_player.position.x, _smoothY);
+            Vector2 hover = HoverPoint(followed, _settings.HoverOffset, _bobTime, _settings.BobAmplitude, _settings.BobHz);
 
             switch (_mode)
             {

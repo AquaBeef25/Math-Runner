@@ -8,7 +8,7 @@ namespace MathRunner.Enemies
 {
     // trigger → enemy flies in → wind-up → FIRE: Focus Zone (world slowed), question + 4 answers, bullet is the clock.
     // Right answer: shockwave destroys enemy and bullet. Wrong: the bullet hits (one heart). No answer: same when it lands.
-    // The player is on autopilot (no jumping) from the trigger until the question is resolved.
+    // The player keeps full control throughout: they navigate the terrain while answering.
     [RequireComponent(typeof(BoxCollider2D))]
     public class EnemyEncounter : MonoBehaviour
     {
@@ -58,7 +58,6 @@ namespace MathRunner.Enemies
 
             _player = player;
             _health = player.GetComponent<PlayerHealth>();
-            _player.BeginAutopilot();
             Enemy = Instantiate(_enemyPrefab);
             Enemy.Appear(player.transform, _settings);
             _phase = Phase.Arriving;
@@ -141,7 +140,6 @@ namespace MathRunner.Enemies
         {
             _phase = Phase.Resolved;
             GameEvents.AnswerChosen -= OnAnswerChosen;
-            _player.EndAutopilot();
             float fraction = outcome == AnswerOutcome.Missed ? 0f : _remainingFraction;
             GameEvents.RaiseQuestionResolved(new QuestionResult(_question, outcome, _chosenIndex, _flightRealSeconds, fraction));
         }

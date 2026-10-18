@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 804ae97492f03bd489427069fc242c64, type: 3}
   m_Name: EncounterSettings
   m_EditorClassIdentifier: MathRunner::MathRunner.Enemies.EncounterSettings
-  _focusScale: 0.2
+  _focusScale: 0.5
   _flyInSeconds: 1.2
   _windUpSeconds: 0.4
   _exitBufferSeconds: 1

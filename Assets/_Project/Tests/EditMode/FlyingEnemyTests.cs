@@ -15,6 +15,21 @@ namespace MathRunner.Tests.EditMode
             Assert.That(FlyingEnemy.HoverPoint(Player, Offset, 0f, 0.25f, 1.5f), Is.EqualTo(Player + Offset));
         }
 
+        // When the player jumps or climbs a step, the enemy follows smoothly instead of snapping.
+        [Test]
+        public void HoverHeightFollowsThePlayerSmoothly()
+        {
+            float y = 0f, velocity = 0f, previousGap = 5f;
+            for (int i = 0; i < 100; i++) // 2 s of 0.02 s steps
+            {
+                y = FlyingEnemy.SmoothY(y, 5f, ref velocity, 0.25f, 0.02f);
+                Assert.That(y, Is.LessThanOrEqualTo(5f + 1e-4f), "never overshoots");
+                Assert.That(5f - y, Is.LessThanOrEqualTo(previousGap + 1e-4f), "always closing in");
+                previousGap = 5f - y;
+            }
+            Assert.That(y, Is.EqualTo(5f).Within(0.01f));
+        }
+
         [Test]
         public void BobsOnlyVerticallyWithinTheAmplitude()
         {

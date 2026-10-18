@@ -33,10 +33,6 @@ namespace MathRunner.Player
         private float _bufferCounter;
         private bool _isJumping;
         private float _jumpTimer;
-        private bool _autopilot;
-        private bool _autoJumpQueued;
-        private float _autoJumpX;
-        private bool _autoJumping;
         private float _lastAirSpeedY;
 
         public float RunSpeed
@@ -75,29 +71,6 @@ namespace MathRunner.Player
             _coyoteCounter = 0f;
             _bufferCounter = 0f;
             _isJumping = false;
-            _autoJumpQueued = false;
-            _autoJumping = false;
-        }
-
-        // While on autopilot (inside a Question Zone) the player's own jump presses are ignored,
-        // so stray taps can't spoil the automatic jump onto the chosen answer.
-        public void BeginAutopilot()
-        {
-            _autopilot = true;
-            _bufferCounter = 0f;
-        }
-
-        public void EndAutopilot()
-        {
-            _autopilot = false;
-            _autoJumpQueued = false;
-        }
-
-        // Full-height jump as soon as the player is grounded at or past takeoffX.
-        public void QueueAutoJump(float takeoffX)
-        {
-            _autoJumpQueued = true;
-            _autoJumpX = takeoffX;
         }
 
         public float AirTimeToLandOn(float height)
@@ -108,7 +81,6 @@ namespace MathRunner.Player
 
         private void OnJumpPressed()
         {
-            if (_autopilot) return;
             _bufferCounter = _jumpBufferTime;
         }
 
@@ -124,20 +96,12 @@ namespace MathRunner.Player
             {
                 _coyoteCounter = _coyoteTime;
                 _isJumping = false;
-                _autoJumping = false;
             }
             else
             {
                 _coyoteCounter -= dt;
             }
             _bufferCounter -= dt;
-
-            if (_autoJumpQueued && IsGrounded && _rb.position.x >= _autoJumpX)
-            {
-                _autoJumpQueued = false;
-                _autoJumping = true;
-                _bufferCounter = _jumpBufferTime;
-            }
 
             if (_bufferCounter > 0f && _coyoteCounter > 0f)
             {
@@ -151,7 +115,7 @@ namespace MathRunner.Player
             }
 
             if (_isJumping) _jumpTimer += dt;
-            if (_isJumping && !_autoJumping && v.y > 0f && !_input.JumpHeld && _jumpTimer >= _minJumpTime)
+            if (_isJumping && v.y > 0f && !_input.JumpHeld && _jumpTimer >= _minJumpTime)
             {
                 v.y *= _jumpCutMultiplier;
                 _isJumping = false;
