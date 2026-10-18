@@ -8424,6 +8424,8 @@ MonoBehaviour:
   _waterPrefab: {fileID: 3619864643670744806, guid: 80562b501fc50dc42ae4afb7acce550c, type: 3}
   _walkerPrefab: {fileID: 3521530633282683797, guid: 190cff60fbcd16c44a420f51fa993816, type: 3}
   _sawPrefab: {fileID: 2759248983799546180, guid: 228dad957e318ee4d98a505c37cf95fc, type: 3}
+  _beePrefab: {fileID: 8329179457966542331, guid: b73fc0bf2c34c87408df6e87c3321a1c, type: 3}
+  _beeHz: 0.8
   _decorationPrefab: {fileID: 605444390240892827, guid: 430ed2d851c863a4b9c0638eb29aebf9, type: 3}
   _walkerSpeed: 1
   _checkpointPrefab: {fileID: 7423024411788774180, guid: 6705b2fc4d1f1ad469f56fc149987ac0, type: 3}

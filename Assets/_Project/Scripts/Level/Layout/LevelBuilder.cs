@@ -27,6 +27,8 @@ namespace MathRunner.Level
         [SerializeField] private WaterPool _waterPrefab;
         [SerializeField] private Walker _walkerPrefab;
         [SerializeField] private Saw _sawPrefab;
+        [SerializeField] private Bee _beePrefab;
+        [SerializeField, Min(0f)] private float _beeHz = 0.8f;
         [SerializeField] private SpriteRenderer _decorationPrefab;
         [SerializeField, Min(0f)] private float _walkerSpeed = 1f;
         [SerializeField] private Checkpoint _checkpointPrefab;
@@ -88,6 +90,10 @@ namespace MathRunner.Level
 
             foreach (var (x, y) in Plan.Saws)
                 Instantiate(_sawPrefab, new Vector3(x, y, 0f), Quaternion.identity, root);
+
+            if (_beePrefab != null)
+                foreach (var (x, baseY, amplitude) in Plan.Bees)
+                    Instantiate(_beePrefab, root).Configure(x, baseY, amplitude, _beeHz);
 
             if (config.Decorations != null && _decorationPrefab != null)
                 foreach (var (x, y, kind) in Plan.Decorations)

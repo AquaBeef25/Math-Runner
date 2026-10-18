@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f, float decor = 0f, float ramps = 0f, float water = 0f, float bees = 0f) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -36,6 +36,7 @@ namespace MathRunner.Tests
             DecorationDensity = decor,
             RampChance = ramps,
             WaterChance = water,
+            BeeChance = bees,
             DecorationWeights = new[] { 3f, 3f, 1f, 1f, 1f, 0.5f, 0.5f },
         };
 
@@ -183,6 +184,31 @@ namespace MathRunner.Tests
             {
                 Assert.That(sw.Y, Is.EqualTo(plan.GroundTopAt(sw.X)).Within(1e-4f), $"Saw at {sw.X} floats or is buried");
                 Assert.That(plan.Jumps.Any(j => j.X < sw.X && sw.X - j.X < 0.6f * s.RunSpeed), Is.True, $"No jump planned before the saw at {sw.X}");
+            }
+        }
+
+        [Test]
+        public void EveryBeeHasAJumpBeforeIt([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed: seed, bees: 0.6f);
+            var plan = LevelPlanner.Create(s);
+            Assert.That(plan.Bees, Is.Not.Empty);
+            foreach (var bee in plan.Bees)
+                Assert.That(plan.Jumps.Any(j => j.X < bee.X && bee.X - j.X < 0.6f * s.RunSpeed && j.HoldSeconds > 0.3f), Is.True,
+                    $"No full jump planned before the bee at {bee.X}");
+        }
+
+        [Test]
+        public void BeesFlyOverFlatGround([Range(1, 20)] int seed)
+        {
+            var plan = LevelPlanner.Create(Settings(seed: seed, bees: 0.6f));
+            foreach (var bee in plan.Bees)
+            {
+                float top = plan.GroundTopAt(bee.X);
+                Assert.That(bee.BaseY, Is.EqualTo(top + 0.9f).Within(1e-4f), $"Bee at {bee.X} isn't 0.9 above the ground");
+                Assert.That(bee.Amplitude, Is.EqualTo(0.4f).Within(1e-4f));
+                for (float x = bee.X - 0.5f; x <= bee.X + 0.5f; x += 0.1f)
+                    Assert.That(plan.GroundTopAt(x), Is.EqualTo(top).Within(1e-4f), $"Ground under the bee at {bee.X} isn't flat at {x}");
             }
         }
 

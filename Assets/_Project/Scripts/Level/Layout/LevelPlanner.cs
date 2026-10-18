@@ -31,6 +31,7 @@ namespace MathRunner.Level
         public float SawChance;      // chance a hazard is a saw
         public float RampChance;     // chance a height change is a ramp instead of a step
         public float WaterChance;    // chance a pit is filled with water
+        public float BeeChance;      // chance a hazard is a hovering bee
         public float DecorationDensity;   // decorations per 10 units of ground (0 = none)
         public float[] DecorationWeights; // relative chance of each decoration kind
 
@@ -65,6 +66,7 @@ namespace MathRunner.Level
             SawChance = config.SawChance,
             RampChance = config.RampChance,
             WaterChance = config.WaterChance,
+            BeeChance = config.BeeChance,
             DecorationDensity = config.Decorations != null ? config.DecorationDensity : 0f,
             DecorationWeights = config.Decorations != null ? config.Decorations.Weights : null,
             IntroSeconds = 2f,
@@ -90,6 +92,8 @@ namespace MathRunner.Level
         // Water filling a pit: Left/Right are the pit's edges, Surface sits below the ground.
         public readonly List<(float Left, float Right, float Surface)> Water = new List<(float Left, float Right, float Surface)>();
         public readonly List<(float X, float Y)> Saws = new List<(float X, float Y)>();
+        // Bees hover at BaseY (head height over flat ground) and bob by Amplitude.
+        public readonly List<(float X, float BaseY, float Amplitude)> Bees = new List<(float X, float BaseY, float Amplitude)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
@@ -143,6 +147,8 @@ namespace MathRunner.Level
         private const float PillarWidth = 1f;
         private const float PlatformWidth = 3f;
         public const float WalkerPatrol = 1.5f;
+        public const float BeeHeight = 0.9f;
+        public const float BeeAmplitude = 0.4f;
 
         private sealed class Builder
         {
@@ -220,6 +226,13 @@ namespace MathRunner.Level
             public void Saw()
             {
                 Plan.Saws.Add((X, Top));
+                Plan.Jumps.Add((X - SpikeLeadSeconds * V, FullHold));
+            }
+
+            // A bee at head height: a full jump clears it (saw lead).
+            public void Bee()
+            {
+                Plan.Bees.Add((X, Top + BeeHeight, BeeAmplitude));
                 Plan.Jumps.Add((X - SpikeLeadSeconds * V, FullHold));
             }
 
@@ -351,6 +364,11 @@ namespace MathRunner.Level
                 b.Saw();
                 return;
             }
+            if (s.BeeChance > 0f && b.Rng.NextDouble() < s.BeeChance)
+            {
+                b.Bee();
+                return;
+            }
             double roll = b.Rng.NextDouble();
             double stepChance = 0.25 * s.MaxStepTiles; // taller steps allowed → more height changes
             if (s.MaxStepTiles > 0 && roll < stepChance * 0.6) b.StepEitherWay(s.MaxStepTiles);
@@ -401,6 +419,7 @@ namespace MathRunner.Level
             var blocked = new List<float>();
             foreach (var p in plan.Spikes) blocked.Add(p.X);
             foreach (var p in plan.Saws) blocked.Add(p.X);
+            foreach (var p in plan.Bees) blocked.Add(p.X);
             foreach (var j in plan.Jumps) blocked.Add(j.X);
             for (int i = 0; i + 1 < plan.Ground.Count; i++)
             {
