@@ -7,7 +7,7 @@ namespace MathRunner.Tests
     public class LevelPlannerTests
     {
         private static LevelPlanSettings Settings(int count = 8, float speed = 6f, float ratio = 0.5f, float limit = 4f,
-            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f) => new LevelPlanSettings
+            int hazards = 2, float gapChance = 0.3f, int seed = 1, int maxStep = 2, int splits = 2, float platforms = 0.5f, float walkers = 0f, float saws = 0f) => new LevelPlanSettings
         {
             QuestionCount = count,
             RunSpeed = speed,
@@ -31,6 +31,8 @@ namespace MathRunner.Tests
             MaxStepTiles = maxStep,
             RouteSplits = splits,
             PlatformChance = platforms,
+            WalkerChance = walkers,
+            SawChance = saws,
         };
 
         private static bool OnGround(LevelPlan plan, float from, float to) =>
@@ -143,6 +145,34 @@ namespace MathRunner.Tests
                 if (!gapOrRise) continue;
                 float edge = plan.Ground[i].End;
                 Assert.That(plan.Jumps.Any(j => j.X < edge && edge - j.X < 0.6f * s.RunSpeed), Is.True, $"No jump planned before the edge at {edge}");
+            }
+        }
+
+        [Test]
+        public void WalkersStayOnFlatGround([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed: seed, walkers: 0.6f);
+            var plan = LevelPlanner.Create(s);
+            Assert.That(plan.Walkers, Is.Not.Empty);
+            foreach (var w in plan.Walkers)
+            {
+                Assert.That(w.Right - w.Left, Is.EqualTo(1.5f).Within(1e-4f));
+                for (float x = w.Left - 0.5f; x <= w.Right + 0.5f; x += 0.25f)
+                    Assert.That(plan.GroundTopAt(x), Is.EqualTo(w.Y).Within(1e-4f), $"Walker at {w.Left} isn't on flat ground at {x}");
+                Assert.That(plan.Jumps.Any(j => j.X < w.Left && w.Left - j.X < 0.6f * s.RunSpeed), Is.True, $"No jump planned before the walker at {w.Left}");
+            }
+        }
+
+        [Test]
+        public void SawsSitOnASurface([Range(1, 20)] int seed)
+        {
+            var s = Settings(seed: seed, saws: 0.6f);
+            var plan = LevelPlanner.Create(s);
+            Assert.That(plan.Saws, Is.Not.Empty);
+            foreach (var sw in plan.Saws)
+            {
+                Assert.That(sw.Y, Is.EqualTo(plan.GroundTopAt(sw.X)).Within(1e-4f), $"Saw at {sw.X} floats or is buried");
+                Assert.That(plan.Jumps.Any(j => j.X < sw.X && sw.X - j.X < 0.6f * s.RunSpeed), Is.True, $"No jump planned before the saw at {sw.X}");
             }
         }
 

@@ -27,6 +27,8 @@ namespace MathRunner.Level
         public int MaxStepTiles;     // 0 = flat ground; 1–2 = steps and pillars up to that many tiles
         public int RouteSplits;      // high/low route splits per level
         public float PlatformChance; // chance a spike gets an optional platform over it
+        public float WalkerChance;   // chance a hazard is a patrolling slime
+        public float SawChance;      // chance a hazard is a saw
 
         // Spacing, in seconds of running (distance = seconds × run speed).
         public float IntroSeconds;
@@ -55,6 +57,8 @@ namespace MathRunner.Level
             MaxStepTiles = config.MaxStepTiles,
             RouteSplits = config.RouteSplits,
             PlatformChance = config.PlatformChance,
+            WalkerChance = config.WalkerChance,
+            SawChance = config.SawChance,
             IntroSeconds = 2f,
             HazardSpacingSeconds = 1.6f,
             GapSeconds = 0.4f,
@@ -68,6 +72,8 @@ namespace MathRunner.Level
         public readonly List<(float Start, float End, float Top)> Ground = new List<(float Start, float End, float Top)>();
         public readonly List<(float Left, float Right, float Top)> Platforms = new List<(float Left, float Right, float Top)>();
         public readonly List<(float X, float Y)> Spikes = new List<(float X, float Y)>();
+        public readonly List<(float Left, float Right, float Y)> Walkers = new List<(float Left, float Right, float Y)>();
+        public readonly List<(float X, float Y)> Saws = new List<(float X, float Y)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
         // One safe way through: press jump when crossing X, hold for HoldSeconds of scaled time.
@@ -102,6 +108,7 @@ namespace MathRunner.Level
         private const float StepClearance = 0.3f;
         private const float PillarWidth = 1f;
         private const float PlatformWidth = 3f;
+        public const float WalkerPatrol = 1.5f;
 
         private sealed class Builder
         {
@@ -152,6 +159,20 @@ namespace MathRunner.Level
             }
 
             public void StepDown(int tiles) => SetTop(Top - tiles);
+
+            // A slime pacing 1.5 units on flat ground. One full jump stays above it for ~0.65 s, which clears the whole
+            // patrol from this take-off at run speeds of 5 and up.
+            public void Walker()
+            {
+                Plan.Walkers.Add((X, X + WalkerPatrol, Top));
+                Plan.Jumps.Add((X - 0.85f - 0.05f * V, FullHold));
+            }
+
+            public void Saw()
+            {
+                Plan.Saws.Add((X, Top));
+                Plan.Jumps.Add((X - SpikeLeadSeconds * V, FullHold));
+            }
 
             public void Pillar(int tiles)
             {
@@ -256,6 +277,16 @@ namespace MathRunner.Level
                 b.Gap();
                 return;
             }
+            if (b.Rng.NextDouble() < s.WalkerChance)
+            {
+                b.Walker();
+                return;
+            }
+            if (b.Rng.NextDouble() < s.SawChance)
+            {
+                b.Saw();
+                return;
+            }
             double roll = b.Rng.NextDouble();
             double stepChance = 0.25 * s.MaxStepTiles; // taller steps allowed → more height changes
             if (s.MaxStepTiles > 0 && roll < stepChance * 0.6) b.StepEitherWay(s.MaxStepTiles);
@@ -264,7 +295,7 @@ namespace MathRunner.Level
             else b.Spike();
         }
 
-        // Inside an encounter: spikes, 1-tile steps and pillars only — never a gap, so a fall can't happen mid-question.
+        // Inside an encounter: spikes, walkers, 1-tile steps and pillars only — never a gap, so a fall can't happen mid-question.
         private static void EncounterTerrain(Builder b, float start, float end)
         {
             var s = b.S;
@@ -273,7 +304,8 @@ namespace MathRunner.Level
             while (b.X < end - 2.5f)
             {
                 double roll = b.Rng.NextDouble();
-                if (s.MaxStepTiles > 0 && roll < 0.3) b.StepEitherWay(1);
+                if (b.Rng.NextDouble() < s.WalkerChance) b.Walker();
+                else if (s.MaxStepTiles > 0 && roll < 0.3) b.StepEitherWay(1);
                 else if (s.MaxStepTiles > 0 && roll < 0.45) b.PillarOrSpike(1);
                 else b.Spike();
                 b.X += s.HazardSpacingSeconds * v;

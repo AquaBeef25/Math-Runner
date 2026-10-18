@@ -89,4 +89,6 @@ MonoBehaviour:
   _maxStepTiles: 2
   _routeSplits: 3
   _platformChance: 0.5
+  _walkerChance: 0.3
+  _sawChance: 0.2
   _background: {fileID: 11400000, guid: 767ee76bfc68a85448bfe30ee8015e15, type: 2}

@@ -34,6 +34,10 @@ namespace MathRunner.Level
         [SerializeField, Min(0)] private int _routeSplits = 1;
         [Tooltip("Chance a spike gets an optional platform over it.")]
         [SerializeField, Range(0f, 1f)] private float _platformChance = 0.3f;
+        [Tooltip("Chance a hazard is a patrolling slime.")]
+        [SerializeField, Range(0f, 1f)] private float _walkerChance;
+        [Tooltip("Chance a hazard is a saw.")]
+        [SerializeField, Range(0f, 1f)] private float _sawChance;
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
@@ -52,6 +56,8 @@ namespace MathRunner.Level
         public int MaxStepTiles => _maxStepTiles;
         public int RouteSplits => _routeSplits;
         public float PlatformChance => _platformChance;
+        public float WalkerChance => _walkerChance;
+        public float SawChance => _sawChance;
         public BackgroundTheme Background => _background;
 
         public void Initialize(int levelNumber, string topic, QuestionSettings questions, int questionCount, float runSpeed,
