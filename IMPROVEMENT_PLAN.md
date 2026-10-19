@@ -102,6 +102,8 @@ Stage C items that mention platforms (e.g. C1's run-up after a zone) now apply t
 5 levels for now (Meadow 1–3, Desert 4–5). Meadow levels are generated Geometry Dash-style: steps, pillars, ledges, route
 splits, slimes, saws and decoration; the player keeps control during encounters at 0.5× slow-mo.
 Design: `docs/superpowers/specs/2026-10-18-meadow-world-design.md` · Plan: `docs/superpowers/plans/2026-10-18-meadow-world.md`.
+**Fork in the path (done 2026-10-19):** answer platforms alongside encounters, at the instructor's request. Three routes at different heights; the jump is the answer; right route = chest of coins, wrong route = mud and a heart. All forks in Levels 1–2, about half in Level 3, about a third in Levels 4–5 (spec `docs/superpowers/specs/2026-10-19-fork-in-the-path-design.md`).
+
 **Chalkboard UI (done 2026-10-19):** every screen restyled as chalkboards with Kenney UI Pack buttons, Kenney hearts/coins/stars and the Patrick Hand chalk font; the question and its four answers share one board (spec `docs/superpowers/specs/2026-10-19-chalkboard-ui-design.md`).
 
 **Meadow v2 (done 2026-10-18):** layered ColorGrass background, ramps, water pools, styled ledges, bees, coins (+10, HUD

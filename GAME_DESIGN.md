@@ -55,6 +55,12 @@ Character moves → Enemy fires, time slows → Math problem appears → Tap an 
 > Focus Zone and a four-choice answer panel, to make the game more interactive. Design:
 > `docs/superpowers/specs/2026-10-18-enemy-encounter-design.md`.
 
+> **Instructor-requested addition (2026-10-19):** answer platforms come back *alongside* the enemy encounters, as a
+> "fork in the path". The road splits into three routes at different heights, each with an answer sign; the jump you make
+> is the answer (full jump = high route, short hop = middle, no jump = low road). The right route ends at a chest of
+> coins; a wrong route ends in mud (slower, one heart). Forks fill Levels 1–2 and mix with encounters later. Design:
+> `docs/superpowers/specs/2026-10-19-fork-in-the-path-design.md`.
+
 ---
 
 ## 2. Detailed Design (how the approved scope works in practice)
