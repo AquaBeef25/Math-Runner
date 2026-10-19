@@ -24,7 +24,12 @@ namespace MathRunner.UI
         [SerializeField] private Image[] _rings = new Image[4];
         [SerializeField] private Image[] _marks = new Image[4];
 
+        private const string RouteHint = "Jump to answer!";
+        private static readonly string[] RouteCaptions = { "jump high", "hop", "stay low" };
+
         private UiTheme _theme;
+        private AnswerMode _mode = AnswerMode.Tap;
+        private string _tapHint;
 
         private UiTheme Theme => _theme != null ? _theme : _theme = UiTheme.Load();
 
@@ -40,6 +45,7 @@ namespace MathRunner.UI
 
         private void OnEnable()
         {
+            GameEvents.AnswerModeSet += SetMode;
             GameEvents.QuestionShown += OnQuestionShown;
             GameEvents.AnswerLocked += Lock;
             GameEvents.QuestionResolved += Resolve;
@@ -47,10 +53,17 @@ namespace MathRunner.UI
 
         private void OnDisable()
         {
+            GameEvents.AnswerModeSet -= SetMode;
             GameEvents.QuestionShown -= OnQuestionShown;
             GameEvents.AnswerLocked -= Lock;
             GameEvents.QuestionResolved -= Resolve;
         }
+
+        // Tap (enemy encounter): tappable circles numbered 1–4. Route (fork in the path): the circles only show the
+        // answers and how to reach each route; taps go through to jump.
+        public void SetMode(AnswerMode mode) => _mode = mode;
+
+        public static string RouteCaption(int lane) => lane >= 0 && lane < RouteCaptions.Length ? RouteCaptions[lane] : "";
 
         // Whether this button is one of the answers (the audio skips their click: they sound through AnswerLocked).
         public bool Owns(Button button) => Array.IndexOf(_buttons, button) >= 0;
@@ -62,8 +75,15 @@ namespace MathRunner.UI
 
         public void Show(MathQuestion question)
         {
+            bool route = _mode == AnswerMode.Route;
             _root.SetActive(true);
             _hint.SetActive(true);
+            var hint = _hint.GetComponent<TextMeshProUGUI>();
+            if (hint != null)
+            {
+                if (_tapHint == null) _tapHint = hint.text == RouteHint ? "Tap an answer or press 1-4" : hint.text;
+                hint.text = route ? RouteHint : _tapHint;
+            }
             for (int i = 0; i < _buttons.Length; i++)
             {
                 bool used = i < question.Choices.Count;
@@ -71,9 +91,23 @@ namespace MathRunner.UI
                 _marks[i].gameObject.SetActive(false);
                 if (!used) continue;
                 _labels[i].text = question.Choices[i].ToString();
-                _buttons[i].interactable = true;
-                _rings[i].raycastTarget = true;
+                _buttons[i].interactable = !route;
+                _rings[i].raycastTarget = !route;
                 _buttons[i].transform.localScale = Vector3.one;
+                // Spread the used circles evenly across the board (4 for an encounter, 3 for a fork).
+                var slot = (RectTransform)_buttons[i].transform;
+                slot.anchorMin = slot.anchorMax = new Vector2((i + 0.5f) / question.Choices.Count, slot.anchorMin.y);
+                var key = _buttons[i].transform.Find("Key");
+                if (key != null && key.TryGetComponent(out TextMeshProUGUI keyText))
+                {
+                    keyText.text = route ? RouteCaption(i) : (i + 1).ToString();
+                    // The caption sits centred above the circle; the key number in its top-left corner.
+                    var rt = keyText.rectTransform;
+                    rt.anchorMin = rt.anchorMax = route ? new Vector2(0.5f, 1f) : new Vector2(0f, 1f);
+                    rt.pivot = route ? new Vector2(0.5f, 0f) : new Vector2(0.5f, 0.5f);
+                    rt.anchoredPosition = route ? new Vector2(0f, 6f) : new Vector2(18f, -4f);
+                    rt.sizeDelta = route ? new Vector2(180f, 30f) : new Vector2(36f, 32f);
+                }
                 SetRing(i, -1);
             }
         }
