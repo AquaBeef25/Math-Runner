@@ -12,7 +12,6 @@ namespace MathRunner.UI
     {
         [SerializeField] private GameManager _game;
         [SerializeField] private ScoreSystem _score;
-        [SerializeField] private LivesSystem _lives;
         [SerializeField] private QuestionDirector _director;
 
         [Header("Panels")]
@@ -22,6 +21,7 @@ namespace MathRunner.UI
         [SerializeField] private TextMeshProUGUI _gameOverStats;
         [SerializeField] private TextMeshProUGUI _levelCompleteStats;
         [SerializeField] private TextMeshProUGUI _levelCompleteResult;
+        [SerializeField] private StarRow _levelCompleteStars;
 
         [Header("Buttons")]
         [SerializeField] private Button _pauseButton;
@@ -70,19 +70,21 @@ namespace MathRunner.UI
             _gameOverPanel.SetActive(state == GameState.GameOver);
             _levelCompletePanel.SetActive(state == GameState.LevelComplete);
 
-            string stats = $"Score: {_score.Score}\nCorrect answers: {_score.CorrectCount} / {_score.AnsweredCount}\nBest streak: {_score.BestStreak}";
-            if (state == GameState.GameOver) _gameOverStats.text = stats;
+            if (state == GameState.GameOver)
+                _gameOverStats.text = $"You answered {_score.CorrectCount} right.\nScore: {_score.Score}\nBest streak: {_score.BestStreak}";
             if (state == GameState.LevelComplete)
             {
-                _levelCompleteStats.text = stats + $"\nLives left: {_lives.Lives}";
+                _levelCompleteStats.text = $"Correct answers: {_score.CorrectCount} / {_score.AnsweredCount}\nCoins: {_score.Coins}\nScore: {_score.Score}";
                 _levelCompleteResult.text = "";
+                _levelCompleteStars.Show(0);
                 _nextLevelButton.gameObject.SetActive(NextLevel != null);
             }
         }
 
         private void OnProgressSaved(LevelResult result)
         {
-            _levelCompleteResult.text = StarRating.Display(result.Stars) + "\n" + (result.NewBest ? "New best score!" : $"Best: {result.BestScore}");
+            _levelCompleteStars.Show(result.Stars);
+            _levelCompleteResult.text = result.NewBest ? "New best score!" : $"Best: {result.BestScore}";
         }
     }
 }

@@ -95,7 +95,9 @@ namespace MathRunner.Tests.PlayMode
             }
             Assert.That(game.State, Is.EqualTo(GameState.LevelComplete));
             var result = GameObject.Find("HUD").transform.Find("Overlays/LevelCompletePanel/Box/Result").GetComponent<TextMeshProUGUI>();
-            Assert.That(result.text, Does.Contain("3 of 3 stars").And.Contain("New best score!"));
+            Assert.That(result.text, Does.Contain("New best score!"));
+            var stars = GameObject.Find("HUD").transform.Find("Overlays/LevelCompletePanel/Box/Stars").GetComponent<StarRow>();
+            Assert.That(stars.Stars, Is.EqualTo(3));
 
             var next = GameObject.Find("HUD").transform.Find("Overlays/LevelCompletePanel/Box/NextLevelButton").GetComponent<Button>();
             Assert.That(next.gameObject.activeInHierarchy, Is.True);
