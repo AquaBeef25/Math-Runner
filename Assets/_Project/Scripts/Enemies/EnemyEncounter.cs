@@ -8,7 +8,7 @@ using UnityEngine;
 namespace MathRunner.Enemies
 {
     // trigger → enemy arrives → wind-up → ATTACK: Focus Zone (world slowed), question + 4 answers, the attack is the clock.
-    // The enemy is picked per encounter: the alien fires a fireball; a bee, frog or fly is its own attack (charge, leap,
+    // The enemy is picked per encounter: the alien fires a fireball; a bee or fly is its own attack (charge,
     // buzz). Right answer: shockwave destroys enemy and attack. Wrong: the attack hits (one heart). No answer: same when
     // it lands.
     // The player keeps full control throughout: they navigate the terrain while answering.
@@ -22,7 +22,6 @@ namespace MathRunner.Enemies
         [SerializeField] private FlyingEnemy _enemyPrefab;
         [SerializeField] private EnemyBullet _bulletPrefab;
         [SerializeField] private ChargingEnemy _beePrefab;
-        [SerializeField] private ChargingEnemy _frogPrefab;
         [SerializeField] private ChargingEnemy _flyPrefab;
         [SerializeField] private Shockwave _shockwavePrefab;
 
@@ -49,7 +48,7 @@ namespace MathRunner.Enemies
         // The alien and its fireball (alien encounters only).
         public FlyingEnemy Enemy { get; private set; }
         public EnemyBullet Bullet { get; private set; }
-        // The bee, frog or fly (its own attack).
+        // The bee or fly (its own attack).
         public ChargingEnemy Charger { get; private set; }
         public IEncounterAttack Attack { get; private set; }
         public EnemyKind Kind => _kind;
@@ -70,16 +69,15 @@ namespace MathRunner.Enemies
             _spot = spot;
         }
 
-        // Editor setup: the bee, frog and fly prefabs.
-        public void SetChargerPrefabs(ChargingEnemy bee, ChargingEnemy frog, ChargingEnemy fly)
+        // Editor setup: the bee and fly prefabs.
+        public void SetChargerPrefabs(ChargingEnemy bee, ChargingEnemy fly)
         {
             _beePrefab = bee;
-            _frogPrefab = frog;
             _flyPrefab = fly;
         }
 
         private ChargingEnemy ChargerPrefab() =>
-            _kind == EnemyKind.Bee ? _beePrefab : _kind == EnemyKind.Frog ? _frogPrefab : _kind == EnemyKind.Fly ? _flyPrefab : null;
+            _kind == EnemyKind.Bee ? _beePrefab : _kind == EnemyKind.Fly ? _flyPrefab : null;
 
         private void OnDisable()
         {

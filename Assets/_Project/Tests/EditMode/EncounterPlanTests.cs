@@ -84,10 +84,18 @@ namespace MathRunner.Tests
         }
 
         [Test]
-        public void AllFourKindsAppear()
+        public void AlienBeeAndFlyAppearButNeverTheFrog()
         {
+            // The frog was retired on 2026-10-19 (the user felt it didn't fit): even a weight for it never picks it.
             var kinds = Enumerable.Range(1, 10).SelectMany(seed => LevelPlanner.Create(Settings(seed, Equal)).ZoneEnemies.Select(e => e.Kind)).Distinct().ToList();
-            Assert.That(kinds, Is.EquivalentTo(new[] { EnemyKind.Alien, EnemyKind.Bee, EnemyKind.Frog, EnemyKind.Fly }));
+            Assert.That(kinds, Is.EquivalentTo(new[] { EnemyKind.Alien, EnemyKind.Bee, EnemyKind.Fly }));
+        }
+
+        [Test]
+        public void FrogOnlyWeightsFallBackToTheAlien()
+        {
+            var plan = LevelPlanner.Create(Settings(1, new[] { 0f, 0f, 1f, 0f }));
+            Assert.That(plan.ZoneEnemies.All(e => e.Kind == EnemyKind.Alien), Is.True);
         }
 
         // While answering, the runner must keep moving without a jump: no step up or pillar inside an encounter

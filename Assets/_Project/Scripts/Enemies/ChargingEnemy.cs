@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace MathRunner.Enemies
 {
-    // An encounter enemy that is its own attack (bee, frog, fly): flies or hops in, waits ahead of the runner, shakes,
-    // then charges / leaps / buzzes at the runner and arrives exactly when the question's time runs out. Pops on the
+    // An encounter enemy that is its own attack (bee, fly): flies in, waits ahead of the runner, shakes,
+    // then charges / buzzes at the runner and arrives exactly when the question's time runs out. Pops on the
     // shockwave. Visual only (no solid collider); the encounter decides what the arrival costs. Scaled time throughout.
     public class ChargingEnemy : MonoBehaviour, IEncounterAttack
     {
+        // Leap was the retired frog's style; it stays so Buzz keeps its serialized number.
         public enum Style { Charge, Leap, Buzz }
 
         private enum Mode { Idle, Approach, Wait, WindUp, Attack, Retreat }
@@ -18,11 +19,10 @@ namespace MathRunner.Enemies
         private const float ShakeHz = 30f;
 
         [SerializeField] private Style _style;
-        [Tooltip("Where it waits, relative to the runner (the frog sits on the ground: y 0 = the runner's feet).")]
+        [Tooltip("Where it waits, relative to the runner (y 0 = the runner's feet).")]
         [SerializeField] private Vector2 _waitOffset = new Vector2(6f, 2.5f);
         [Tooltip("Where it comes from, relative to its waiting spot.")]
         [SerializeField] private Vector2 _entryOffset = new Vector2(8f, 4f);
-        [SerializeField, Min(0f)] private float _leapPeak = 2.5f;
         [SerializeField, Min(0f)] private float _buzzAmplitude = 0.6f;
         [SerializeField, Min(0f)] private float _buzzHz = 3f;
         [SerializeField] private SpriteRenderer _renderer;
@@ -67,7 +67,7 @@ namespace MathRunner.Enemies
             _player = player;
             _settings = settings;
             _smoothY = FeetY();
-            _from = (Vector3)(WaitPoint() + (_style == Style.Leap ? new Vector2(6f, 0f) : _entryOffset));
+            _from = (Vector3)(WaitPoint() + _entryOffset);
             transform.position = _from;
             Enter(Mode.Approach);
         }
@@ -119,13 +119,6 @@ namespace MathRunner.Enemies
 
         private float FeetY() => _player.position.y - 0.5f;
 
-        // The frog sits on the real ground under it (raycast down onto the Ground layer), not at the runner's height.
-        private float GroundY(float x)
-        {
-            var hit = Physics2D.Raycast(new Vector2(x, _player.position.y + 6f), Vector2.down, 20f, LayerMask.GetMask("Ground"));
-            return hit.collider != null ? hit.point.y : FeetY();
-        }
-
         private Vector2 WaitPoint() => new Vector2(_player.position.x, _smoothY) + _waitOffset;
 
         private void Update()
@@ -142,21 +135,13 @@ namespace MathRunner.Enemies
             _time += dt;
             _smoothY = Mathf.SmoothDamp(_smoothY, FeetY(), ref _smoothYVelocity, 0.25f, Mathf.Infinity, dt);
             Vector2 wait = WaitPoint();
-            if (_style == Style.Leap) wait.y = GroundY(wait.x) + MathRunner.Level.LifeMotion.HopHeight(_time, 0.7f, 0.35f); // little hops
-            else wait += new Vector2(0f, 0.2f * Mathf.Sin(2f * Mathf.PI * 1.5f * _time)); // hover bob
+            wait += new Vector2(0f, 0.2f * Mathf.Sin(2f * Mathf.PI * 1.5f * _time)); // hover bob
 
             switch (_mode)
             {
                 case Mode.Approach:
                     float k = _settings != null && _settings.FlyInSeconds > 0f ? _modeTime / _settings.FlyInSeconds : 1f;
-                    Vector2 p = Vector2.Lerp(_from, wait, Ease.OutQuad(k));
-                    if (_style == Style.Leap)
-                    {
-                        // Hops in along the ground (never through the air): three small hops onto its spot.
-                        var hop = AttackPath.HopApproach(_from, wait, Mathf.Clamp01(k), 0.8f, 3);
-                        p = new Vector2(hop.x, GroundY(hop.x) + (hop.y - Mathf.Lerp(_from.y, wait.y, Mathf.Clamp01(k))));
-                    }
-                    transform.position = p;
+                    transform.position = Vector2.Lerp(_from, wait, Ease.OutQuad(k));
                     if (k >= 1f) Enter(Mode.Wait);
                     break;
                 case Mode.Wait:
@@ -186,9 +171,7 @@ namespace MathRunner.Enemies
             _base = AttackPath.Charge(_base, _target.position, _remaining, dt);
             _remaining -= dt;
             float fraction = RemainingFraction;
-            Vector2 extra = _style == Style.Leap ? new Vector2(0f, AttackPath.LeapHeight(1f - fraction, _leapPeak))
-                : _style == Style.Buzz ? AttackPath.Buzz(_time, _buzzAmplitude, _buzzHz, fraction)
-                : Vector2.zero;
+            Vector2 extra = _style == Style.Buzz ? AttackPath.Buzz(_time, _buzzAmplitude, _buzzHz, fraction) : Vector2.zero;
             transform.position = _base + extra;
             if (_renderer != null) _renderer.flipX = false; // Kenney art faces left: toward the runner
             if (_remaining > 0f) return;

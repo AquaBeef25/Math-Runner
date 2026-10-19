@@ -48,7 +48,6 @@ MonoBehaviour:
   _style: 2
   _waitOffset: {x: 5, y: 2}
   _entryOffset: {x: 8, y: 4}
-  _leapPeak: 2.5
   _buzzAmplitude: 0.6
   _buzzHz: 3
   _renderer: {fileID: 632956999811631536}

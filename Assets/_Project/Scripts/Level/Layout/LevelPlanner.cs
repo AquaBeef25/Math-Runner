@@ -611,22 +611,23 @@ namespace MathRunner.Level
             }
         }
 
-        // Weighted pick, skipping `excluded` (and zero weights); Alien when nothing else is left.
+        // Weighted pick, skipping `excluded` (and zero weights); Alien when nothing else is left. The frog is retired
+        // (2026-10-19, it didn't fit the game's style): its weight always counts as zero.
         private static EnemyKind Pick(float[] weights, System.Random rng, int excluded)
         {
+            float Weight(int k) => k == excluded || k == (int)EnemyKind.Frog ? 0f : System.Math.Max(0f, weights[k]);
             float sum = 0f;
-            for (int k = 0; k < weights.Length; k++)
-                if (k != excluded) sum += System.Math.Max(0f, weights[k]);
+            for (int k = 0; k < weights.Length; k++) sum += Weight(k);
             double roll = rng.NextDouble() * sum;
             if (sum <= 0f) return EnemyKind.Alien;
             for (int k = 0; k < weights.Length; k++)
             {
-                if (k == excluded || weights[k] <= 0f) continue;
-                if (roll < weights[k]) return (EnemyKind)k;
-                roll -= weights[k];
+                if (Weight(k) <= 0f) continue;
+                if (roll < Weight(k)) return (EnemyKind)k;
+                roll -= Weight(k);
             }
             for (int k = weights.Length - 1; k >= 0; k--)
-                if (k != excluded && weights[k] > 0f) return (EnemyKind)k;
+                if (Weight(k) > 0f) return (EnemyKind)k;
             return EnemyKind.Alien;
         }
 

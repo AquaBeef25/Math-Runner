@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MathRunner.Enemies
 {
-    // Whatever reaches the runner when an encounter's time runs out: the alien's fireball, or the bee/frog/fly itself.
+    // Whatever reaches the runner when an encounter's time runs out: the alien's fireball, or the bee or fly itself.
     public interface IEncounterAttack
     {
         // Fires once when the attack reaches its target.

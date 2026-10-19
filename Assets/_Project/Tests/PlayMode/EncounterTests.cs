@@ -362,9 +362,6 @@ namespace MathRunner.Tests.PlayMode
         [UnityTest]
         public IEnumerator BeeWrongCostsOneHeart() => WrongCostsOneHeart(MathRunner.Level.EnemyKind.Bee);
 
-        [UnityTest]
-        public IEnumerator FrogWrongCostsOneHeart() => WrongCostsOneHeart(MathRunner.Level.EnemyKind.Frog);
-
         private IEnumerator WrongCostsOneHeart(MathRunner.Level.EnemyKind kind)
         {
             UseEnemy(kind);
