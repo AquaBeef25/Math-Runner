@@ -9016,6 +9016,7 @@ MonoBehaviour:
   _sawPrefab: {fileID: 2759248983799546180, guid: 228dad957e318ee4d98a505c37cf95fc, type: 3}
   _beePrefab: {fileID: 8329179457966542331, guid: b73fc0bf2c34c87408df6e87c3321a1c, type: 3}
   _coinPrefab: {fileID: 6999424955125990181, guid: d19b90886d65185459dad0cf637ccb5f, type: 3}
+  _forkArt: {fileID: 11400000, guid: ead96e40e934b05409eac44609429a5d, type: 2}
   _beeHz: 0.8
   _decorationPrefab: {fileID: 605444390240892827, guid: 430ed2d851c863a4b9c0638eb29aebf9, type: 3}
   _backdropOrder: -5

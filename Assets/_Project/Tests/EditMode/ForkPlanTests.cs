@@ -232,6 +232,16 @@ namespace MathRunner.Tests
             }
         }
 
+        // Early Meadow levels teach the fork, later levels mix it with enemy encounters (user decision 2026-10-19).
+        [Test]
+        public void ShippedLevelsMixForksAndEncounters()
+        {
+            float[] expected = { 1f, 1f, 0.5f, 0.33f, 0.33f };
+            var levels = LevelCatalog.Load().Levels;
+            for (int i = 0; i < expected.Length; i++)
+                Assert.That(levels[i].ForkShare, Is.EqualTo(expected[i]).Within(1e-3f), "level " + levels[i].LevelNumber);
+        }
+
         [Test]
         public void ZoneLengthCoversTheWholeFork([Range(1, 5)] int seed)
         {

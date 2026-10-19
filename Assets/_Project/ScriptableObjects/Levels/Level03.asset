@@ -104,6 +104,7 @@ MonoBehaviour:
   - 1
   - 1
   - 1
+  _forkShare: 0.5
   _background: {fileID: 11400000, guid: 0d3d3d860121515438fd572a92ed56f3, type: 2}
   _music: {fileID: 8300000, guid: 1ffb0bf6bab311e4987b6d05201af372, type: 3}
   _decorations: {fileID: 11400000, guid: b117c64952762024d99dc224d3881c8b, type: 2}

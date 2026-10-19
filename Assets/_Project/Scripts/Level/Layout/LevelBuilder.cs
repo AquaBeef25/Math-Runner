@@ -29,6 +29,7 @@ namespace MathRunner.Level
         [SerializeField] private Saw _sawPrefab;
         [SerializeField] private Bee _beePrefab;
         [SerializeField] private Coin _coinPrefab;
+        [SerializeField] private ForkArt _forkArt;
         [SerializeField, Min(0f)] private float _beeHz = 0.8f;
         [SerializeField] private SpriteRenderer _decorationPrefab;
         [Header("Backdrop")]
@@ -45,6 +46,7 @@ namespace MathRunner.Level
         // Editor setup: ScriptableObject scene fields don't save reliably through SerializedProperty here.
         public void SetEncounterSettings(EncounterSettings settings) => _encounter = settings;
         public LevelPlan Plan { get; private set; }
+        public void SetForkArt(ForkArt art) => _forkArt = art;
 
         private GroundSegment Ground(Transform root, LevelConfig config)
         {
@@ -168,6 +170,11 @@ namespace MathRunner.Level
             for (int z = 0; z < Plan.Zones.Count; z++)
             {
                 var zonePlan = Plan.Zones[z];
+                if (Plan.ZoneKinds[z] == ZoneKind.Fork)
+                {
+                    BuildFork(root, config, z);
+                    continue;
+                }
                 var (kind, spotX, spotY) = Plan.ZoneEnemies[z];
                 var encounter = Instantiate(_encounterPrefab, new Vector3(zonePlan.X, Plan.GroundTopAt(zonePlan.X), 0f), Quaternion.identity, root);
                 encounter.Configure(_director, zonePlan.Lead, zonePlan.Timed, kind, new Vector2(spotX, spotY));
@@ -185,6 +192,52 @@ namespace MathRunner.Level
             trigger.isTrigger = true;
             trigger.size = new Vector2(Plan.EndX - LevelPlanner.StartX + 40f, 4f);
             kill.AddComponent<KillZone>();
+        }
+    
+        // A fork in the path: the high and middle ledges (one-way, the level's terrain), a sign with the answer at the start
+        // of each route, mud and a chest on each route, and the zone trigger that asks the question.
+        private void BuildFork(Transform root, LevelConfig config, int zoneIndex)
+        {
+            ForkPlan fork = null;
+            foreach (var f in Plan.Forks)
+                if (f.ZoneIndex == zoneIndex) fork = f;
+            if (fork == null) return;
+            var zonePlan = Plan.Zones[zoneIndex];
+            var forkRoot = new GameObject("Fork " + zoneIndex).transform;
+            forkRoot.SetParent(root, false);
+            var theme = UI.UiTheme.Load();
+
+            int n = fork.Lanes.Length;
+            var signs = new RouteSign[n];
+            var mud = new MudPatch[n];
+            var chests = new TreasureChest[n];
+            for (int i = 0; i < n; i++)
+            {
+                var lane = fork.Lanes[i];
+                if (i != ForkPlan.Low)
+                {
+                    var ledge = Instantiate(_platformPrefab, forkRoot);
+                    if (config.Terrain != null) ledge.SetTerrain(config.Terrain);
+                    ledge.SetRect(lane.Left, lane.Right, lane.Top);
+                    ledge.SetStyle(PlatformStyle.Bridge, Plan.GroundTopAt((lane.Left + lane.Right) * 0.5f)); // thin: heads stay clear of the ledge above
+                }
+                Color colour = theme != null ? theme.AnswerColor(i) : Color.white;
+                signs[i] = RouteSign.Create(forkRoot, new Vector3(lane.Left + 0.7f, lane.Top, 0f), _forkArt != null ? _forkArt.Sign : null,
+                    theme != null ? theme.ChalkFont : null, colour);
+                mud[i] = MudPatch.Create(forkRoot, lane.MudLeft, lane.MudRight, lane.Top, _forkArt != null ? _forkArt.Mud : null,
+                    _forkArt != null ? _forkArt.MudTint : new Color(0.36f, 0.22f, 0.12f));
+                chests[i] = TreasureChest.Create(forkRoot, new Vector3(lane.ChestX, lane.Top, 0f), _forkArt != null ? _forkArt.ChestClosed : null,
+                    _forkArt != null ? _forkArt.ChestOpen : null, _forkArt != null ? _forkArt.Coin : null, _forkArt != null ? _forkArt.ChestCoins : 5, 10);
+            }
+
+            var trigger = new GameObject("ForkZone");
+            trigger.transform.SetParent(forkRoot, false);
+            trigger.transform.position = new Vector3(zonePlan.X, Plan.GroundTopAt(zonePlan.X), 0f);
+            var box = trigger.AddComponent<BoxCollider2D>();
+            box.isTrigger = true;
+            box.size = new Vector2(1f, 10f);
+            box.offset = new Vector2(0f, 4f);
+            trigger.AddComponent<ForkZone>().Configure(_director, _encounter.FocusScale, zonePlan.Lead, zonePlan.Timed, fork, signs, mud, chests);
         }
     }
 }
