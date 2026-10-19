@@ -1,4 +1,3 @@
-using System.Linq;
 using MathRunner.Core;
 using MathRunner.Systems;
 using TMPro;
@@ -9,12 +8,11 @@ namespace MathRunner.UI
     public class HudView : MonoBehaviour
     {
         [SerializeField] private QuestionDirector _director;
-        [SerializeField] private TextMeshProUGUI _livesText;
+        [SerializeField] private HeartRow _hearts;
         [SerializeField] private TextMeshProUGUI _scoreText;
         [SerializeField] private TextMeshProUGUI _streakText;
         [SerializeField] private TextMeshProUGUI _levelText;
         [SerializeField] private TextMeshProUGUI _coinText;
-        [SerializeField] private string _lifeSymbol = "♥";
 
         private int _coins;
 
@@ -40,7 +38,7 @@ namespace MathRunner.UI
 
         private void OnLivesChanged(int lives)
         {
-            _livesText.text = string.Join(" ", Enumerable.Repeat(_lifeSymbol, lives));
+            _hearts.Show(lives);
         }
 
         private void OnCoinCollected(int value)
