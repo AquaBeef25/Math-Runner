@@ -7,7 +7,8 @@
         "MathRunner.Math",
         "MathRunner",
         "Unity.TextMeshPro",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "MathRunner.EditorTools"
     ],
     "includePlatforms": [
         "Editor"
