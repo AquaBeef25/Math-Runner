@@ -23,17 +23,17 @@ namespace MathRunner.UI
         [SerializeField] private float _pulseScale = 0.12f;
         [SerializeField] private float _pulsesPerSecond = 4f;
 
-        [Header("Colors")]
-        [SerializeField] private Color _timerColor = new Color(1f, 0.85f, 0.3f);
-        [SerializeField] private Color _timerUrgentColor = new Color(0.95f, 0.35f, 0.3f);
-        [SerializeField] private Color _correctColor = new Color(0.4f, 0.95f, 0.5f);
-        [SerializeField] private Color _wrongColor = new Color(1f, 0.45f, 0.4f);
-
         private float _timeLimit;
         private float _timeLeft;
         private bool _counting;
         private float _hideAt = -1f;
         private Coroutine _popIn;
+        private UiTheme _theme;
+
+        // Chalk colours from the theme: white chalk, then the green/red answer chalk for right/wrong.
+        private UiTheme Theme => _theme != null ? _theme : _theme = UiTheme.Load();
+        private Color CorrectColor => Theme.AnswerColor(1);
+        private Color WrongColor => Theme.AnswerColor(3);
 
         private void Awake()
         {
@@ -58,7 +58,7 @@ namespace MathRunner.UI
         {
             _panel.SetActive(true);
             _questionText.text = question.Text;
-            _questionText.color = Color.white;
+            _questionText.color = Theme.ChalkWhite;
             _feedbackText.gameObject.SetActive(false);
             _timeLimit = timeLimit;
             _timeLeft = timeLimit;
@@ -85,9 +85,9 @@ namespace MathRunner.UI
             _questionText.text = q.Text.Replace("?", q.Answer.ToString());
 
             bool correct = result.Outcome == AnswerOutcome.Correct;
-            _questionText.color = correct ? _correctColor : Color.white;
+            _questionText.color = correct ? CorrectColor : Theme.ChalkWhite;
             _feedbackText.gameObject.SetActive(true);
-            _feedbackText.color = correct ? _correctColor : _wrongColor;
+            _feedbackText.color = correct ? CorrectColor : WrongColor;
             _feedbackText.text = result.Outcome switch
             {
                 AnswerOutcome.Correct => "Correct!",
@@ -135,7 +135,7 @@ namespace MathRunner.UI
         private void SetFill(float fraction)
         {
             _timerFill.anchorMax = new Vector2(fraction, 1f);
-            _timerFillImage.color = fraction < 0.3f ? _timerUrgentColor : _timerColor;
+            _timerFillImage.color = fraction < 0.3f ? Theme.ChalkUrgent : Theme.ChalkWhite;
         }
     }
 }

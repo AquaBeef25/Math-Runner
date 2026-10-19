@@ -53,8 +53,9 @@ namespace MathRunner.Audio
         {
             if (!enabled) return;
             // Answer buttons already sound through AnswerLocked, so they don't also click.
+            var answers = FindObjectsByType<AnswerButtons>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var button in FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (button.GetComponentInParent<AnswerButtons>(true) == null)
+                if (!System.Array.Exists(answers, a => a.Owns(button)))
                     button.onClick.AddListener(PlayClick);
         }
 
