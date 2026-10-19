@@ -1,3 +1,4 @@
+using MathRunner.Player;
 using System.Collections.Generic;
 
 namespace MathRunner.Level
@@ -44,6 +45,7 @@ namespace MathRunner.Level
         public int[] LifeVariants;        // sprite variants per LifeKind (at least 1)
         public float FishChance;          // chance a water pool has a leaping fish
         public float[] EnemyWeights;      // relative chance per EnemyKind (index = (int)kind); null = always the alien
+        public float ForkShare;           // share of questions that are a fork in the path instead of an encounter (0..1)
 
         // Spacing, in seconds of running (distance = seconds × run speed).
         public float IntroSeconds;
@@ -89,6 +91,7 @@ namespace MathRunner.Level
             LifeVariants = config.Life != null ? config.Life.Variants : null,
             FishChance = config.Life != null ? config.Life.FishChance : 0f,
             EnemyWeights = config.EnemyWeights,
+            ForkShare = config.ForkShare,
             IntroSeconds = 2f,
             HazardSpacingSeconds = 1.6f,
             GapSeconds = 0.4f,
@@ -125,6 +128,8 @@ namespace MathRunner.Level
         // Who each encounter meets (index-aligned with Zones); SpotX/SpotY = the alien's hover offset from the runner (0 = default).
         public readonly List<(EnemyKind Kind, float SpotX, float SpotY)> ZoneEnemies = new List<(EnemyKind Kind, float SpotX, float SpotY)>();
         public readonly List<(float X, bool Timed, float Lead)> Zones = new List<(float X, bool Timed, float Lead)>();
+        public readonly List<ZoneKind> ZoneKinds = new List<ZoneKind>(); // index-aligned with Zones
+        public readonly List<ForkPlan> Forks = new List<ForkPlan>();     // one per Fork zone, in order
         public readonly List<(float X, float Y, int Kind)> Decorations = new List<(float X, float Y, int Kind)>();
         public readonly List<(float X, float Y)> Checkpoints = new List<(float X, float Y)>();
         // One safe way through: press jump when crossing X, hold for HoldSeconds of real time (same arc in slow-mo).
@@ -133,7 +138,20 @@ namespace MathRunner.Level
         public float FinishX;
         public float EndX;
 
-        public float ZoneLength(int index, LevelPlanSettings s) => (Zones[index].Lead * s.FocusScale + s.ZoneSpanSeconds) * s.RunSpeed;
+        public float ZoneLength(int index, LevelPlanSettings s)
+        {
+            foreach (var f in Forks)
+                if (f.ZoneIndex == index) return f.EndX - Zones[index].X;
+            return (Zones[index].Lead * s.FocusScale + s.ZoneSpanSeconds) * s.RunSpeed;
+        }
+
+        // Whether x is inside a fork (from its split to its end), widened by margin: scenery, coins and life stay out.
+        public bool InFork(float x, float margin)
+        {
+            foreach (var f in Forks)
+                if (x >= f.SplitX - margin && x <= f.EndX + margin) return true;
+            return false;
+        }
 
         // Height of the ground at x (sloped on ramps), or NaN over a gap.
         public float GroundTopAt(float x)
@@ -183,6 +201,12 @@ namespace MathRunner.Level
         private const float BeeRadius = 0.35f;
         private const float PlayerCenterAboveFeet = 0.5f;
         private const float CoinClearance = 1.5f;
+        // Fork heights above the split's ground: a short hop reaches the middle one, only a full jump the high one.
+        public const float ForkMiddleRise = 1f;
+        public const float ForkHighRise = 2.7f;
+        private const int MaxForkTop = 2;
+        private const float ForkLandingRoom = 0.6f; // ledges start this far before the planned landing
+        private const float ForkMudLength = 3f;
 
         private sealed class Builder
         {
@@ -362,6 +386,7 @@ namespace MathRunner.Level
             float v = s.RunSpeed;
             b.X = s.IntroSeconds * v;
             var splitAt = SplitQuestions(s.QuestionCount, s.RouteSplits);
+            var forkRng = new System.Random(s.Seed * 61 + 11); // own stream: which questions are forks
 
             for (int q = 0; q < s.QuestionCount; q++)
             {
@@ -379,10 +404,18 @@ namespace MathRunner.Level
 
                 bool timed = s.TimeLimit > 0f && IsTimed(q, s.TimedRatio);
                 float lead = timed ? s.TimeLimit : System.Math.Max(s.UntimedLeadSeconds, s.TimeLimit);
+                bool fork = forkRng.NextDouble() < s.ForkShare;
+                if (fork && b.Top > MaxForkTop) b.Ramp(b.Top - MaxForkTop, false); // keep the high ledge on screen
                 float zoneStart = b.X;
                 b.Plan.Zones.Add((zoneStart, timed, lead));
-                float zoneEnd = zoneStart + (lead * s.FocusScale + s.ZoneSpanSeconds) * v;
-                EncounterTerrain(b, zoneStart, zoneEnd);
+                b.Plan.ZoneKinds.Add(fork ? ZoneKind.Fork : ZoneKind.Encounter);
+                float zoneEnd;
+                if (fork) zoneEnd = ForkTerrain(b, b.Plan.Zones.Count - 1, zoneStart, lead);
+                else
+                {
+                    zoneEnd = zoneStart + (lead * s.FocusScale + s.ZoneSpanSeconds) * v;
+                    EncounterTerrain(b, zoneStart, zoneEnd);
+                }
 
                 b.X = zoneEnd;
                 b.Plan.Checkpoints.Add((b.X + 1f, b.Top + 1f));
@@ -448,6 +481,49 @@ namespace MathRunner.Level
             }
         }
 
+        // A fork in the path: a flat approach (the question's time, in slowed world time), then at the split three routes:
+        // a high ledge for a full jump, a middle ledge for a short hop, and a low road dipping into a hollow for no jump.
+        // Both jumps leave from the split itself, so the runner makes one decision there. The ledges end over the flat
+        // hollow floor, everyone rejoins there, and a ramp climbs back to the split's height. Returns the zone's end.
+        private static float ForkTerrain(Builder b, int zoneIndex, float zoneStart, float lead)
+        {
+            var s = b.S;
+            float v = s.RunSpeed;
+            float sx = zoneStart + lead * s.FocusScale * v;
+            float baseTop = b.Top;
+            // Where each jump comes down, measured from the split: the shortest tap on the middle ledge, a full jump on the
+            // high one. A longer hop (up to ~0.2 s) lands a little further along the middle ledge.
+            float hopLand = JumpMath.CutJumpAirTime(s.JumpHeight, s.Gravity, s.GravityScale, s.FallMultiplier, 0f,
+                s.MinJumpTime > 0f ? s.MinJumpTime : 0.08f, s.JumpCut > 0f ? s.JumpCut : 0.5f, ForkMiddleRise) * v;
+            float fullLand = JumpReach.AirTime(s, ForkHighRise) * v;
+            float longHopLand = JumpMath.CutJumpAirTime(s.JumpHeight, s.Gravity, s.GravityScale, s.FallMultiplier, 0.2f,
+                s.MinJumpTime > 0f ? s.MinJumpTime : 0.08f, s.JumpCut > 0f ? s.JumpCut : 0.5f, ForkMiddleRise) * v;
+            float midLeft = sx + hopLand - ForkLandingRoom;
+            float highLeft = sx + fullLand - ForkLandingRoom;
+            float commitX = sx + System.Math.Max(fullLand, longHopLand) + 1f;
+            float mudLeft = commitX + 0.5f;
+            float mudRight = mudLeft + ForkMudLength;
+            float chestX = mudRight + 1.2f;
+            float ledgeRight = chestX + 1.5f;
+            float lowRight = ledgeRight + 1.5f;
+
+            b.X = sx;
+            b.Ramp(1, false); // down into the hollow
+            float lowLeft = b.X;
+            b.X = lowRight;
+            b.Ramp(1, true);  // back up to the split's height
+            float endX = b.X;
+
+            var lanes = new[]
+            {
+                new ForkLane(highLeft, ledgeRight, baseTop + ForkHighRise, sx, FullHold, mudLeft, mudRight, chestX),
+                new ForkLane(midLeft, ledgeRight, baseTop + ForkMiddleRise, sx, ShortHold, mudLeft, mudRight, chestX),
+                new ForkLane(lowLeft, lowRight, baseTop - 1f, float.NaN, 0f, mudLeft, mudRight, chestX),
+            };
+            b.Plan.Forks.Add(new ForkPlan(zoneIndex, sx, baseTop, commitX, endX, lanes));
+            return endX;
+        }
+
         // Hops become "!" block rows or plain ledges; a split's outer ledges stand on pillars, its middle one is a bridge.
         // Own random stream, so looks never change the layout.
         private static void StylePlatforms(LevelPlan plan, List<int> roles, int seed)
@@ -505,7 +581,7 @@ namespace MathRunner.Level
                     }
                     pick -= usable;
                 }
-                if (float.IsNaN(x) || !IsClear(plan, blocked, x, Clear, Spacing)) continue;
+                if (float.IsNaN(x) || plan.InFork(x, 2f) || !IsClear(plan, blocked, x, Clear, Spacing)) continue;
 
                 double k = rng.NextDouble() * weightSum;
                 int kind = 0;
@@ -545,7 +621,7 @@ namespace MathRunner.Level
             }
 
             foreach (var c in candidates)
-                if (CoinIsSafe(plan, c.X, c.Y)) plan.Coins.Add(c);
+                if (CoinIsSafe(plan, c.X, c.Y) && !plan.InFork(c.X, 2f)) plan.Coins.Add(c);
         }
 
         // A backdrop prop every 6–12 units along each flat ground top (never on ramps), with its own random stream, kept
@@ -573,6 +649,7 @@ namespace MathRunner.Level
                     bool clear = true;
                     foreach (float h in hazards) if (System.Math.Abs(x - h) < Clear) clear = false;
                     foreach (var w in plan.Walkers) if (x >= w.Left - Clear && x <= w.Right + Clear) clear = false;
+                    if (plan.InFork(x, 2f)) clear = false;
                     if (clear)
                     {
                         double k = rng.NextDouble() * weightSum;
@@ -746,7 +823,7 @@ namespace MathRunner.Level
                 {
                     x = g.Start + inset + (float)pick;
                     top = g.Top;
-                    return true;
+                    return !plan.InFork(x, 2f) && !plan.InFork(x + footprint, 2f);
                 }
                 pick -= usable;
             }

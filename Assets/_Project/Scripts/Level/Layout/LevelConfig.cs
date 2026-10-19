@@ -54,6 +54,8 @@ namespace MathRunner.Level
         [SerializeField] private LifeSet _life;
         [Tooltip("Relative chance of each encounter enemy: Alien, Bee, Frog (retired, ignored), Fly. Empty = always the alien.")]
         [SerializeField] private float[] _enemyWeights = { 1f, 1f, 1f, 1f };
+        [Tooltip("Share of questions that are a fork in the path (jump onto the answer's route) instead of an encounter.")]
+        [SerializeField, Range(0f, 1f)] private float _forkShare;
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
@@ -86,6 +88,8 @@ namespace MathRunner.Level
         public float LifeDensity => _lifeDensity;
         public LifeSet Life => _life;
         public float[] EnemyWeights => _enemyWeights;
+        public float ForkShare => _forkShare;
+        public void SetForkShare(float share) => _forkShare = Mathf.Clamp01(share);
         public void SetLife(LifeSet life) => _life = life;
         // Editor setup: ScriptableObject fields don't save reliably through SerializedProperty here.
         public void SetTerrain(TerrainSet terrain) => _terrain = terrain;
