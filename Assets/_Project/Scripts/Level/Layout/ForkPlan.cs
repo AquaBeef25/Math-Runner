@@ -8,8 +8,9 @@ namespace MathRunner.Level
         public const int High = 0, Middle = 1, Low = 2;
         public const int LaneCount = 3;
 
-        public ForkPlan(int zoneIndex, float splitX, float baseTop, float commitX, float endX, ForkLane[] lanes)
+        public ForkPlan(int zoneIndex, float splitX, float baseTop, float commitX, float endX, ForkLane[] lanes, float thinkSeconds)
         {
+            ThinkSeconds = thinkSeconds;
             ZoneIndex = zoneIndex;
             SplitX = splitX;
             BaseTop = baseTop;
@@ -24,5 +25,7 @@ namespace MathRunner.Level
         public float CommitX { get; }
         public float EndX { get; }
         public ForkLane[] Lanes { get; }
+        // Real seconds of slow-motion run-up from the question to the split: the fork's question time.
+        public float ThinkSeconds { get; }
     }
 }

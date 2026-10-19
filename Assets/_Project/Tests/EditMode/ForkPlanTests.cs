@@ -242,6 +242,24 @@ namespace MathRunner.Tests
                 Assert.That(levels[i].ForkShare, Is.EqualTo(expected[i]).Within(1e-3f), "level " + levels[i].LevelNumber);
         }
 
+        // The slow motion starts when the fork is about a screen ahead, even with a long question time (Level 3 gives 12 s,
+        // which used to start the slow-down 33 units — three screens — before the fork). The question's time is the
+        // slowed run-up's real duration.
+        [Test]
+        public void SlowMotionStartsWithTheForkInView([Values(4f, 12f)] float limit, [Values(5f, 5.5f, 6f)] float speed)
+        {
+            var s = Settings(speed: speed);
+            s.TimeLimit = limit;
+            s.UntimedLeadSeconds = limit;
+            foreach (var f in LevelPlanner.Create(s).Forks)
+            {
+                float approach = f.SplitX - LevelPlanner.Create(s).Zones[f.ZoneIndex].X;
+                Assert.That(approach, Is.LessThanOrEqualTo(LevelPlanner.ForkMaxApproach + 1e-3f));
+                Assert.That(f.ThinkSeconds, Is.EqualTo(approach / (speed * s.FocusScale)).Within(1e-3f));
+                Assert.That(f.ThinkSeconds, Is.GreaterThanOrEqualTo(4f), "still time to read and decide");
+            }
+        }
+
         [Test]
         public void ZoneLengthCoversTheWholeFork([Range(1, 5)] int seed)
         {

@@ -204,6 +204,8 @@ namespace MathRunner.Level
         // Fork heights above the split's ground: a short hop reaches the middle one, only a full jump the high one.
         public const float ForkMiddleRise = 1f;
         public const float ForkHighRise = 2.7f;
+        // A fork's slow-motion run-up starts at most this far before the split (about a screen), so the fork is in view.
+        public const float ForkMaxApproach = 12f;
         private const int MaxForkTop = 2;
         private const float ForkLandingRoom = 0.6f; // ledges start this far before the planned landing
         private const float ForkMudLength = 3f;
@@ -489,7 +491,10 @@ namespace MathRunner.Level
         {
             var s = b.S;
             float v = s.RunSpeed;
-            float sx = zoneStart + lead * s.FocusScale * v;
+            // The question's time is the slowed run-up, but never longer than it takes to reach a fork that is in view.
+            float approach = System.Math.Min(lead * s.FocusScale * v, ForkMaxApproach);
+            float thinkSeconds = approach / (v * s.FocusScale);
+            float sx = zoneStart + approach;
             float baseTop = b.Top;
             // Where each jump comes down, measured from the split: the shortest tap on the middle ledge, a full jump on the
             // high one. A longer hop (up to ~0.2 s) lands a little further along the middle ledge.
@@ -520,7 +525,7 @@ namespace MathRunner.Level
                 new ForkLane(midLeft, ledgeRight, baseTop + ForkMiddleRise, sx, ShortHold, mudLeft, mudRight, chestX),
                 new ForkLane(lowLeft, lowRight, baseTop - 1f, float.NaN, 0f, mudLeft, mudRight, chestX),
             };
-            b.Plan.Forks.Add(new ForkPlan(zoneIndex, sx, baseTop, commitX, endX, lanes));
+            b.Plan.Forks.Add(new ForkPlan(zoneIndex, sx, baseTop, commitX, endX, lanes, thinkSeconds));
             return endX;
         }
 

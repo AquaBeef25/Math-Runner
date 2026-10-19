@@ -249,7 +249,7 @@ namespace MathRunner.Level
             box.isTrigger = true;
             box.size = new Vector2(1f, 10f);
             box.offset = new Vector2(0f, 4f);
-            trigger.AddComponent<ForkZone>().Configure(_director, _encounter.FocusScale, zonePlan.Lead, zonePlan.Timed, fork, signs, mud, chests);
+            trigger.AddComponent<ForkZone>().Configure(_director, _encounter.FocusScale, fork.ThinkSeconds, zonePlan.Timed, fork, signs, mud, chests);
         }
     }
 }
