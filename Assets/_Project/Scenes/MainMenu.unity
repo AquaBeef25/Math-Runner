@@ -876,6 +876,7 @@ GameObject:
   - component: {fileID: 913044086}
   - component: {fileID: 913044085}
   - component: {fileID: 913044084}
+  - component: {fileID: 913044087}
   m_Layer: 0
   m_Name: Audio
   m_TagString: Untagged
@@ -1010,6 +1011,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &913044087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913044083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdd4684b795fb7648824408ba1632c23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MathRunner::MathRunner.Audio.MusicCue
+  _clip: {fileID: 8300000, guid: 1ffb0bf6bab311e4987b6d05201af372, type: 3}
 --- !u!114 &1305122536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1597,7 +1611,7 @@ MonoBehaviour:
   m_text: Math Runner
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 13f55d6659b9b39439498b9e798e0aa8, type: 2}
-  m_sharedMaterial: {fileID: 595634884}
+  m_sharedMaterial: {fileID: -904587771896121182, guid: 13f55d6659b9b39439498b9e798e0aa8, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 595634884}
   m_fontMaterials: []

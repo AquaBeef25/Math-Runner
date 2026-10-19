@@ -57,6 +57,8 @@ namespace MathRunner.Level
 
         [Header("Look")]
         [SerializeField] private BackgroundTheme _background;
+        [Tooltip("Looping background tune for this level's world.")]
+        [SerializeField] private AudioClip _music;
         [SerializeField] private DecorationSet _decorations;
         [Tooltip("Decorations per 10 units of ground.")]
         [SerializeField, Min(0f)] private float _decorationDensity = 2.5f;
@@ -87,9 +89,11 @@ namespace MathRunner.Level
         public void SetLife(LifeSet life) => _life = life;
         // Editor setup: ScriptableObject fields don't save reliably through SerializedProperty here.
         public void SetTerrain(TerrainSet terrain) => _terrain = terrain;
+        public void SetMusic(AudioClip music) => _music = music;
         public float RampChance => _rampChance;
         public float WaterChance => _waterChance;
         public BackgroundTheme Background => _background;
+        public AudioClip Music => _music;
         public DecorationSet Decorations => _decorations;
         public float DecorationDensity => _decorationDensity;
 

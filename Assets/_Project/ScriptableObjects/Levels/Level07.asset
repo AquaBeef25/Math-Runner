@@ -86,4 +86,25 @@ MonoBehaviour:
   _hazardsBetweenQuestions: 2
   _gapChance: 0.4
   _layoutSeed: 7
+  _maxStepTiles: 1
+  _routeSplits: 1
+  _platformChance: 0.3
+  _walkerChance: 0
+  _rampChance: 0
+  _waterChance: 0
+  _sawChance: 0
+  _beeChance: 0
+  _coinChance: 0.5
+  _noSpikes: 0
+  _terrain: {fileID: 0}
+  _lifeDensity: 0.6
+  _life: {fileID: 0}
+  _enemyWeights:
+  - 1
+  - 1
+  - 1
+  - 1
   _background: {fileID: 11400000, guid: de0174ff10d14f044bb8d59b1bbc22b4, type: 2}
+  _music: {fileID: 8300000, guid: 1ffb0bf6bab311e4987b6d05201af372, type: 3}
+  _decorations: {fileID: 0}
+  _decorationDensity: 2.5

@@ -73,6 +73,7 @@ namespace MathRunner.Level
             _director.Configure(config);
             _player.RunSpeed = config.RunSpeed;
             if (_background != null) _background.Apply(config.Background);
+            if (Application.isPlaying) Audio.MusicPlayer.Play(config.Music); // not in Edit-mode previews
 
             var settings = LevelPlanSettings.From(config, _encounter.SpanSeconds, _encounter.FocusScale,
                 _player.JumpHeight, Physics2D.gravity.y, _player.BaseGravityScale, _player.FallGravityMultiplier);

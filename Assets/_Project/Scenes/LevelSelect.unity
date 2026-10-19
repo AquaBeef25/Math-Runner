@@ -663,6 +663,7 @@ GameObject:
   - component: {fileID: 590775665}
   - component: {fileID: 590775664}
   - component: {fileID: 590775663}
+  - component: {fileID: 590775666}
   m_Layer: 0
   m_Name: Audio
   m_TagString: Untagged
@@ -797,6 +798,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &590775666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590775662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdd4684b795fb7648824408ba1632c23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MathRunner::MathRunner.Audio.MusicCue
+  _clip: {fileID: 8300000, guid: 1ffb0bf6bab311e4987b6d05201af372, type: 3}
 --- !u!1 &682627551
 GameObject:
   m_ObjectHideFlags: 0

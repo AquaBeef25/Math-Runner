@@ -23,4 +23,13 @@ removed on purpose; only the PNG sprites and OGG sounds are used.
 | Patrick Hand (Patrick Wagesreiter, via Google Fonts) | SIL Open Font Licence 1.1 (`Fonts/PatrickHand/OFL.txt`) | `Fonts/PatrickHand/` | Chalk writing on the chalkboard UI |
 | Kenney Future | CC0 (UI Pack) | `Kenney/UIPack/Font/` | Buttons and titles |
 
+## Music
+
+Both tracks are CC0 (public domain) from OpenGameArt.org; they live in `Assets/_Project/Audio/Music/`.
+
+| Track | Author | Source | Used for |
+|---|---|---|---|
+| Happy Clappy Loop | OwlishMedia | <https://opengameart.org/content/happy-clappy-loop> | Menus and Meadow levels |
+| Desert Loop | iamoneabe | <https://opengameart.org/content/desert-loop> | Desert levels |
+
 Support Kenney: <https://www.kenney.nl/donate>
