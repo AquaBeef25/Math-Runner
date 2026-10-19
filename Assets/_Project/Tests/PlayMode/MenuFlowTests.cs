@@ -58,7 +58,8 @@ namespace MathRunner.Tests.PlayMode
             yield return Load(SceneFlow.LevelSelect);
 
             var buttons = LevelButtons();
-            Assert.That(Detail(buttons[0]), Does.Contain("2 of 3 stars").And.Contain("900"));
+            Assert.That(Detail(buttons[0]), Does.Contain("900"));
+            Assert.That(buttons[0].GetComponentInChildren<StarRow>(true).Stars, Is.EqualTo(2));
             Assert.That(buttons[1].interactable, Is.True);
             Assert.That(Detail(buttons[1]), Is.EqualTo("New!"));
             Assert.That(buttons[2].interactable, Is.False);

@@ -96,11 +96,5 @@ namespace MathRunner.Tests
             Assert.That(StarRating.For(6, 8, 1, 3), Is.EqualTo(2));
             Assert.That(StarRating.For(5, 8, 1, 3), Is.EqualTo(1));
         }
-
-        [Test]
-        public void DisplayShowsStarsOutOfThree()
-        {
-            Assert.That(StarRating.Display(2), Is.EqualTo("2 of 3 stars"));
-        }
     }
 }

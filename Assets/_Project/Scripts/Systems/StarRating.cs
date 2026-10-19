@@ -11,8 +11,5 @@ namespace MathRunner.Systems
             if (answered > 0 && correct * 4 >= answered * 3) return 2;
             return 1;
         }
-
-        // Plain text until star icons arrive with the art pass: the default font has no ★ glyph.
-        public static string Display(int stars) => $"{stars} of {Max} stars";
     }
 }
