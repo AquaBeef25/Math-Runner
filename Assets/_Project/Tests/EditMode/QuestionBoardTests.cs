@@ -85,6 +85,35 @@ namespace MathRunner.Tests
             Assert.That(marks[1].GetComponent<Image>().sprite, Is.SameAs(UiTheme.Load().Tick));
         }
 
+        // Once an answer is locked the circles must stop catching taps, or a tap meant as a jump does nothing while the
+        // board still shows the result.
+        [Test]
+        public void LockedCirclesLetTapsThrough()
+        {
+            Open("Game");
+            var question = new MathQuestion(new MathProblem(QuestionType.Add, 5, 2, 3), new[] { 4, 5, 6, 7 }, 1);
+            var answers = Answers();
+            answers.Show(question);
+            Assert.That(AnswerButtonList().All(b => b.targetGraphic.raycastTarget), Is.True, "tappable while answering");
+            answers.Lock(2);
+            Assert.That(AnswerButtonList().Any(b => b.targetGraphic.raycastTarget), Is.False, "after the pick");
+            answers.Show(question);
+            Assert.That(AnswerButtonList().All(b => b.targetGraphic.raycastTarget), Is.True, "next question");
+            answers.Resolve(new QuestionResult(question, AnswerOutcome.Missed, -1, 4f, 0f));
+            Assert.That(AnswerButtonList().Any(b => b.targetGraphic.raycastTarget), Is.False, "after a miss");
+        }
+
+        // The board (with its answers) stays in the top ~30 % of a 1080-high canvas so it never covers the runner or
+        // an enemy flying in above it.
+        [Test]
+        public void BoardFitsTheTopThird([Values("Game", "Sandbox_Level", "Sandbox_QuestionZone")] string scene)
+        {
+            Open(scene);
+            var board = (RectTransform)Board();
+            float bottom = -board.anchoredPosition.y + board.sizeDelta.y;
+            Assert.That(bottom, Is.LessThanOrEqualTo(0.3f * 1080f));
+        }
+
         [Test]
         public void NonButtonGraphicsIgnoreTaps([Values("Game", "Sandbox_Level", "Sandbox_QuestionZone")] string scene)
         {

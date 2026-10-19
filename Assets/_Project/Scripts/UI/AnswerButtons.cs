@@ -72,6 +72,7 @@ namespace MathRunner.UI
                 if (!used) continue;
                 _labels[i].text = question.Choices[i].ToString();
                 _buttons[i].interactable = true;
+                _rings[i].raycastTarget = true;
                 _buttons[i].transform.localScale = Vector3.one;
                 SetRing(i, -1);
             }
@@ -83,6 +84,7 @@ namespace MathRunner.UI
             for (int i = 0; i < _buttons.Length; i++)
             {
                 _buttons[i].interactable = false;
+                _rings[i].raycastTarget = false; // a disabled circle would still swallow a tap meant as a jump
                 _buttons[i].transform.localScale = Vector3.one * (i == choiceIndex ? ChosenScale : 1f);
                 SetRing(i, choiceIndex);
             }
@@ -96,6 +98,7 @@ namespace MathRunner.UI
             for (int i = 0; i < _marks.Length; i++)
             {
                 _buttons[i].interactable = false;
+                _rings[i].raycastTarget = false;
                 bool show = marks[i] != AnswerMark.None;
                 _marks[i].gameObject.SetActive(show);
                 if (!show) continue;
