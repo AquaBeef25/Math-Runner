@@ -79,14 +79,19 @@ namespace MathRunner.Tests
             }
         }
 
+        // The answers live on the route signs now, so they are big and glow in their route's colour.
         [Test]
-        public void SignShowsItsAnswerInItsColour()
+        public void SignShowsItsAnswerBigAndGlowing()
         {
-            var sign = RouteSign.Create(null, Vector3.zero, Make("sign"), null, Color.cyan);
+            var sign = RouteSign.Create(null, Vector3.zero, Make("ring"), null, Color.cyan);
             sign.Show(42);
             var text = sign.GetComponentInChildren<TextMeshPro>();
             Assert.That(text.text, Is.EqualTo("42"));
-            Assert.That(text.color, Is.EqualTo(Color.cyan));
+            Assert.That(sign.Diameter, Is.GreaterThanOrEqualTo(1.2f), "bigger than the old 1-unit wooden sign");
+            Assert.That(sign.Glow, Is.Not.Null);
+            Assert.That(sign.Glow.color.r, Is.EqualTo(Color.cyan.r).Within(1e-3f));
+            Assert.That(sign.Glow.color.b, Is.EqualTo(Color.cyan.b).Within(1e-3f));
+            Assert.That(sign.Glow.transform.lossyScale.x, Is.GreaterThan(sign.Diameter), "the halo reaches past the sign");
             Object.DestroyImmediate(sign.gameObject);
         }
     }

@@ -13,6 +13,9 @@ namespace MathRunner.Enemies
 
         void Launch(Transform target, float flightSeconds);
 
+        // A wrong answer: strike within `seconds` instead of at the deadline (never later than already planned).
+        void Rush(float seconds);
+
         // Removed by the shockwave: no hit.
         void Fizzle();
     }

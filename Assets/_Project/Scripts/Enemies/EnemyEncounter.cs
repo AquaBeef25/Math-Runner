@@ -166,7 +166,14 @@ namespace MathRunner.Enemies
             }
             else
             {
-                Resolve(AnswerOutcome.Wrong); // the attack keeps coming and costs the heart when it lands
+                // The fireball or bee strikes right away (a fly instead starts following when its time is up); a fly
+                // already following dives in with it.
+                if (_kind != EnemyKind.Fly)
+                {
+                    Attack.Rush(_settings.WrongRushSeconds);
+                    if (FollowingFly.Current != null) FollowingFly.Current.Lunge(_settings.WrongRushSeconds);
+                }
+                Resolve(AnswerOutcome.Wrong);
             }
         }
 
@@ -184,7 +191,11 @@ namespace MathRunner.Enemies
             else if (_health != null) _health.HitByBullet();
             else GameEvents.RaisePlayerHit(HitCause.Bullet);
             // A fly from an earlier wrong answer bites now too (it adds up), then flies away.
-            if (followingAlready != null) followingAlready.BiteAndLeave(_health);
+            if (followingAlready != null)
+            {
+                followingAlready.BiteAndLeave(_health);
+                GameEvents.RaiseDoubleHit();
+            }
 
             if (_chosenIndex < 0)
             {

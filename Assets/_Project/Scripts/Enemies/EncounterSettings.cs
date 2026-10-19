@@ -11,6 +11,8 @@ namespace MathRunner.Enemies
         [SerializeField, Range(0.05f, 1f)] private float _focusScale = 0.2f;
         [SerializeField, Min(0f)] private float _flyInSeconds = 1.2f;
         [SerializeField, Min(0f)] private float _windUpSeconds = 0.4f;
+        [Tooltip("After a wrong answer the fireball or bee strikes this many seconds later (instead of at the deadline).")]
+        [SerializeField, Range(0.1f, 1f)] private float _wrongRushSeconds = 0.4f;
         [Tooltip("Ground kept clear after the shot so the enemy can leave before the next hazard.")]
         [SerializeField, Min(0f)] private float _exitBufferSeconds = 1f;
 
@@ -29,6 +31,7 @@ namespace MathRunner.Enemies
         public float FocusScale => _focusScale;
         public float FlyInSeconds => _flyInSeconds;
         public float WindUpSeconds => _windUpSeconds;
+        public float WrongRushSeconds => _wrongRushSeconds;
         public float ExitBufferSeconds => _exitBufferSeconds;
         public float SpanSeconds => _flyInSeconds + _windUpSeconds + _exitBufferSeconds;
         public Vector2 HoverOffset => _hoverOffset;

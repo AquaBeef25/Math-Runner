@@ -24,12 +24,14 @@ namespace MathRunner.UI
         [SerializeField] private Image[] _rings = new Image[4];
         [SerializeField] private Image[] _marks = new Image[4];
 
-        private const string RouteHint = "Jump to answer!";
-        private static readonly string[] RouteCaptions = { "jump high", "hop", "stay low" };
+        public const string RouteHint = "Jump onto the right answer!";
 
         private UiTheme _theme;
         private AnswerMode _mode = AnswerMode.Tap;
         private string _tapHint;
+        private Color _tapHintColor;
+        private Vector2 _tapHintMin, _tapHintMax, _tapHintAnchorMin, _tapHintAnchorMax;
+        private float _tapHintSize;
 
         private UiTheme Theme => _theme != null ? _theme : _theme = UiTheme.Load();
 
@@ -59,11 +61,9 @@ namespace MathRunner.UI
             GameEvents.QuestionResolved -= Resolve;
         }
 
-        // Tap (enemy encounter): tappable circles numbered 1–4. Route (fork in the path): the circles only show the
-        // answers and how to reach each route; taps go through to jump.
+        // Tap (enemy encounter): tappable circles numbered 1–4. Route (fork in the path): no circles, the answers are on
+        // the route signs and the runner answers by jumping.
         public void SetMode(AnswerMode mode) => _mode = mode;
-
-        public static string RouteCaption(int lane) => lane >= 0 && lane < RouteCaptions.Length ? RouteCaptions[lane] : "";
 
         // Whether this button is one of the answers (the audio skips their click: they sound through AnswerLocked).
         public bool Owns(Button button) => Array.IndexOf(_buttons, button) >= 0;
@@ -78,38 +78,49 @@ namespace MathRunner.UI
             bool route = _mode == AnswerMode.Route;
             _root.SetActive(true);
             _hint.SetActive(true);
-            var hint = _hint.GetComponent<TextMeshProUGUI>();
-            if (hint != null)
-            {
-                if (_tapHint == null) _tapHint = hint.text == RouteHint ? "Tap an answer or press 1-4" : hint.text;
-                hint.text = route ? RouteHint : _tapHint;
-            }
+            ShowHint(route);
             for (int i = 0; i < _buttons.Length; i++)
             {
-                bool used = i < question.Choices.Count;
+                // A fork's answers stand on its glowing route signs, so the board shows no circles then.
+                bool used = !route && i < question.Choices.Count;
                 _buttons[i].gameObject.SetActive(used);
                 _marks[i].gameObject.SetActive(false);
                 if (!used) continue;
                 _labels[i].text = question.Choices[i].ToString();
-                _buttons[i].interactable = !route;
-                _rings[i].raycastTarget = !route;
+                _buttons[i].interactable = true;
+                _rings[i].raycastTarget = true;
                 _buttons[i].transform.localScale = Vector3.one;
-                // Spread the used circles evenly across the board (4 for an encounter, 3 for a fork).
                 var slot = (RectTransform)_buttons[i].transform;
                 slot.anchorMin = slot.anchorMax = new Vector2((i + 0.5f) / question.Choices.Count, slot.anchorMin.y);
                 var key = _buttons[i].transform.Find("Key");
-                if (key != null && key.TryGetComponent(out TextMeshProUGUI keyText))
-                {
-                    keyText.text = route ? RouteCaption(i) : (i + 1).ToString();
-                    // The caption sits centred above the circle; the key number in its top-left corner.
-                    var rt = keyText.rectTransform;
-                    rt.anchorMin = rt.anchorMax = route ? new Vector2(0.5f, 1f) : new Vector2(0f, 1f);
-                    rt.pivot = route ? new Vector2(0.5f, 0f) : new Vector2(0.5f, 0.5f);
-                    rt.anchoredPosition = route ? new Vector2(0f, 6f) : new Vector2(18f, -4f);
-                    rt.sizeDelta = route ? new Vector2(180f, 30f) : new Vector2(36f, 32f);
-                }
+                if (key != null && key.TryGetComponent(out TextMeshProUGUI keyText)) keyText.text = (i + 1).ToString();
                 SetRing(i, -1);
             }
+        }
+
+        // Tap: a small dark hint under the board. Route: a big chalk line on the board where the circles would be.
+        private void ShowHint(bool route)
+        {
+            var hint = _hint.GetComponent<TextMeshProUGUI>();
+            if (hint == null) return;
+            var rt = hint.rectTransform;
+            if (_tapHint == null)
+            {
+                _tapHint = hint.text;
+                _tapHintColor = hint.color;
+                _tapHintMin = rt.offsetMin;
+                _tapHintMax = rt.offsetMax;
+                _tapHintAnchorMin = rt.anchorMin;
+                _tapHintAnchorMax = rt.anchorMax;
+                _tapHintSize = hint.fontSizeMax;
+            }
+            hint.text = route ? RouteHint : _tapHint;
+            hint.color = route ? Theme.AnswerColor(2) : _tapHintColor;
+            hint.fontSizeMax = route ? 52f : _tapHintSize;
+            rt.anchorMin = route ? new Vector2(0f, 0.1f) : _tapHintAnchorMin;
+            rt.anchorMax = route ? new Vector2(1f, 0.9f) : _tapHintAnchorMax;
+            rt.offsetMin = route ? Vector2.zero : _tapHintMin;
+            rt.offsetMax = route ? Vector2.zero : _tapHintMax;
         }
 
         public void Lock(int choiceIndex)

@@ -484,6 +484,61 @@ namespace MathRunner.Tests.PlayMode
             }
         }
 
+        // A wrong answer is punished right away (the fly is the exception: it starts following instead).
+        [UnityTest]
+        public IEnumerator WrongAnswerAttacksRightAway([Values(MathRunner.Level.EnemyKind.Alien, MathRunner.Level.EnemyKind.Bee)] MathRunner.Level.EnemyKind kind)
+        {
+            UseEnemy(kind);
+            using (var bot = new LevelBot())
+            {
+                bot.AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                yield return PlayUntil(bot, () => _locked.Count > 0);
+                float realSeconds = 0f;
+                int frames = 0;
+                while (!bot.Hits.Contains(HitCause.Bullet) && frames++ < MaxFrames)
+                {
+                    bot.BeforeFrame();
+                    yield return null;
+                    realSeconds += Time.captureDeltaTime;
+                    bot.AfterFrame();
+                }
+                Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
+                Assert.That(realSeconds, Is.LessThan(0.8f), $"the {kind} strikes as soon as the answer is wrong");
+                Assert.That(_lives.Lives, Is.EqualTo(2));
+            }
+        }
+
+        // The following fly and the next wrong encounter's enemy strike together, with a "double hit" for the indicator.
+        [UnityTest]
+        public IEnumerator FollowingFlyAndEnemyStrikeTogether()
+        {
+            UseEnemies(MathRunner.Level.EnemyKind.Fly);
+            int doubles = 0;
+            Action onDouble = () => doubles++;
+            GameEvents.DoubleHit += onDouble;
+            var hitFrames = new System.Collections.Generic.List<int>();
+            Action<HitCause> onHit = c => hitFrames.Add(Time.frameCount);
+            try
+            {
+                using (var bot = new LevelBot())
+                {
+                    bot.AnswerPlanFor = n => n <= 1 ? AnswerPlan.Wrong : AnswerPlan.Correct;
+                    yield return PlayUntil(bot, () => FollowingFly.Current != null);
+                    GameEvents.PlayerHit += onHit;
+                    yield return PlayUntil(bot, () => hitFrames.Count >= 2);
+                    yield return Frames(bot, 3);
+                    Assert.That(hitFrames[1] - hitFrames[0], Is.LessThanOrEqualTo(1), "both hearts go at the same moment");
+                    Assert.That(doubles, Is.EqualTo(1), "one double-hit indicator");
+                    Assert.That(_lives.Lives, Is.EqualTo(1));
+                }
+            }
+            finally
+            {
+                GameEvents.DoubleHit -= onDouble;
+                GameEvents.PlayerHit -= onHit;
+            }
+        }
+
         [UnityTest]
         public IEnumerator FollowingFlyLeavesAtTheFinish()
         {

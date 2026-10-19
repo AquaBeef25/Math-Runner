@@ -107,6 +107,8 @@ namespace MathRunner.Core
         // A coin was picked up; the value goes to the score only.
         public static event Action<int> CoinCollected;
         public static event Action<AnswerMode> AnswerModeSet;
+        // Two hearts at once: the following fly joined a wrong answer's attack (for the "x2" indicator).
+        public static event Action DoubleHit;
 
         public static void RaiseQuestionShown(MathQuestion question, float timeLimit) => QuestionShown?.Invoke(question, timeLimit);
         public static void RaiseQuestionResolved(QuestionResult result) => QuestionResolved?.Invoke(result);
@@ -124,5 +126,6 @@ namespace MathRunner.Core
         public static void RaiseEnemyDefeated(UnityEngine.Vector3 position) => EnemyDefeated?.Invoke(position);
         public static void RaiseCoinCollected(int value) => CoinCollected?.Invoke(value);
         public static void RaiseAnswerModeSet(AnswerMode mode) => AnswerModeSet?.Invoke(mode);
+        public static void RaiseDoubleHit() => DoubleHit?.Invoke();
     }
 }

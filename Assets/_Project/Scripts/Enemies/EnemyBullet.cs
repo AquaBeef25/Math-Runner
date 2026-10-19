@@ -18,6 +18,7 @@ namespace MathRunner.Enemies
         public event Action Arrived;
 
         public float RemainingFraction => _total > 0f ? Mathf.Clamp01(_remaining / _total) : 0f;
+        public float RemainingSeconds => _remaining;
 
         // Pure so it can be tested: where the bullet is after dt seconds with `remaining` seconds of flight left.
         public static Vector2 Step(Vector2 position, Vector2 target, float remainingSeconds, float deltaSeconds)
@@ -33,6 +34,8 @@ namespace MathRunner.Enemies
             _remaining = _total;
             _flying = true;
         }
+
+        public void Rush(float seconds) => _remaining = Mathf.Min(_remaining, Mathf.Max(seconds, 0.01f));
 
         // Removed by the shockwave: no hit.
         public void Fizzle()

@@ -114,9 +114,9 @@ namespace MathRunner.Tests
             Assert.That(bottom, Is.LessThanOrEqualTo(0.3f * 1080f));
         }
 
-        // A fork is answered by jumping: its three circles show the answers with how to reach each route, and can't be tapped.
+        // A fork is answered by jumping onto a route: the answers are on the glowing signs, so the board shows no circles.
         [Test]
-        public void RouteModeCirclesCannotBeTapped()
+        public void RouteModeShowsNoCircles()
         {
             Open("Game");
             var answers = Answers();
@@ -124,20 +124,12 @@ namespace MathRunner.Tests
             answers.SetMode(AnswerMode.Route);
             answers.Show(question);
             var buttons = AnswerButtonList();
-            string[] captions = { "jump high", "hop", "stay low" };
-            for (int i = 0; i < 3; i++)
-            {
-                Assert.That(buttons[i].gameObject.activeSelf, Is.True);
-                Assert.That(buttons[i].interactable, Is.False, "circle " + i);
-                Assert.That(buttons[i].targetGraphic.raycastTarget, Is.False, "circle " + i + " must let taps through (they jump)");
-                Assert.That(buttons[i].transform.Find("Key").GetComponent<TextMeshProUGUI>().text, Is.EqualTo(captions[i]));
-            }
-            Assert.That(buttons[3].gameObject.activeSelf, Is.False);
-            Assert.That(Board().Find("Answers").GetComponentsInChildren<TextMeshProUGUI>(true).Any(t => t.text == "Jump to answer!"), Is.True);
+            Assert.That(buttons.Any(b => b.gameObject.activeSelf), Is.False, "no answer circles at a fork");
+            Assert.That(Board().Find("Answers").GetComponentsInChildren<TextMeshProUGUI>(true).Any(t => t.text == AnswerButtons.RouteHint), Is.True);
 
             answers.SetMode(AnswerMode.Tap);
             answers.Show(new MathQuestion(new MathProblem(QuestionType.Add, 5, 2, 3), new[] { 4, 5, 6, 7 }, 1));
-            Assert.That(buttons[0].interactable && buttons[0].targetGraphic.raycastTarget, Is.True, "back to tapping at an encounter");
+            Assert.That(buttons.All(b => b.gameObject.activeSelf && b.interactable && b.targetGraphic.raycastTarget), Is.True, "back to tapping at an encounter");
             Assert.That(buttons[0].transform.Find("Key").GetComponent<TextMeshProUGUI>().text, Is.EqualTo("1"));
         }
 

@@ -24,6 +24,7 @@ namespace MathRunner.UI
         [SerializeField] private float _correctShake = 0.25f;
         [SerializeField] private float _wrongShake = 1f;
         [SerializeField] private float _hitShake = 1.2f;
+        private static readonly Color DoubleHitColor = new Color32(0xFF, 0x5A, 0x5A, 0xFF);
 
         [Header("Flash")]
         [SerializeField] private float _flashAlpha = 0.35f;
@@ -57,6 +58,7 @@ namespace MathRunner.UI
             GameEvents.QuestionResolved += OnQuestionResolved;
             GameEvents.ScoreChanged += OnScoreChanged;
             GameEvents.PlayerHit += OnPlayerHit;
+            GameEvents.DoubleHit += OnDoubleHit;
             _player.Landed += OnLanded;
         }
 
@@ -65,6 +67,7 @@ namespace MathRunner.UI
             GameEvents.QuestionResolved -= OnQuestionResolved;
             GameEvents.ScoreChanged -= OnScoreChanged;
             GameEvents.PlayerHit -= OnPlayerHit;
+            GameEvents.DoubleHit -= OnDoubleHit;
             _player.Landed -= OnLanded;
         }
 
@@ -91,6 +94,13 @@ namespace MathRunner.UI
         private void OnScoreChanged(ScoreUpdate update)
         {
             if (update.Delta > 0) StartCoroutine(Popup("+" + update.Delta));
+        }
+
+        // The following fly bit together with the enemy: a big red "x2" so the two lost hearts make sense.
+        private void OnDoubleHit()
+        {
+            Shake(_hitShake * 2f);
+            StartCoroutine(Popup("x2 hit!", DoubleHitColor, 1.8f));
         }
 
         private void OnLanded(float downwardSpeed)
@@ -126,7 +136,9 @@ namespace MathRunner.UI
             _flash.enabled = alpha > 0f;
         }
 
-        private IEnumerator Popup(string text)
+        private IEnumerator Popup(string text) => Popup(text, null, 1f);
+
+        private IEnumerator Popup(string text, Color? tint, float size)
         {
             ActivePopups++;
             var popup = Instantiate(_popupTemplate, _popupTemplate.transform.parent);
@@ -134,11 +146,11 @@ namespace MathRunner.UI
             popup.text = text;
             var rect = popup.rectTransform;
             Vector2 start = rect.anchoredPosition;
-            Color color = popup.color;
+            Color color = tint ?? popup.color;
             yield return Tween.Run(_popupSeconds, Ease.Linear, t =>
             {
                 rect.anchoredPosition = start + Vector2.up * (_popupRise * Ease.OutQuad(t));
-                rect.localScale = Vector3.one * Mathf.Lerp(0.6f, 1f, Ease.OutBack(Mathf.Min(1f, t * 4f)));
+                rect.localScale = Vector3.one * (size * Mathf.Lerp(0.6f, 1f, Ease.OutBack(Mathf.Min(1f, t * 4f))));
                 color.a = 1f - Ease.InQuad(t);
                 popup.color = color;
             });

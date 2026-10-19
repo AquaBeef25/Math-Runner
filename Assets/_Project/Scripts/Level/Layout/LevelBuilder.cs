@@ -194,6 +194,18 @@ namespace MathRunner.Level
             kill.AddComponent<KillZone>();
         }
     
+        // Where a route's glowing answer sign floats: just above the start of its route. The middle one stays left of the
+        // high ledge so it never overlaps it; the low one stays under the middle ledge.
+        private static Vector3 SignCentre(ForkPlan fork, int lane)
+        {
+            var l = fork.Lanes[lane];
+            float r = RouteSign.Size * 0.5f;
+            if (lane == ForkPlan.Middle)
+                return new Vector3(Mathf.Min(l.Left + 0.5f, fork.Lanes[ForkPlan.High].Left - r - 0.1f), l.Top + r + 0.3f, 0f);
+            if (lane == ForkPlan.Low) return new Vector3(l.Left + r + 0.6f, l.Top + r + 0.02f, 0f); // under the middle ledge
+            return new Vector3(l.Left + r + 0.1f, l.Top + r + 0.5f, 0f);
+        }
+
         // A fork in the path: the high and middle ledges (one-way, the level's terrain), a sign with the answer at the start
         // of each route, mud and a chest on each route, and the zone trigger that asks the question.
         private void BuildFork(Transform root, LevelConfig config, int zoneIndex)
@@ -222,7 +234,7 @@ namespace MathRunner.Level
                     ledge.SetStyle(PlatformStyle.Bridge, Plan.GroundTopAt((lane.Left + lane.Right) * 0.5f)); // thin: heads stay clear of the ledge above
                 }
                 Color colour = theme != null ? theme.AnswerColor(i) : Color.white;
-                signs[i] = RouteSign.Create(forkRoot, new Vector3(lane.Left + 0.7f, lane.Top, 0f), _forkArt != null ? _forkArt.Sign : null,
+                signs[i] = RouteSign.Create(forkRoot, SignCentre(fork, i), theme != null ? theme.Ring : null,
                     theme != null ? theme.ChalkFont : null, colour);
                 mud[i] = MudPatch.Create(forkRoot, lane.MudLeft, lane.MudRight, lane.Top, _forkArt != null ? _forkArt.Mud : null,
                     _forkArt != null ? _forkArt.MudTint : new Color(0.36f, 0.22f, 0.12f));

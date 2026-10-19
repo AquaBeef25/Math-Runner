@@ -116,7 +116,11 @@ namespace MathRunner.Level
                 if (_health != null) _health.HitByWrongRoute();
                 else GameEvents.RaisePlayerHit(HitCause.Mud);
                 if (lane < _mud.Length && _mud[lane] != null) _mud[lane].Arm();
-                if (FollowingFly.Current != null) FollowingFly.Current.BiteAndLeave(_health);
+                if (FollowingFly.Current != null)
+                {
+                    FollowingFly.Current.BiteAndLeave(_health);
+                    GameEvents.RaiseDoubleHit();
+                }
             }
             float fraction = _timed ? ForkLogic.RemainingFraction(_elapsedReal, _lead) : 0f;
             GameEvents.RaiseQuestionResolved(new QuestionResult(_question, ForkLogic.Outcome(lane, _question.CorrectIndex), lane,
