@@ -175,14 +175,14 @@ namespace MathRunner.Tests
         }
 
         [Test]
-        public void MudAndChestSitOnEveryLaneAfterTheCommitPoint([Range(1, 8)] int seed)
+        public void SpikesAndChestSitOnEveryLaneAfterTheCommitPoint([Range(1, 8)] int seed)
         {
             foreach (var f in LevelPlanner.Create(Settings(seed)).Forks)
                 foreach (var lane in f.Lanes)
                 {
-                    Assert.That(lane.MudLeft, Is.GreaterThan(f.CommitX));
-                    Assert.That(lane.MudRight, Is.GreaterThan(lane.MudLeft + 2f));
-                    Assert.That(lane.ChestX, Is.GreaterThan(lane.MudRight).And.LessThan(lane.Right - 0.5f));
+                    Assert.That(lane.TrapLeft, Is.GreaterThan(f.CommitX));
+                    Assert.That(lane.TrapRight, Is.GreaterThan(lane.TrapLeft + 2f));
+                    Assert.That(lane.ChestX, Is.GreaterThan(lane.TrapRight).And.LessThan(lane.Right - 0.5f));
                     Assert.That(f.CommitX, Is.GreaterThan(lane.Left + 0.5f), "everyone has landed before committing");
                 }
         }

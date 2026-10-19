@@ -5,7 +5,7 @@ namespace MathRunner.Systems
 {
     public class LivesSystem : MonoBehaviour
     {
-        [SerializeField, Min(1)] private int _startingLives = 3;
+        [SerializeField, Min(1)] private int _startingLives = 5;
 
         public int Lives { get; private set; }
         public int StartingLives => _startingLives;

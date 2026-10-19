@@ -99,7 +99,7 @@ namespace MathRunner.Tests.PlayMode
                     Assert.That(fork.Chest(lane).IsOpened, Is.True);
                     Assert.That(coins, Is.GreaterThanOrEqualTo(5));
                     Assert.That(bot.Hits, Is.Empty);
-                    Assert.That(_lives.Lives, Is.EqualTo(3));
+                    Assert.That(_lives.Lives, Is.EqualTo(_lives.StartingLives));
                     Assert.That(_score.CorrectCount, Is.EqualTo(1));
                 }
             }
@@ -109,9 +109,9 @@ namespace MathRunner.Tests.PlayMode
             }
         }
 
-        // The heart is the wrong answer's price, not the mud's: jumping over the mud must not dodge it.
+        // The heart is the wrong answer's price, not the spikes': jumping over them must not dodge it (or cost another).
         [UnityTest]
-        public IEnumerator WrongRouteCostsItsHeartEvenWhenJumpingTheMud()
+        public IEnumerator WrongRouteCostsItsHeartEvenWhenJumpingTheSpikes()
         {
             var fork = FirstFork();
             var input = Object.FindFirstObjectByType<MathRunner.Input.InputReader>();
@@ -120,7 +120,7 @@ namespace MathRunner.Tests.PlayMode
                 yield return PlayUntil(bot, () => bot.Results.Count > 0, "the first fork to resolve");
                 Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
                 var lanePlan = fork.Plan.Lanes[fork.ChosenLane];
-                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.MudLeft - 2.2f && _player.IsGrounded, "the run-up to the mud");
+                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.TrapLeft - 2.2f && _player.IsGrounded, "the run-up to the spikes");
                 input.NotifyJumpPressed();
                 for (int i = 0; i < 25; i++)
                 {
@@ -129,14 +129,14 @@ namespace MathRunner.Tests.PlayMode
                     bot.AfterFrame();
                 }
                 input.NotifyJumpReleased();
-                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.MudRight + 1f, "the runner to pass the mud");
-                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Mud }), "exactly one heart for the wrong route");
-                Assert.That(_lives.Lives, Is.EqualTo(2));
+                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.TrapRight + 1f, "the runner to pass the spikes");
+                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.WrongRoute }), "exactly one heart for the wrong route");
+                Assert.That(_lives.Lives, Is.EqualTo(_lives.StartingLives - 1));
             }
         }
 
         [UnityTest]
-        public IEnumerator WrongRouteMudSlowsAndCostsOneHeart()
+        public IEnumerator WrongRouteRaisesSpikesAndCostsOneHeart()
         {
             var fork = FirstFork();
             using (var bot = new LevelBot { AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct })
@@ -145,12 +145,13 @@ namespace MathRunner.Tests.PlayMode
                 Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
                 int lane = fork.ChosenLane;
                 var lanePlan = fork.Plan.Lanes[lane];
-                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.MudLeft + 0.5f, "the runner to reach the mud");
-                Assert.That(_player.SpeedFactor, Is.EqualTo(MudPatch.SlowFactor), "slowed in the mud");
-                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.MudRight + 1f, "the runner to leave the mud");
-                Assert.That(_player.SpeedFactor, Is.EqualTo(1f), "full speed again");
-                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Mud }));
-                Assert.That(_lives.Lives, Is.EqualTo(2));
+                Assert.That(fork.Trap(lane).IsArmed, Is.True, "the wrong route's spikes pop up");
+                for (int i = 0; i < ForkPlan.LaneCount; i++)
+                    if (i != lane) Assert.That(fork.Trap(i).IsArmed, Is.False);
+                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.TrapRight + 1f, "the runner to pass the spikes");
+                Assert.That(_player.SpeedFactor, Is.EqualTo(1f), "spikes don't slow the runner");
+                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.WrongRoute }));
+                Assert.That(_lives.Lives, Is.EqualTo(_lives.StartingLives - 1));
                 Assert.That(fork.Chest(lane).IsOpened, Is.False);
             }
         }

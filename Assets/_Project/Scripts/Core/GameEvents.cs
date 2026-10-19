@@ -15,7 +15,7 @@ namespace MathRunner.Core
         Obstacle,
         Fall,
         Bullet,
-        Mud // a wrong route at a fork in the path
+        WrongRoute // a wrong route at a fork in the path
     }
 
     // How the current question is answered: tapping a circle (enemy encounter) or taking a route (fork in the path).

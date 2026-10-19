@@ -82,7 +82,7 @@ namespace MathRunner.Player
         private const float MinSpeedFactor = 0.2f;
         private float _speedFactor = 1f;
 
-        // Run speed multiplier (mud slows the runner); 0.2–1, back to 1 on respawn.
+        // Run speed multiplier (kept for slowing effects); 0.2–1, back to 1 on respawn.
         public float SpeedFactor
         {
             get => _speedFactor;

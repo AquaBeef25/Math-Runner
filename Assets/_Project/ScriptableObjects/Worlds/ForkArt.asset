@@ -16,6 +16,5 @@ MonoBehaviour:
   _chestClosed: {fileID: -8868380059434842094, guid: c11f55117dcb2604ca66edeeb099ef62, type: 3}
   _chestOpen: {fileID: 2574479916693036869, guid: 6054a67072bc883499f688e6d12c4362, type: 3}
   _coin: {fileID: 21300000, guid: 8d93d25e64ca7c64b95dbc1cadc4a1dd, type: 3}
-  _mud: {fileID: 21300000, guid: d31e3c9ef1c71964aa74e4ac81bc69a4, type: 3}
-  _mudTint: {r: 0.55, g: 0.36, b: 0.2, a: 1}
+  _spikes: {fileID: 21300000, guid: 1cdd6166cbd940b4b96d4e604645fe40, type: 3}
   _chestCoins: 5

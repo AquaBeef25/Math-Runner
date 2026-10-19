@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MathRunner.Tests
 {
-    // The pieces a fork needs: reading which route the runner took, 3-choice questions, the mud hit and the speed factor.
+    // The pieces a fork needs: reading which route the runner took, 3-choice questions, the wrong-route hit and the speed factor.
     public class ForkLogicTests
     {
         [Test]
@@ -56,7 +56,7 @@ namespace MathRunner.Tests
         }
 
         [Test]
-        public void WrongRouteCostsAHeartAsMud()
+        public void WrongRouteCostsAHeart()
         {
             var go = new GameObject("Runner", typeof(Rigidbody2D), typeof(BoxCollider2D));
             var health = go.AddComponent<PlayerHealth>();
@@ -72,7 +72,7 @@ namespace MathRunner.Tests
                 GameEvents.PlayerHit -= OnHit;
                 Object.DestroyImmediate(go);
             }
-            Assert.That(seen, Is.EqualTo(HitCause.Mud));
+            Assert.That(seen, Is.EqualTo(HitCause.WrongRoute));
         }
 
         [Test]

@@ -208,7 +208,7 @@ namespace MathRunner.Level
         public const float ForkMaxApproach = 12f;
         private const int MaxForkTop = 2;
         private const float ForkLandingRoom = 0.6f; // ledges start this far before the planned landing
-        private const float ForkMudLength = 3f;
+        private const float ForkTrapLength = 3f;
 
         private sealed class Builder
         {
@@ -506,9 +506,9 @@ namespace MathRunner.Level
             float midLeft = sx + hopLand - ForkLandingRoom;
             float highLeft = sx + fullLand - ForkLandingRoom;
             float commitX = sx + System.Math.Max(fullLand, longHopLand) + 1f;
-            float mudLeft = commitX + 0.5f;
-            float mudRight = mudLeft + ForkMudLength;
-            float chestX = mudRight + 1.2f;
+            float trapLeft = commitX + 0.5f;
+            float trapRight = trapLeft + ForkTrapLength;
+            float chestX = trapRight + 1.2f;
             float ledgeRight = chestX + 1.5f;
             float lowRight = ledgeRight + 1.5f;
 
@@ -521,9 +521,9 @@ namespace MathRunner.Level
 
             var lanes = new[]
             {
-                new ForkLane(highLeft, ledgeRight, baseTop + ForkHighRise, sx, FullHold, mudLeft, mudRight, chestX),
-                new ForkLane(midLeft, ledgeRight, baseTop + ForkMiddleRise, sx, ShortHold, mudLeft, mudRight, chestX),
-                new ForkLane(lowLeft, lowRight, baseTop - 1f, float.NaN, 0f, mudLeft, mudRight, chestX),
+                new ForkLane(highLeft, ledgeRight, baseTop + ForkHighRise, sx, FullHold, trapLeft, trapRight, chestX),
+                new ForkLane(midLeft, ledgeRight, baseTop + ForkMiddleRise, sx, ShortHold, trapLeft, trapRight, chestX),
+                new ForkLane(lowLeft, lowRight, baseTop - 1f, float.NaN, 0f, trapLeft, trapRight, chestX),
             };
             b.Plan.Forks.Add(new ForkPlan(zoneIndex, sx, baseTop, commitX, endX, lanes, thinkSeconds));
             return endX;

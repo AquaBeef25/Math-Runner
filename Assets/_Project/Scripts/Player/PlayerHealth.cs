@@ -43,7 +43,7 @@ namespace MathRunner.Player
         public void HitByWrongRoute()
         {
             _invincibleUntil = Time.time + _invincibleSeconds;
-            GameEvents.RaisePlayerHit(HitCause.Mud);
+            GameEvents.RaisePlayerHit(HitCause.WrongRoute);
         }
 
         public void Fell()

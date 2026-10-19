@@ -14,7 +14,7 @@ The instructor wants **both** the enemy encounters and the answer platforms from
   - **low road**: no jump, dipping into a hollow.
 - The world slows to **0.5×** while the fork approaches, until the runner commits to a route.
 - **Right route** → a treasure chest at its end pops coins (+10 each, like coins today).
-- **Wrong route** → mud: the runner slows down briefly and loses **one heart**, with no chest.
+- **Wrong route** → spikes pop up on it and the runner loses **one heart**, with no chest. (Mud that slowed the runner until 2026-10-19; the user asked for spikes instead.)
 - **Not jumping** is a real answer: it picks the low road. Forks have no "too slow/missed"; on timed levels the countdown is the distance to the split.
 - The board shows the question and three chalk circles captioned "jump high / hop / stay low", in the same colours as the signs. They can't be tapped: you answer by jumping. The hint reads "Jump to answer!".
 
@@ -37,7 +37,7 @@ Per-level knob `LevelConfig._forkShare`. Each question picks its kind from its o
 
 ## Decided during the build
 
-- **Heart timing:** a wrong route costs its heart the moment the route is taken. The mud only slows the runner, so jumping over the mud can't dodge the heart (found in the final review).
+- **Heart timing:** a wrong route costs its heart the moment the route is taken. The spikes are only the look of it, so jumping over them can't dodge the heart (found in the final review).
 - **No speed bonus at forks:** the runner always takes the whole countdown to reach the split, so a fork never earns the "fast answer" bonus that encounters give. Right answers still score their normal points and streak. Changing this would need a different rule, for example a bonus for the route chosen with the earliest jump. That is a possible follow-up.
 
 ## Geometry (T = ground height at the fork)

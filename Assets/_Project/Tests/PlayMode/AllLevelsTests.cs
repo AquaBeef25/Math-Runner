@@ -105,7 +105,7 @@ namespace MathRunner.Tests.PlayMode
 
                 Assert.That(game.State, Is.EqualTo(GameState.LevelComplete), $"Level {config.LevelNumber} not finished after {frames} frames (runner at x {player.transform.position.x:F1}, y {player.transform.position.y:F1}; finish at {builder.Plan.FinishX:F1}; hits {hitsAt}; {state})");
                 Assert.That(bot.Hits, Is.Empty, $"Level {config.LevelNumber}: the bot was hit: {hitsAt}");
-                Assert.That(lives.Lives, Is.EqualTo(3));
+                Assert.That(lives.Lives, Is.EqualTo(lives.StartingLives));
                 Assert.That(score.CorrectCount, Is.EqualTo(config.QuestionCount));
                 Assert.That(score.AnsweredCount, Is.EqualTo(config.QuestionCount));
 

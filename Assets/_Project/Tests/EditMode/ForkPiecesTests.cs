@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MathRunner.Tests
 {
-    // The things standing on a fork's routes: the chest at the end of the right one, the mud on a wrong one, the signs.
+    // The things standing on a fork's routes: the chest at the end of the right one, the spikes on a wrong one, the signs.
     public class ForkPiecesTests
     {
         private static Sprite Make(string name)
@@ -48,35 +48,39 @@ namespace MathRunner.Tests
             }
         }
 
+        // Spikes on a wrong route are the look of the mistake: hidden until armed, then they pop up out of the ground.
+        // They have no collider: the heart was already taken when the route was chosen, so they can't take a second.
         [Test]
-        public void MudOnlySlowsAndOnlyWhenArmed()
+        public void SpikesHideUntilArmedAndNeverHit()
         {
-            var (controller, health) = Runner();
-            var mud = MudPatch.Create(null, 0f, 3f, 0f, Make("mud"), new Color(0.35f, 0.22f, 0.12f));
-            int hits = 0;
-            void OnHit(HitCause c) { if (c == HitCause.Mud) hits++; }
-            GameEvents.PlayerHit += OnHit;
+            var spikes = SpikeTrap.Create(null, 0f, 3f, 1f, Make("spikes"));
             try
             {
-                Assert.That(mud.GetComponent<SpriteRenderer>().enabled, Is.False, "hidden until the route is wrong");
-                mud.Enter(controller, health);
-                Assert.That(hits, Is.EqualTo(0));
-                Assert.That(controller.SpeedFactor, Is.EqualTo(1f));
+                var sr = spikes.GetComponent<SpriteRenderer>();
+                Assert.That(sr.enabled, Is.False, "hidden until the route is wrong");
+                Assert.That(spikes.IsArmed, Is.False);
+                Assert.That(spikes.GetComponentsInChildren<Collider2D>(true), Is.Empty, "looks only");
+                Assert.That(sr.drawMode, Is.EqualTo(SpriteDrawMode.Tiled));
+                Assert.That(sr.size.x, Is.EqualTo(3f).Within(1e-4f), "spans the trap");
 
-                mud.Arm();
-                Assert.That(mud.GetComponent<SpriteRenderer>().enabled, Is.True);
-                mud.Enter(controller, health);
-                Assert.That(controller.SpeedFactor, Is.EqualTo(MudPatch.SlowFactor));
-                Assert.That(hits, Is.EqualTo(0), "the heart is taken when the wrong route is chosen, not by the mud");
-                mud.Exit(controller);
-                Assert.That(controller.SpeedFactor, Is.EqualTo(1f));
+                spikes.Arm();
+                Assert.That(sr.enabled, Is.True);
+                Assert.That(spikes.IsArmed, Is.True);
             }
             finally
             {
-                GameEvents.PlayerHit -= OnHit;
-                Object.DestroyImmediate(mud.gameObject);
-                Object.DestroyImmediate(controller.gameObject);
+                Object.DestroyImmediate(spikes.gameObject);
             }
+        }
+
+        // They rise from below the surface to standing on it, and stay there.
+        [Test]
+        public void SpikesPopUpOutOfTheGround()
+        {
+            Assert.That(SpikeTrap.RiseOffset(0f), Is.EqualTo(-SpikeTrap.SinkDepth).Within(1e-4f), "start buried");
+            Assert.That(SpikeTrap.RiseOffset(SpikeTrap.RiseSeconds * 0.5f), Is.GreaterThan(-SpikeTrap.SinkDepth).And.LessThan(0.1f));
+            Assert.That(SpikeTrap.RiseOffset(SpikeTrap.RiseSeconds), Is.EqualTo(0f).Within(1e-4f), "standing on the surface");
+            Assert.That(SpikeTrap.RiseOffset(5f), Is.EqualTo(0f).Within(1e-4f));
         }
 
         // The answers live on the route signs now, so they are big and glow in their route's colour.

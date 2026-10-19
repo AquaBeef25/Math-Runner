@@ -1,4 +1,5 @@
 using System.Linq;
+using MathRunner.Systems;
 using MathRunner.UI;
 using NUnit.Framework;
 using TMPro;
@@ -35,10 +36,22 @@ namespace MathRunner.Tests
             Assert.That(hearts, Is.Not.Null);
             Assert.That(new SerializedObject(bar.GetComponent<HudView>()).FindProperty("_hearts").objectReferenceValue, Is.SameAs(hearts));
             var images = hearts.GetComponentsInChildren<Image>(true);
-            Assert.That(images.Length, Is.EqualTo(3));
+            var lives = _scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<LivesSystem>(true)).Single();
+            Assert.That(images.Length, Is.EqualTo(lives.StartingLives), "one heart per life");
             hearts.Show(2);
             var theme = UiTheme.Load();
-            Assert.That(images.Select(i => i.sprite), Is.EqualTo(new[] { theme.HeartFull, theme.HeartFull, theme.HeartEmpty }));
+            Assert.That(images.Select(i => i.sprite),
+                Is.EqualTo(images.Select((_, i) => i < 2 ? theme.HeartFull : theme.HeartEmpty)));
+        }
+
+        // The real game gives five hearts (the hand-built sandbox keeps three for its tests).
+        [Test]
+        public void GameStartsWithFiveHearts()
+        {
+            var bar = TopBar("Game");
+            var lives = _scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<LivesSystem>(true)).Single();
+            Assert.That(lives.StartingLives, Is.EqualTo(5));
+            Assert.That(bar.GetComponentInChildren<HeartRow>(true).GetComponentsInChildren<Image>(true).Length, Is.EqualTo(5));
         }
 
         [Test]

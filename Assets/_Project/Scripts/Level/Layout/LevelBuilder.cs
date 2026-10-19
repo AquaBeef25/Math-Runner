@@ -207,7 +207,7 @@ namespace MathRunner.Level
         }
 
         // A fork in the path: the high and middle ledges (one-way, the level's terrain), a sign with the answer at the start
-        // of each route, mud and a chest on each route, and the zone trigger that asks the question.
+        // of each route, spikes and a chest on each route, and the zone trigger that asks the question.
         private void BuildFork(Transform root, LevelConfig config, int zoneIndex)
         {
             ForkPlan fork = null;
@@ -221,7 +221,7 @@ namespace MathRunner.Level
 
             int n = fork.Lanes.Length;
             var signs = new RouteSign[n];
-            var mud = new MudPatch[n];
+            var traps = new SpikeTrap[n];
             var chests = new TreasureChest[n];
             for (int i = 0; i < n; i++)
             {
@@ -236,8 +236,7 @@ namespace MathRunner.Level
                 Color colour = theme != null ? theme.AnswerColor(i) : Color.white;
                 signs[i] = RouteSign.Create(forkRoot, SignCentre(fork, i), theme != null ? theme.Ring : null,
                     theme != null ? theme.ChalkFont : null, colour);
-                mud[i] = MudPatch.Create(forkRoot, lane.MudLeft, lane.MudRight, lane.Top, _forkArt != null ? _forkArt.Mud : null,
-                    _forkArt != null ? _forkArt.MudTint : new Color(0.36f, 0.22f, 0.12f));
+                traps[i] = SpikeTrap.Create(forkRoot, lane.TrapLeft, lane.TrapRight, lane.Top, _forkArt != null ? _forkArt.Spikes : null);
                 chests[i] = TreasureChest.Create(forkRoot, new Vector3(lane.ChestX, lane.Top, 0f), _forkArt != null ? _forkArt.ChestClosed : null,
                     _forkArt != null ? _forkArt.ChestOpen : null, _forkArt != null ? _forkArt.Coin : null, _forkArt != null ? _forkArt.ChestCoins : 5, 10);
             }
@@ -249,7 +248,7 @@ namespace MathRunner.Level
             box.isTrigger = true;
             box.size = new Vector2(1f, 10f);
             box.offset = new Vector2(0f, 4f);
-            trigger.AddComponent<ForkZone>().Configure(_director, _encounter.FocusScale, fork.ThinkSeconds, zonePlan.Timed, fork, signs, mud, chests);
+            trigger.AddComponent<ForkZone>().Configure(_director, _encounter.FocusScale, fork.ThinkSeconds, zonePlan.Timed, fork, signs, traps, chests);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace MathRunner.Level
     // A fork in the path as a question: when the runner reaches the zone the question appears with three answers, one
     // chalked on each route's sign, and the world slows (Focus Zone). The route the runner lands on is the answer —
     // full jump = high ledge (choice 1), short hop = middle ledge (2), no jump = low road (3). Right: that route's chest
-    // opens. Wrong: that route's mud slows the runner and costs a heart. There is no "missed": not jumping is a choice.
+    // opens. Wrong: it costs a heart and that route's spikes pop up. There is no "missed": not jumping is a choice.
     // Taps and keys 1–4 are ignored here. Same events as an encounter, so scoring, difficulty and the board just work.
     [RequireComponent(typeof(BoxCollider2D))]
     public class ForkZone : MonoBehaviour
@@ -23,7 +23,7 @@ namespace MathRunner.Level
         private bool _timed;
         private ForkPlan _plan;
         private RouteSign[] _signs = new RouteSign[0];
-        private MudPatch[] _mud = new MudPatch[0];
+        private SpikeTrap[] _traps = new SpikeTrap[0];
         private TreasureChest[] _chests = new TreasureChest[0];
 
         private Phase _phase;
@@ -38,11 +38,11 @@ namespace MathRunner.Level
         public MathQuestion Question => _question;
         public bool IsFocusActive { get; private set; }
         public int ChosenLane { get; private set; } = -1;
-        public MudPatch Mud(int lane) => _mud[lane];
+        public SpikeTrap Trap(int lane) => _traps[lane];
         public TreasureChest Chest(int lane) => _chests[lane];
 
         public void Configure(QuestionDirector director, float focusScale, float lead, bool timed, ForkPlan plan,
-            RouteSign[] signs, MudPatch[] mud, TreasureChest[] chests)
+            RouteSign[] signs, SpikeTrap[] traps, TreasureChest[] chests)
         {
             _director = director;
             _focusScale = focusScale;
@@ -50,7 +50,7 @@ namespace MathRunner.Level
             _timed = timed;
             _plan = plan;
             _signs = signs;
-            _mud = mud;
+            _traps = traps;
             _chests = chests;
         }
 
@@ -91,8 +91,8 @@ namespace MathRunner.Level
             if (x < _plan.CommitX) return;
             float feet = _playerCollider.bounds.min.y;
             int lane = ForkLogic.LaneFor(feet, _plan.BaseTop, _player.IsGrounded, _playerBody.linearVelocity.y);
-            // Still in the air at the commit point (a long hop): wait for the landing, but decide before the mud.
-            if (lane < 0 && x < _plan.Lanes[ForkPlan.High].MudLeft - 0.3f) return;
+            // Still in the air at the commit point (a long hop): wait for the landing, but decide before the spikes.
+            if (lane < 0 && x < _plan.Lanes[ForkPlan.High].TrapLeft - 0.3f) return;
             if (lane < 0) lane = ForkLogic.LaneFor(feet, _plan.BaseTop, true, 0f);
             Commit(lane);
         }
@@ -112,10 +112,11 @@ namespace MathRunner.Level
             }
             else
             {
-                // The wrong answer costs its heart right away (jumping over the mud must not dodge it); the mud slows.
+                // The wrong answer costs its heart right away (jumping over the spikes must not dodge it); the spikes
+                // only show it.
                 if (_health != null) _health.HitByWrongRoute();
-                else GameEvents.RaisePlayerHit(HitCause.Mud);
-                if (lane < _mud.Length && _mud[lane] != null) _mud[lane].Arm();
+                else GameEvents.RaisePlayerHit(HitCause.WrongRoute);
+                if (lane < _traps.Length && _traps[lane] != null) _traps[lane].Arm();
                 if (FollowingFly.Current != null)
                 {
                     FollowingFly.Current.BiteAndLeave(_health);
