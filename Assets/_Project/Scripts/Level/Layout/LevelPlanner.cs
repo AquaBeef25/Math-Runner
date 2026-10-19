@@ -22,6 +22,8 @@ namespace MathRunner.Level
         public float Gravity;
         public float GravityScale;
         public float FallMultiplier;
+        public float MinJumpTime;  // the player's shortest jump before a release cuts it (0 = default 0.08 s)
+        public float JumpCut;      // rising speed kept when the jump is cut (0 = default 0.5)
 
         // World shape.
         public int MaxStepTiles;     // 0 = flat ground; 1–2 = steps and pillars up to that many tiles
@@ -51,8 +53,10 @@ namespace MathRunner.Level
         public float OutroSeconds;
 
         public static LevelPlanSettings From(LevelConfig config, float zoneSpanSeconds, float focusScale,
-            float jumpHeight, float gravity, float gravityScale, float fallMultiplier) => new LevelPlanSettings
+            float jumpHeight, float gravity, float gravityScale, float fallMultiplier, float minJumpTime = 0f, float jumpCut = 0f) => new LevelPlanSettings
         {
+            MinJumpTime = minJumpTime,
+            JumpCut = jumpCut,
             FocusScale = focusScale,
             QuestionCount = config.QuestionCount,
             RunSpeed = config.RunSpeed,

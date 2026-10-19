@@ -76,7 +76,8 @@ namespace MathRunner.Level
             if (Application.isPlaying) Audio.MusicPlayer.Play(config.Music); // not in Edit-mode previews
 
             var settings = LevelPlanSettings.From(config, _encounter.SpanSeconds, _encounter.FocusScale,
-                _player.JumpHeight, Physics2D.gravity.y, _player.BaseGravityScale, _player.FallGravityMultiplier);
+                _player.JumpHeight, Physics2D.gravity.y, _player.BaseGravityScale, _player.FallGravityMultiplier,
+                _player.MinJumpTime, _player.JumpCutMultiplier);
             Plan = LevelPlanner.Create(settings);
             var root = transform;
 

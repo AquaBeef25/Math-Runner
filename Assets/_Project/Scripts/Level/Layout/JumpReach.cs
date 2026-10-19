@@ -20,6 +20,18 @@ namespace MathRunner.Level
         public static bool CanReach(LevelPlanSettings s, float dx, float heightDiff) =>
             heightDiff <= s.JumpHeight * Margin && dx <= Distance(s, heightDiff) * Margin;
 
+        // The shortest tap the player can make (PlayerController's minimum jump time, then the cut): what a hop surely reaches.
+        public static float HopPeak(LevelPlanSettings s) =>
+            JumpMath.CutJumpPeak(s.JumpHeight, s.Gravity, s.GravityScale, 0f, MinJump(s), Cut(s));
+
+        public static bool CanHopReach(LevelPlanSettings s, float dx, float heightDiff) =>
+            heightDiff <= HopPeak(s) * Margin
+            && dx <= JumpMath.CutJumpAirTime(s.JumpHeight, s.Gravity, s.GravityScale, s.FallMultiplier, 0f, MinJump(s), Cut(s), heightDiff) * s.RunSpeed * Margin;
+
+        // Settings built by hand in tests leave these at 0: use the player's defaults then.
+        private static float MinJump(LevelPlanSettings s) => s.MinJumpTime > 0f ? s.MinJumpTime : 0.08f;
+        private static float Cut(LevelPlanSettings s) => s.JumpCut > 0f ? s.JumpCut : 0.5f;
+
         // Seconds after take-off until the feet are `height` above the take-off ground (rising part of the jump).
         public static float RiseTime(LevelPlanSettings s, float height)
         {

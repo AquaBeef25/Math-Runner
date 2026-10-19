@@ -53,6 +53,8 @@ namespace MathRunner.Player
         // The jump's shape, for level planning (what a full jump can reach).
         public float JumpHeight => _jumpHeight;
         public float FallGravityMultiplier => _fallGravityMultiplier;
+        public float MinJumpTime => _minJumpTime;
+        public float JumpCutMultiplier => _jumpCutMultiplier;
         public float BaseGravityScale => _rb != null ? _baseGravityScale : GetComponent<Rigidbody2D>().gravityScale;
 
         // For feedback only (dust, squash, sounds); gameplay never listens to these.
