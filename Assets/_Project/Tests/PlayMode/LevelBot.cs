@@ -57,6 +57,12 @@ namespace MathRunner.Tests.PlayMode
         private float _sinceShown; // real seconds, so slow-mo doesn't stretch the pick delay
         private int _holdLeft;
         private float _lastX;
+        // Forks in the path are answered by jumping onto the answer's route: full jump, short hop or no jump.
+        private readonly List<ForkPlan> _forks = new List<ForkPlan>();
+        private bool _routeMode;
+        private bool _forkJumpPending;
+        private float _forkJumpX;
+        private float _forkHold;
 
         public LevelBot()
         {
@@ -68,6 +74,7 @@ namespace MathRunner.Tests.PlayMode
             if (builder != null && builder.Plan != null)
             {
                 _planJumps = builder.Plan.Jumps.OrderBy(j => j.X).ToList();
+                _forks.AddRange(builder.Plan.Forks);
                 while (_nextJump < _planJumps.Count && _planJumps[_nextJump].X < _lastX) _nextJump++;
             }
             else
@@ -75,6 +82,7 @@ namespace MathRunner.Tests.PlayMode
                 FindHazardsInScene();
             }
 
+            GameEvents.AnswerModeSet += OnAnswerModeSet;
             GameEvents.QuestionShown += OnQuestionShown;
             GameEvents.QuestionResolved += OnQuestionResolved;
             GameEvents.PlayerHit += OnPlayerHit;
@@ -123,6 +131,11 @@ namespace MathRunner.Tests.PlayMode
             }
 
             if (_planJumps != null) FollowPlan(x);
+            if (_forkJumpPending && x >= _forkJumpX && _holdLeft == 0 && _player.IsGrounded)
+            {
+                Press(Mathf.Max(1, Mathf.CeilToInt(_forkHold / Mathf.Max(WorldTime.RealDeltaTime, 1e-4f))));
+                _forkJumpPending = false;
+            }
 
             foreach (var h in _hazards)
             {
@@ -144,6 +157,7 @@ namespace MathRunner.Tests.PlayMode
 
         public void Dispose()
         {
+            GameEvents.AnswerModeSet -= OnAnswerModeSet;
             GameEvents.QuestionShown -= OnQuestionShown;
             GameEvents.QuestionResolved -= OnQuestionResolved;
             GameEvents.PlayerHit -= OnPlayerHit;
@@ -182,20 +196,36 @@ namespace MathRunner.Tests.PlayMode
             _holdLeft = holdFrames;
         }
 
+        private void OnAnswerModeSet(AnswerMode mode) => _routeMode = mode == AnswerMode.Route;
+
         private void OnQuestionShown(MathQuestion question, float timeLimit)
         {
             int number = QuestionsShown++;
             _sinceShown = 0f;
-            if (PickFor != null)
+            int pick;
+            if (PickFor != null) pick = PickFor(number, question);
+            else
             {
-                _pendingPick = PickFor(number, question);
+                var plan = AnswerPlanFor(number);
+                int count = question.Choices.Count;
+                pick = plan == AnswerPlan.Correct ? question.CorrectIndex
+                    : plan == AnswerPlan.Wrong ? (question.CorrectIndex + 1) % count
+                    : -1;
+            }
+            if (!_routeMode)
+            {
+                _pendingPick = pick;
                 return;
             }
-            var plan = AnswerPlanFor(number);
-            int count = question.Choices.Count;
-            _pendingPick = plan == AnswerPlan.Correct ? question.CorrectIndex
-                : plan == AnswerPlan.Wrong ? (question.CorrectIndex + 1) % count
-                : -1;
+            // A fork: take the picked route (no pick = the low road, which needs no jump).
+            _pendingPick = -1;
+            float x = _player.transform.position.x;
+            var fork = _forks.FirstOrDefault(f => f.SplitX >= x - 1f && f.SplitX - x < 60f);
+            int lane = pick < 0 ? ForkPlan.Low : pick;
+            _forkJumpPending = fork != null && lane != ForkPlan.Low;
+            if (!_forkJumpPending) return;
+            _forkJumpX = fork.Lanes[lane].TakeoffX;
+            _forkHold = fork.Lanes[lane].HoldSeconds;
         }
 
         private void OnQuestionResolved(QuestionResult result) => Results.Add(result);

@@ -78,7 +78,8 @@ namespace MathRunner.Tests.PlayMode
             var lives = Object.FindFirstObjectByType<LivesSystem>();
             Assert.That(builder.Level, Is.SameAs(config));
 
-            int maxFrames = (int)(builder.Plan.FinishX / config.RunSpeed / FrameStep) + 500;
+            // Each question zone runs in slow motion for up to its whole lead time (a fork's approach), on top of the run.
+            int maxFrames = (int)(builder.Plan.FinishX / config.RunSpeed / FrameStep) + 500 + builder.Plan.Zones.Count * 400;
             var player = Object.FindFirstObjectByType<MathRunner.Player.PlayerController>();
             string hitsAt = "";
             System.Action<HitCause> onHit = c => hitsAt += $"{c}@x{player.transform.position.x:F1} ";
