@@ -40,7 +40,7 @@ namespace MathRunner.EditorTools
             var summary = report.summary;
             if (summary.result == BuildResult.Succeeded)
             {
-                Debug.Log($"Android build ready: {Path.GetFullPath(file)} ({summary.totalSize / (1024f * 1024f):0.0} MB)");
+                Debug.Log($"Android build ready: {Path.GetFullPath(file)} ({new FileInfo(file).Length / (1024f * 1024f):0.0} MB)");
                 EditorUtility.RevealInFinder(file);
             }
             else
