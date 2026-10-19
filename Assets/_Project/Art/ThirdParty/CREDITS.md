@@ -16,4 +16,11 @@ commercial use. Credit isn't required; we give it anyway. Thank you, Kenney!
 Each pack's original `License.txt` is kept in its folder. The packs' SVG `Vector` folders were
 removed on purpose; only the PNG sprites and OGG sounds are used.
 
+## Fonts
+
+| Font | Licence | Folder | Used for |
+|---|---|---|---|
+| Patrick Hand (Patrick Wagesreiter, via Google Fonts) | SIL Open Font Licence 1.1 (`Fonts/PatrickHand/OFL.txt`) | `Fonts/PatrickHand/` | Chalk writing on the chalkboard UI |
+| Kenney Future | CC0 (UI Pack) | `Kenney/UIPack/Font/` | Buttons and titles |
+
 Support Kenney: <https://www.kenney.nl/donate>
