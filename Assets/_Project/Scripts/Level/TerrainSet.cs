@@ -26,7 +26,10 @@ namespace MathRunner.Level
         [SerializeField] private Sprite _ledgeMiddle;  // terrain_<x>_horizontal_middle
         [SerializeField] private Sprite _ledgeRight;   // terrain_<x>_horizontal_right
         [SerializeField] private Sprite _pillar;       // terrain_<x>_vertical_middle
+        [Tooltip("Desert world: the level select shows its levels in yellow instead of green.")]
+        [SerializeField] private bool _isDesert;
 
+        public bool IsDesert => _isDesert;
         public Sprite TopLeft => _topLeft;
         public Sprite Top => _top;
         public Sprite TopRight => _topRight;
@@ -68,5 +71,7 @@ namespace MathRunner.Level
             _ledgeRight = ledgeRight;
             _pillar = pillar;
         }
+
+        public void SetDesert(bool desert) => _isDesert = desert;
     }
 }

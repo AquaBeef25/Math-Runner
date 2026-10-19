@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75625019e0d55a943b4e322c17a21cc2, type: 3}
+  m_Name: UiTheme
+  m_EditorClassIdentifier: MathRunner::MathRunner.UI.UiTheme
+  _chalkWhite: {r: 0.9647059, g: 0.9529412, b: 0.9098039, a: 1}
+  _chalkUrgent: {r: 1, g: 0.6156863, b: 0.6156863, a: 1}
+  _dimOverlay: {r: 0.078431375, g: 0.11764706, b: 0.15686275, a: 0.45}
+  _answerColors:
+  - {r: 0.56078434, g: 0.8156863, b: 1, a: 1}
+  - {r: 0.6509804, g: 0.9254902, b: 0.60784316, a: 1}
+  - {r: 1, g: 0.8784314, b: 0.5411765, a: 1}
+  - {r: 1, g: 0.6156863, b: 0.6156863, a: 1}
+  _buttonFont: {fileID: 11400000, guid: 13f55d6659b9b39439498b9e798e0aa8, type: 2}
+  _chalkFont: {fileID: 11400000, guid: f597984be748d0743aeae63ff6108a63, type: 2}
+  _board: {fileID: 21300000, guid: cb37d7b0aa758434c929bdd206ef39ce, type: 3}
+  _ring: {fileID: 21300000, guid: 0ecf81fe236d65e4faf57f8709d68dcd, type: 3}
+  _line: {fileID: 21300000, guid: 506b384bf44a47d48a1e2d51addc5da5, type: 3}
+  _tick: {fileID: 21300000, guid: 13f29cdfa3cc8d44b947caf06aec39cf, type: 3}
+  _cross: {fileID: 21300000, guid: 6f9002281a1abf04aa7b0494dcddde3d, type: 3}
+  _heartFull: {fileID: -5343243385429368126, guid: bcd3a161eb73ab94f866330c89ce8755, type: 3}
+  _heartEmpty: {fileID: 3184002201865105124, guid: f349b416502cb8644978938b8e4a2972, type: 3}
+  _coin: {fileID: 21300000, guid: edaed003b953be14781f70e07f3f673b, type: 3}
+  _star: {fileID: 4815476061570213978, guid: acfabf9739dd363478ce16387fdae37a, type: 3}
+  _starEmpty: {fileID: -5626360987136007387, guid: 31c6267ab2f95e44690540aa1ab06a93, type: 3}
+  _buttons:
+  - {fileID: 21300000, guid: 8e8baf7e093d41a4486d64b6891e5c93, type: 3}
+  - {fileID: 21300000, guid: f2b87424e87a8bf4fae707c5b0f9fff4, type: 3}
+  - {fileID: 21300000, guid: 5ceab820bac69814281f1f5b8b1581aa, type: 3}
+  - {fileID: 21300000, guid: 3f8bf74b385afc24caf67295d98ff52b, type: 3}
+  - {fileID: 21300000, guid: 66ca4284571724c4caec37dd4a24c5d5, type: 3}
+  _squareButtons:
+  - {fileID: 21300000, guid: b24fd2cee0250e542b510509af6962cc, type: 3}
+  - {fileID: 21300000, guid: 3394719200819784496f7a4ee4343479, type: 3}
+  - {fileID: 21300000, guid: 0660c628d43ac884d9fd68f31aef76ec, type: 3}
+  - {fileID: 21300000, guid: 3d0a58a70b9b0d24ea279383adb1b9e2, type: 3}
+  - {fileID: 21300000, guid: 6691ad223450e9245b06307a68f8f746, type: 3}
+  _roundButton: {fileID: -5634709684363379805, guid: 7bd5ffff075c6754ab1e3dde943db70e, type: 3}
+  _playIcon: {fileID: 3025370438878847380, guid: d772a4e5aa13b34429bcf89cc9a48e35, type: 3}
+  _repeatIcon: {fileID: -248900248145163067, guid: 59669996e64a4ef45bcfb594bde53728, type: 3}

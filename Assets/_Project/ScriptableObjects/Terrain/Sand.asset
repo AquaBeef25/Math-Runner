@@ -27,3 +27,4 @@ MonoBehaviour:
   _ledgeMiddle: {fileID: 21300000, guid: 82b53d80c8419cb47842def49edd77a8, type: 3}
   _ledgeRight: {fileID: 21300000, guid: 24b1fbd6e63e6e646a22d7b5f4cfb9c1, type: 3}
   _pillar: {fileID: 21300000, guid: ffaa05df2dcf5f44da935b3b9dcfac68, type: 3}
+  _isDesert: 1
