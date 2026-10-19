@@ -39,6 +39,13 @@ namespace MathRunner.Player
             GameEvents.RaisePlayerHit(HitCause.Bullet);
         }
 
+        // A wrong route at a fork: like a wrong answer, it always costs its heart and never moves the player.
+        public void HitByWrongRoute()
+        {
+            _invincibleUntil = Time.time + _invincibleSeconds;
+            GameEvents.RaisePlayerHit(HitCause.Mud);
+        }
+
         public void Fell()
         {
             _controller.Respawn(_checkpoint);

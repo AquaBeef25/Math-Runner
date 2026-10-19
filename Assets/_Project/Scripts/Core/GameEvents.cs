@@ -14,7 +14,15 @@ namespace MathRunner.Core
     {
         Obstacle,
         Fall,
-        Bullet
+        Bullet,
+        Mud // a wrong route at a fork in the path
+    }
+
+    // How the current question is answered: tapping a circle (enemy encounter) or taking a route (fork in the path).
+    public enum AnswerMode
+    {
+        Tap,
+        Route
     }
 
     public enum GameState
@@ -98,6 +106,7 @@ namespace MathRunner.Core
         public static event Action<UnityEngine.Vector3> EnemyDefeated;
         // A coin was picked up; the value goes to the score only.
         public static event Action<int> CoinCollected;
+        public static event Action<AnswerMode> AnswerModeSet;
 
         public static void RaiseQuestionShown(MathQuestion question, float timeLimit) => QuestionShown?.Invoke(question, timeLimit);
         public static void RaiseQuestionResolved(QuestionResult result) => QuestionResolved?.Invoke(result);
@@ -114,5 +123,6 @@ namespace MathRunner.Core
         public static void RaiseFocusEnded() => FocusEnded?.Invoke();
         public static void RaiseEnemyDefeated(UnityEngine.Vector3 position) => EnemyDefeated?.Invoke(position);
         public static void RaiseCoinCollected(int value) => CoinCollected?.Invoke(value);
+        public static void RaiseAnswerModeSet(AnswerMode mode) => AnswerModeSet?.Invoke(mode);
     }
 }

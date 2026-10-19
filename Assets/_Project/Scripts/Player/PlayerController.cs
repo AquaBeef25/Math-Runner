@@ -79,8 +79,21 @@ namespace MathRunner.Player
             _input.JumpPressed -= OnJumpPressed;
         }
 
+        private const float MinSpeedFactor = 0.2f;
+        private float _speedFactor = 1f;
+
+        // Run speed multiplier (mud slows the runner); 0.2–1, back to 1 on respawn.
+        public float SpeedFactor
+        {
+            get => _speedFactor;
+            set => _speedFactor = Mathf.Clamp(value, MinSpeedFactor, 1f);
+        }
+
+        private float Speed => _runSpeed * _speedFactor;
+
         public void Respawn(Vector2 position)
         {
+            _speedFactor = 1f;
             _rb.position = position;
             _rb.linearVelocity = Vector2.zero;
             _coyoteCounter = 0f;
@@ -149,10 +162,10 @@ namespace MathRunner.Player
 
             // On the ground and not jumping: move along the surface at full run speed (flat or ramp), with no gravity bob.
             bool onSurface = IsGrounded && !_isJumping;
-            if (onSurface && SampleGroundSlope(out float slope)) v.y = _runSpeed * slope;
+            if (onSurface && SampleGroundSlope(out float slope)) v.y = Speed * slope;
             _rb.gravityScale = onSurface ? 0f : v.y < 0f ? _baseGravityScale * _fallGravityMultiplier : _baseGravityScale;
             v.y = Mathf.Max(v.y, -_maxFallSpeed);
-            v.x = _runSpeed;
+            v.x = Speed;
             _rb.linearVelocity = v;
             _lastAirSpeedY = v.y;
         }
@@ -188,7 +201,7 @@ namespace MathRunner.Player
             slope = float.NegativeInfinity;
             // Front foot, plus one physics step ahead of it; take the steeper reading so the climb starts before the box
             // reaches a ramp, but levelling off or heading down never starts early (that would bump or dip).
-            float ahead = b.max.x + _runSpeed * Time.fixedDeltaTime;
+            float ahead = b.max.x + Speed * Time.fixedDeltaTime;
             float highest = float.NegativeInfinity, aheadSlope = float.NegativeInfinity, frontSlope = float.NegativeInfinity;
             if (TryGroundHit(new Vector2(ahead, b.min.y + 0.3f), 0.8f, b.min.y, out var hit))
             {
@@ -203,7 +216,7 @@ namespace MathRunner.Player
             slope = Mathf.Max(aheadSlope, frontSlope);
             // Never climb past the highest ground in front of the box this step, or the steeper reading would launch it at
             // a crest or a ramp foot. Starting a climb gets a little extra so the box clears the ramp's edge.
-            float step = _runSpeed * Time.fixedDeltaTime;
+            float step = Speed * Time.fixedDeltaTime;
             float allowance = aheadSlope < frontSlope ? LevelOffAllowance : ClimbAllowance;
             if (slope > 0f && step > 0f) slope = Mathf.Min(slope, Mathf.Max(0f, highest - b.min.y + allowance) / step);
             if (float.IsNegativeInfinity(slope) && TryGroundHit(new Vector2(b.center.x, b.min.y + 0.3f), 0.8f, b.min.y, out hit))

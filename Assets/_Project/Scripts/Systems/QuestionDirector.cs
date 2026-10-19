@@ -16,6 +16,7 @@ namespace MathRunner.Systems
         [SerializeField, Range(2, 4)] private int _choiceCount = 4;
 
         private QuestionGenerator _generator;
+        private QuestionGenerator _forkGenerator; // 3 choices: one per route of a fork
         private DifficultyTracker _tracker;
 
         public DifficultyTier Tier => _tracker.Tier;
@@ -42,10 +43,15 @@ namespace MathRunner.Systems
             _config = config;
             var rng = _seed == 0 ? new System.Random() : new System.Random(_seed);
             _generator = new QuestionGenerator(rng, _choiceCount);
+            _forkGenerator = new QuestionGenerator(rng, ForkPlan.LaneCount);
             _tracker = new DifficultyTracker();
         }
 
         public MathQuestion NextQuestion() => _generator.Generate(_config.Questions, _tracker.Tier);
+
+        // A question with `choices` answers (a fork has one per route); same difficulty and question types.
+        public MathQuestion NextQuestion(int choices) =>
+            choices == ForkPlan.LaneCount ? _forkGenerator.Generate(_config.Questions, _tracker.Tier) : NextQuestion();
 
         private void OnQuestionResolved(QuestionResult result)
         {

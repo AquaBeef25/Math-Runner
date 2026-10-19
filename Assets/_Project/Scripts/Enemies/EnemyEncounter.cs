@@ -129,6 +129,7 @@ namespace MathRunner.Enemies
             Attack.Launch(_player.transform, _flightRealSeconds * _settings.FocusScale);
 
             IsFocusActive = true;
+            GameEvents.RaiseAnswerModeSet(AnswerMode.Tap);
             GameEvents.RaiseFocusStarted(_settings.FocusScale);
             // Subscribe before announcing the question: a listener may pick an answer the moment it appears.
             GameEvents.AnswerChosen += OnAnswerChosen;

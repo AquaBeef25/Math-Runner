@@ -6,6 +6,7 @@ namespace MathRunner.Level
     public sealed class ForkPlan
     {
         public const int High = 0, Middle = 1, Low = 2;
+        public const int LaneCount = 3;
 
         public ForkPlan(int zoneIndex, float splitX, float baseTop, float commitX, float endX, ForkLane[] lanes)
         {
