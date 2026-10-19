@@ -49,7 +49,7 @@ namespace MathRunner.Tests
         }
 
         [Test]
-        public void MudSlowsAndCostsOneHeartOnlyWhenArmed()
+        public void MudOnlySlowsAndOnlyWhenArmed()
         {
             var (controller, health) = Runner();
             var mud = MudPatch.Create(null, 0f, 3f, 0f, Make("mud"), new Color(0.35f, 0.22f, 0.12f));
@@ -66,10 +66,8 @@ namespace MathRunner.Tests
                 mud.Arm();
                 Assert.That(mud.GetComponent<SpriteRenderer>().enabled, Is.True);
                 mud.Enter(controller, health);
-                Assert.That(hits, Is.EqualTo(1));
                 Assert.That(controller.SpeedFactor, Is.EqualTo(MudPatch.SlowFactor));
-                mud.Enter(controller, health);
-                Assert.That(hits, Is.EqualTo(1), "one heart, however often the runner re-enters");
+                Assert.That(hits, Is.EqualTo(0), "the heart is taken when the wrong route is chosen, not by the mud");
                 mud.Exit(controller);
                 Assert.That(controller.SpeedFactor, Is.EqualTo(1f));
             }

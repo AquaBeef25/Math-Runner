@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace MathRunner.Level
 {
-    // Mud on a fork's route, shown only when that route was a wrong answer: the runner slows down while in it and loses
-    // one heart (once). Back to full speed on leaving it.
+    // Mud on a fork's route, shown only when that route was a wrong answer: the runner slows down while in it (the
+    // heart itself is taken by the ForkZone when the route is chosen). Back to full speed on leaving it.
     [RequireComponent(typeof(SpriteRenderer))]
     public class MudPatch : MonoBehaviour
     {
@@ -12,7 +12,6 @@ namespace MathRunner.Level
         private const float Depth = 0.35f;
 
         private bool _armed;
-        private bool _hit;
 
         public bool IsArmed => _armed;
 
@@ -58,9 +57,6 @@ namespace MathRunner.Level
         {
             if (!_armed) return;
             controller.SpeedFactor = SlowFactor;
-            if (_hit) return;
-            _hit = true;
-            if (health != null) health.HitByWrongRoute();
         }
 
         public void Exit(PlayerController controller)

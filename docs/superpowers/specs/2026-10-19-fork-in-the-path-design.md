@@ -35,6 +35,11 @@ Per-level knob `LevelConfig._forkShare`. Each question picks its kind from its o
 - `GameManager` is the only writer of the time scale.
 - A fork and an encounter are never in focus at the same time.
 
+## Decided during the build
+
+- **Heart timing:** a wrong route costs its heart the moment the route is taken. The mud only slows the runner, so jumping over the mud can't dodge the heart (found in the final review).
+- **No speed bonus at forks:** the runner always takes the whole countdown to reach the split, so a fork never earns the "fast answer" bonus that encounters give. Right answers still score their normal points and streak. Changing this would need a different rule, for example a bonus for the route chosen with the earliest jump. That is a possible follow-up.
+
 ## Geometry (T = ground height at the fork)
 
 | Route | Height | Built from |

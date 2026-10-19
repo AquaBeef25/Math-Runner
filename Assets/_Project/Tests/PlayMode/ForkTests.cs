@@ -109,6 +109,32 @@ namespace MathRunner.Tests.PlayMode
             }
         }
 
+        // The heart is the wrong answer's price, not the mud's: jumping over the mud must not dodge it.
+        [UnityTest]
+        public IEnumerator WrongRouteCostsItsHeartEvenWhenJumpingTheMud()
+        {
+            var fork = FirstFork();
+            var input = Object.FindFirstObjectByType<MathRunner.Input.InputReader>();
+            using (var bot = new LevelBot { AnswerPlanFor = n => n == 0 ? AnswerPlan.Wrong : AnswerPlan.Correct })
+            {
+                yield return PlayUntil(bot, () => bot.Results.Count > 0, "the first fork to resolve");
+                Assert.That(bot.Results[0].Outcome, Is.EqualTo(AnswerOutcome.Wrong));
+                var lanePlan = fork.Plan.Lanes[fork.ChosenLane];
+                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.MudLeft - 2.2f && _player.IsGrounded, "the run-up to the mud");
+                input.NotifyJumpPressed();
+                for (int i = 0; i < 25; i++)
+                {
+                    bot.BeforeFrame();
+                    yield return null;
+                    bot.AfterFrame();
+                }
+                input.NotifyJumpReleased();
+                yield return PlayUntil(bot, () => _player.transform.position.x > lanePlan.MudRight + 1f, "the runner to pass the mud");
+                Assert.That(bot.Hits, Is.EqualTo(new[] { HitCause.Mud }), "exactly one heart for the wrong route");
+                Assert.That(_lives.Lives, Is.EqualTo(2));
+            }
+        }
+
         [UnityTest]
         public IEnumerator WrongRouteMudSlowsAndCostsOneHeart()
         {

@@ -112,6 +112,9 @@ namespace MathRunner.Level
             }
             else
             {
+                // The wrong answer costs its heart right away (jumping over the mud must not dodge it); the mud slows.
+                if (_health != null) _health.HitByWrongRoute();
+                else GameEvents.RaisePlayerHit(HitCause.Mud);
                 if (lane < _mud.Length && _mud[lane] != null) _mud[lane].Arm();
                 if (FollowingFly.Current != null) FollowingFly.Current.BiteAndLeave(_health);
             }
